@@ -3,43 +3,43 @@
 import { supabase } from "@/lib/supabase";
 
 export default function UploadPage() {
-  async function handleUpload(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0];
+ async function handleUpload(
+  event: React.ChangeEvent<HTMLInputElement>
+) {
+  const files = event.target.files;
 
-    if (!file) return;
+  if (!files || files.length === 0) return;
 
-    // 1. Create a unique file name to avoid overwriting
+  for (const file of Array.from(files)) {
     const filePath = `${Date.now()}-${file.name}`;
 
-    // 2. Upload file to Supabase Storage
+    // Upload to Storage
     const { data, error: uploadError } = await supabase.storage
       .from("reports")
       .upload(filePath, file);
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
-      return;
+      continue;
     }
 
-    // 3. Save metadata to database AFTER successful upload
+    // Save metadata
     const { error: dbError } = await supabase
       .from("uploads")
       .insert({
         file_name: file.name,
         file_type: file.type,
-        file_url: data?.path // path inside Supabase storage
+        file_url: data?.path,
       });
 
     if (dbError) {
       console.error("DB insert error:", dbError);
-      return;
+      continue;
     }
-
-    alert("Upload successful");
   }
 
+  alert("Files uploaded successfully");
+}
   return (
     <div className="p-6">
       <h1 className="text-lg font-semibold mb-4">
@@ -47,9 +47,10 @@ export default function UploadPage() {
       </h1>
 
       <input
-        type="file"
-        onChange={handleUpload}
-      />
+  type="file"
+  multiple
+  onChange={handleUpload}
+/>
     </div>
   );
 }
