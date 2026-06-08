@@ -10,30 +10,54 @@ export default function UploadPage() {
 
   if (!files || files.length === 0) return;
 
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    alert("Please log in");
+    return;
+  }
+
+  // Get company ID from profile
+  const { data: profile, error: profileError } =
+    await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single();
+
+  if (profileError || !profile) {
+    alert("No company linked to account");
+    return;
+  }
+
   for (const file of Array.from(files)) {
     const filePath = `${Date.now()}-${file.name}`;
 
-    // Upload to Storage
-    const { data, error: uploadError } = await supabase.storage
-      .from("reports")
-      .upload(filePath, file);
+    const { data, error: uploadError } =
+      await supabase.storage
+        .from("reports")
+        .upload(filePath, file);
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
+      console.error(uploadError);
       continue;
     }
 
-    // Save metadata
-    const { error: dbError } = await supabase
-      .from("uploads")
-      .insert({
-        file_name: file.name,
-        file_type: file.type,
-        file_url: data?.path,
-      });
+    const { error: dbError } =
+      await supabase
+        .from("uploads")
+        .insert({
+          company_id: profile.company_id,
+          file_name: file.name,
+          file_type: file.type,
+          file_url: data?.path,
+        });
 
     if (dbError) {
-      console.error("DB insert error:", dbError);
+      console.error(dbError);
       continue;
     }
   }
