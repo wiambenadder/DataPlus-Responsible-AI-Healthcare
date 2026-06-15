@@ -1,3 +1,5 @@
+
+// main report submission page, allows users to enter qualitative answers and quantitative metrics for a given reporting period, saves data to the database on submission
 "use client";
 
 import { useEffect, useState } from "react";
