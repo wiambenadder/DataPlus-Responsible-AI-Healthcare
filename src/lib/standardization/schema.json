@@ -1,0 +1,567 @@
+{
+  "_comment": "Canonical master schema for the GHIG9 12-month reporting tool, inferred from the real grantee files. This is the SINGLE SOURCE OF TRUTH: edit it by hand to add indicators/aliases, change canonical names, mark columns as qualitative/quantitative/date, or retune thresholds — no .ts changes needed. NOTE: all row/column indices in sheet_roles are 1-BASED; parse.ts converts them to the 0-based grid that SheetJS produces.",
+  "n_reference_files": 5,
+  "sheet_roles": {
+    "project_status": {
+      "aliases": [
+        "Project Status_Midyear",
+        "Project Status",
+        "Aggregate Project Status",
+        "Project Status_12month"
+      ],
+      "layout": "project_status",
+      "org_name_cell": [
+        2,
+        2
+      ],
+      "pm_name_cell": [
+        3,
+        2
+      ],
+      "data_start_row": 6,
+      "columns": {
+        "objective": 2,
+        "activities": 3,
+        "deadline": 4,
+        "status_6m": 5,
+        "status_12m": 6,
+        "delay_reason": 7,
+        "delay_plan": 8,
+        "delay_est_date": 9,
+        "notes": 10
+      },
+      "qualitative_columns": [
+        "objective",
+        "activities",
+        "deadline",
+        "status_6m",
+        "status_12m",
+        "delay_reason",
+        "delay_plan",
+        "notes"
+      ],
+      "quantitative_columns": [],
+      "date_columns": [
+        "delay_est_date"
+      ]
+    },
+    "outputs": {
+      "aliases": [
+        "Outputs_Midyear",
+        "Outputs",
+        "Aggregate Outputs",
+        "Outputs_12month"
+      ],
+      "layout": "indicator_table",
+      "header_row": 1,
+      "data_start_row": 2,
+      "columns": {
+        "strategy": 1,
+        "indicator": 2,
+        "conducts_activity": 3,
+        "value_6m": 4,
+        "value_12m": 5,
+        "additional_info_required": 6,
+        "additional_info_response": 7,
+        "notes": 8
+      },
+      "qualitative_columns": [
+        "additional_info_required",
+        "additional_info_response",
+        "notes"
+      ],
+      "quantitative_columns": [
+        "value_6m",
+        "value_12m"
+      ],
+      "date_columns": []
+    },
+    "outcomes": {
+      "aliases": [
+        "Outcomes_Midyear",
+        "Outcomes",
+        "Aggregate Outcomes",
+        "Outcomes_12month"
+      ],
+      "layout": "indicator_table",
+      "header_row": 1,
+      "data_start_row": 2,
+      "columns": {
+        "framework_element": 1,
+        "indicator": 2,
+        "type": 3,
+        "numerator_definition": 4,
+        "denominator_definition": 5,
+        "conducts_activity": 6,
+        "project_specific_definition": 7,
+        "numerator_6m": 8,
+        "denominator_6m": 9,
+        "value_6m": 10,
+        "notes_6m": 11,
+        "numerator_12m": 13,
+        "denominator_12m": 14,
+        "value_12m": 15,
+        "notes_12m": 16
+      },
+      "qualitative_columns": [
+        "project_specific_definition",
+        "numerator_definition",
+        "denominator_definition",
+        "notes_6m",
+        "notes_12m"
+      ],
+      "quantitative_columns": [
+        "numerator_6m",
+        "denominator_6m",
+        "value_6m",
+        "numerator_12m",
+        "denominator_12m",
+        "value_12m"
+      ],
+      "date_columns": []
+    }
+  },
+  "column_synonyms": {
+    "strategy": [
+      "strategy",
+      "strategy area"
+    ],
+    "indicator": [
+      "indicator",
+      "indicator name",
+      "indicator definition"
+    ],
+    "conducts_activity": [
+      "my organization conducts this activity",
+      "conducts this activity",
+      "yes/no",
+      "reporting"
+    ],
+    "value_6m": [
+      "midyear number first 6 months",
+      "6 month number",
+      "midyear number"
+    ],
+    "value_12m": [
+      "midyear number first 12 months",
+      "12 month number",
+      "annual number"
+    ],
+    "additional_info_required": [
+      "additional information required for indicator"
+    ],
+    "additional_info_response": [
+      "response to column e"
+    ],
+    "notes": [
+      "notes"
+    ]
+  },
+  "reporting_periods": {
+    "6m": {
+      "label": "6-month (Feb 1, 2025 - Jul 31, 2025)",
+      "header_keywords": [
+        "6 months",
+        "july 31"
+      ]
+    },
+    "12m": {
+      "label": "12-month (Feb 1, 2025 - Jan 31, 2026)",
+      "header_keywords": [
+        "12 months",
+        "jan 31"
+      ]
+    }
+  },
+  "drop_row_markers": [
+    "DELETE",
+    "SUGGEST DELETING"
+  ],
+  "fuzzy": {
+    "indicator_threshold": 88,
+    "column_threshold": 80
+  },
+  "canonical_indicators": {
+    "outputs": [
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of AI accuracy improvements deployed",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of AI implementation evaluations conducted",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of AI solutions integrated to the product",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of data governance policies established for data sources",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of new AI algorithms created",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of new cloud/local structure established for data base management or AI deployment",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of new data collected/acquired",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of safeguards for AI accuracy established",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of security measures established for data protections",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "AI Tool",
+        "canonical_name": "Number of trainings/fine tunings of the AI tool conducted",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Number of health workers equipped with job as, health education materials, or other support materials to improve the quality of healthcare services proved",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Number of health workers trained in disease diagnosis, care, management and reporting (e.g., CHWs, Nurses, Trainer of Trainers, Health provers, Physicians, Pharmacists) for your target disease",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Number of health workers trained in immunization and practices, such as vaccine usage and tracking, vaccine hesitancy, and proving patient/community vaccine education (e.g., CHWs, Nurses, Trainer of Trainers, Health provers, Physicians, Pharmacists)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Number of health workers trained in the AI platforms, tools, or technology (e.g., CHWs, Nurses, Trainer of Trainers, Health provers, Physicians, Pharmacists)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Number of job as, health worker education materials, or other support materials for staff created (on any topic)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Total number of health workers trained (should equal sum of rows 36 and 37)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Total number of unique clinical workers trained",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity Building",
+        "canonical_name": "Total number of unique non-clinical workers trained",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Community Awareness",
+        "canonical_name": "Number of community awareness /education campaigns",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Community Awareness",
+        "canonical_name": "Number of indivuals reached through community awareness /education campaigns (target audience of the campaigns)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Community Awareness",
+        "canonical_name": "Number of indivuals reached through other community awareness and education efforts covering prevention and care (eclude community campaigns or education during patients visits)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Community Awareness",
+        "canonical_name": "Number of patients educated during patient visits on prevention and care",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Evence generated",
+        "canonical_name": "Number of research publications, white papers, toolkits, policy papers, position papers, briefings, and other knowledge products supported by GHIG9 project",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Facility Strengthening",
+        "canonical_name": "Number of existing points of care with expanded services. Expanded services means adding new healthcare service offerings to points of care, which are broadly defined as access points for receiving healthcare services.",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Facility Strengthening",
+        "canonical_name": "Number of facilities with new/updated clinical practice protocols",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Facility Strengthening",
+        "canonical_name": "Number of facilities with new/updated immunization micro-plans",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Facility Strengthening",
+        "canonical_name": "Number of facilities with new/updated laboratory protocols",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Facility Strengthening",
+        "canonical_name": "Number of facilities with new/updated supply chain management procedures",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Facility Strengthening",
+        "canonical_name": "Number of facilities with the AI technology platform implemented",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Facility Strengthening",
+        "canonical_name": "Total number of facilities strengthened through one or more of the changes below. Note that facilities in this section refers to brick-and-mortar facilities.",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Partnerships",
+        "canonical_name": "Number of new partnerships formed with points of care (for innovators who do not operate their own facilities or points of care)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Partnerships",
+        "canonical_name": "Total number of new partnerships formed (including any partnerships with points of care)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Number of new care decision pathway established",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Number of new healthcare access point established",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Number of new points of care established",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Number of pathways for new resource allocation established",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Number of peri-urban areas operating in through GHIG9 project",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Number of rural areas operating in through GHIG9 project",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Number of urban areas operating in through GHIG9 project",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Total number of sub-national geographies (districts/states/provinces) operating in through GHIG9 project",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Physical expansion",
+        "canonical_name": "Total number of urban, peri-urban, and/ or rural areas operating in through GHIG9 project (should equal sum of rows 5, 6, and 7)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of Children Under 5 years receiving confirmed diagnosis of your target disease area",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of Children Under 5 years screened for your target disease area",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of Children Under 5 years with confirmed diagnosis for your target disease area receiving appropriate care or referred to an external facility for appropriate care (Appropriate care refers to services according to WHO guildeline or national clinical guidelines)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of FEMALE Children Under 5 years reached with direct healthcare services",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of FEMALE patients reached with direct healthcare services for your target disease area",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of MALE Children Under 5 years reached with direct healthcare services",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of MALE patients reached with direct healthcare services for your target disease area",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of people in catchment areas with access to GHIG-affiliated points of care",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of pregnant women and new mothers receiving confirmed diagnosis of your target disease area",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of pregnant women and new mothers receiving confirmed diagnosis of your target disease area, and receiving appropriate care (Appropriate care refers to services according to WHO guildeline or national clinical guelines)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Number of pregnant women and new mothers screened for your target disease area",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Total number of Children Under 5 years reached with direct healthcare services",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Total number of patients from LOW-INCOME HOUSEHOLDS reached with direct healthcare services for your target disease area (we use the international poverty line: $2.15 per person per day",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Total number of patients from MARGINALIZED COMMUNITIES reached with direct healthcare services for your target disease area (Marginalized communities defined as communities that experience discrimination and exclusion (social, political and economic) because of unequal power relationships across economic, political, social and cultural dimensions)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery",
+        "canonical_name": "Total number of patients reached with direct healthcare services for your target disease area",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery - Vaccinations",
+        "canonical_name": "Number of children 0 to 5 years receiving vaccinations (including newborns)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery - Vaccinations",
+        "canonical_name": "Number of newborns (<1 month old) receiving vaccinations",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery - Vaccinations",
+        "canonical_name": "Number of pregnant women and new mothers receiving recommended vaccinations (based on the EPI program in program country/ies)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Delivery - Vaccinations",
+        "canonical_name": "Total number of indivuals receiving vaccinations (all sexes and ages)",
+        "present_in_n_companies": 5
+      }
+    ],
+    "outcomes": [
+      {
+        "strategy": "Capacity building",
+        "canonical_name": "Percent of health and lab workers trained",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Capacity building",
+        "canonical_name": "Percent of healthcare workers with improved knowledge of infectious diseases (including childhood illnesses) AMR stewardship, maternal and newborn health, and cancer prevention screening, diagnosis screening, diagnosis, referral, treatment, and vaccination",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Healthcare utilization",
+        "canonical_name": "Percent change in healthcare utilization in the community (demonstrated through increased immunization and/or care-seeking for IDs)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Out-of-pocket expenditure",
+        "canonical_name": "Percent change in average cost per patient served",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Patient/community Awareness",
+        "canonical_name": "Percent of patients/community members with improved knowledge of infectious diseases (including childhood illnesses), AMR stewardship, maternal and newborn health, and cancer prevention screening, diagnosis, referral, treatment, and vaccination",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Policy changes",
+        "canonical_name": "Changes in policies, budget allocations, endorsements or adoption of efforts that enable scale, sustainability or greater reach of quality healthcare for your target disease",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Prevention",
+        "canonical_name": "Percent of Clinicians Adhering to Antimicrobial Stewardship Interventions",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Prevention",
+        "canonical_name": "Percent of children aged 12-23 months that have received the last recommended dose for each vaccine in national schedule (children that are completely up to date and have received final doses of all recommended vaccines)",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Prevention",
+        "canonical_name": "Percent of children that have received the last recommended dose (4th dose) of malaria vaccine",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Prevention",
+        "canonical_name": "Percent of patients (all ages) that have received HPV vaccine",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Prevention",
+        "canonical_name": "Percent of pregnant women attending at least four antenatal visits.",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Prevention",
+        "canonical_name": "Percent of women screened for cancer",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Service Capacity",
+        "canonical_name": "Percentage of people accessing the AI tool",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Treatment",
+        "canonical_name": "Percent of children under 5 years given appropriate treatment and/or referral for childhood diseases",
+        "present_in_n_companies": 5
+      },
+      {
+        "strategy": "Treatment",
+        "canonical_name": "Percent of patients accessing care supported by the AI platform",
+        "present_in_n_companies": 5
+      }
+    ],
+    "outputs_partial_coverage": [],
+    "outcomes_partial_coverage": []
+  }
+}
