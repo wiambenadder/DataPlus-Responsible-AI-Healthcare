@@ -1,17 +1,45 @@
 import os
+import json
+from dotenv import load_dotenv
 from openai import OpenAI
+from supabase import create_client
+from dotenv import load_dotenv
+from openai import OpenAI
+from supabase import create_client
+
+load_dotenv()
 
 client = OpenAI(
     api_key=os.getenv("LITELLM_TOKEN"),
     base_url="https://litellm.oit.duke.edu"
 )
 
-domain = "Domain 1: Model Source"
-subtopic = "Governance & Stewardship"
+print("SUPABASE_URL:", os.getenv("SUPABASE_URL"))
+print("SUPABASE_KEY exists:", os.getenv("SUPABASE_KEY") is not None)
 
-response = """
-The innovator described that Jacaranda Health is authorized to collect data from mothers in partner health facilities, and that they obtain government/Ministry of Health licenses to operate and collect this type of data. They stated the only personal identifier collected is the mother’s phone number, and that it is excluded from model-training datasets; training uses message questions and responses. They indicated data transformation/writing tasks are handled by the machine learning team, and that a quality assurance team led by a medical doctor checks that the data/content is correct and aligned with medical context. They also stated that training data is stored in their databases and linked using a random UUID, and that the data is not shared outside the company (not open-sourced).
-"""
+supabase = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_KEY")
+)
+
+result = (
+    supabase
+    .table("qualitative_responses")
+    .select("*")
+    .limit(10)
+    .execute()
+)
+
+row = result.data[0]
+
+# Pull fields from Supabase
+domain = row["domain"]
+subtopic = row["Subtopic"]
+response = row["answer"]
+
+print("USING DOMAIN:", domain)
+print("USING SUBTOPIC:", subtopic)
+print("USING RESPONSE:", response[:200])
 
 prompt = f"""
 You are a qualitative research coder applying a predefined assessment framework.
@@ -193,21 +221,6 @@ Reasoning:
 Explanation:  
 [Brief explanation]
 
-Return JSON only with this structure:
-
-{
-  "domain": "",
-  "subtopic": "",
-  "relevant_innovator_information": "",
-  "evidence_found": "",
-  "rating": "",
-  "rating_justification": "",
-  "actual_metric_used": "",
-  "barrier_classification": "",
-  "language_misalignment": "",
-  "language_misalignment_explanation": ""
-}
-
 Transcript Section:  
 {response}
   
@@ -216,6 +229,13 @@ Domain:
 
 Subtopic:  
 {subtopic}
+
+Return JSON only:
+
+{{
+  "ai_rating": "Not Addressed / Aware, Not Practiced / Practiced, Not Measured / Measured",
+  "ai_explanation": "Brief explanation based strictly on transcription"
+}}
 
 """
 
@@ -226,5 +246,23 @@ result = client.chat.completions.create(
         {"role": "user", "content": prompt}
     ]
 )
+ai_text = result.choices[0].message.content
+print(ai_text)
 
-print(result.choices[0].message.content)
+ai_json = json.loads(ai_text)
+
+row_id = row["id"]
+
+update_result = (
+    supabase
+    .table("qualitative_responses")
+    .update({
+        "ai_assessment": ai_json["ai_rating"],
+        "ai_reasoning": ai_json["ai_explanation"]
+    })
+    .eq("id", row_id)
+    .execute()
+)
+
+print("UPDATE RESULT:")
+print(update_result.data)
