@@ -1,3 +1,5 @@
+// signup page for the app, allows users to create an account with their email and password, redirects to company setup page on successful signup
+
 "use client";
 
 import { useState } from "react";

@@ -1,3 +1,6 @@
+// shows history of submitted reports for the user's company, only accessible if user is signed in and has a company profile set up
+
+
 "use client";
 
 import { useEffect, useState } from "react";

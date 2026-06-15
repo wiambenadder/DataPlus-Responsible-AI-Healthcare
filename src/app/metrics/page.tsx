@@ -1,3 +1,5 @@
+// page for entering metrics, only accessible if user is signed in and has a company profile set up
+
 "use client";
 
 import { useState } from "react";
