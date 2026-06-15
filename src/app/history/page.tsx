@@ -1,17 +1,17 @@
+// page that displays the history of interview responses for the logged-in user's company, fetching data from the database and showing it in a list format with details about each response.
 "use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function HistoryPage() {
-  const [reports, setReports] =
-    useState<any[]>([]);
+  const [responses, setResponses] = useState<any[]>([]);
 
   useEffect(() => {
-    loadReports();
+    loadHistory();
   }, []);
 
-  async function loadReports() {
+  async function loadHistory() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -24,60 +24,44 @@ export default function HistoryPage() {
       .eq("id", user.id)
       .single();
 
-    if (!profile) {
-      return null;
-    }
+    if (!profile) return;
 
     const { data } = await supabase
-      .from("metric_submissions")
-      .select(`
-        *,
-        metric_definitions(metric_name)
-      `)
-      .eq(
-        
-        "company_id",
-        profile.company_id
-      )
+      .from("qualitative_responses")
+      .select("*")
+      .eq("company_id", profile.company_id)
       .order("created_at", {
         ascending: false,
       });
 
-    setReports(data || []);
+    setResponses(data || []);
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        Report History
+    <div className="p-6 max-w-4xl">
+      <h1 className="text-2xl font-bold mb-6">
+        Interview History
       </h1>
 
-      {reports.map((report) => (
+      {responses.length === 0 && (
+        <p>No responses found.</p>
+      )}
+
+      {responses.map((response) => (
         <div
-          key={report.id}
-          className="border p-3 mb-3"
+          key={response.id}
+          className="border p-4 mb-4 rounded"
         >
-          <div>
-            <strong>Period:</strong>{" "}
-            {report.reporting_period}
+          <div className="text-sm text-gray-500 mb-2">
+            {response.reporting_period}
+          </div>
+
+          <div className="font-medium mb-2">
+            {response.question}
           </div>
 
           <div>
-            <strong>Metric:</strong>{" "}
-            {
-              report.metric_definitions
-                ?.metric_name
-            }
-          </div>
-
-          <div>
-            <strong>Value:</strong>{" "}
-            {report.metric_value}
-          </div>
-
-          <div>
-            <strong>Note:</strong>{" "}
-            {report.note}
+            {response.answer}
           </div>
         </div>
       ))}

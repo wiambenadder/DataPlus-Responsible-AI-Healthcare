@@ -1,7 +1,9 @@
 "use client";
-// src/app/standardize/StandardizeClient.tsx
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+
 import {
   fromFiles,
   processAll,
@@ -23,23 +25,47 @@ const EXPECTED_COMPANIES = [
 type Status = "idle" | "processing" | "done" | "error";
 
 export default function StandardizeClient() {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [authLoading, setAuthLoading] = useState(true);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [run, setRun] = useState<RunResult | null>(null);
   const [bundle, setBundle] = useState<ExportBundle | null>(null);
   const [fileCount, setFileCount] = useState(0);
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  async function checkAuth() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    setAuthLoading(false);
+  }
+
   const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+
     setStatus("processing");
     setError(null);
     setFileCount(files.length);
+    setRun(null);
+    setBundle(null);
 
     try {
       const sources = await fromFiles(files);
       const result = processAll(sources, EXPECTED_COMPANIES);
       const exports = buildExports(result, EXPECTED_COMPANIES);
+
       setRun(result);
       setBundle(exports);
       setStatus("done");
@@ -54,8 +80,12 @@ export default function StandardizeClient() {
       e.preventDefault();
       handleFiles(e.dataTransfer.files);
     },
-    [handleFiles],
+    [handleFiles]
   );
+
+  if (authLoading) {
+    return <div className="p-8">Checking login status...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -63,12 +93,12 @@ export default function StandardizeClient() {
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">
           Data Standardisation
         </h1>
+
         <p className="text-gray-500 mb-8">
           Upload grantee 12-month reporting files (.xlsx) to clean and
           standardize.
         </p>
 
-        {/* Upload zone */}
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
@@ -78,9 +108,11 @@ export default function StandardizeClient() {
           <p className="text-gray-600 font-medium">
             Drag & drop .xlsx files here, or click to browse
           </p>
+
           <p className="text-sm text-gray-400 mt-1">
             Accepts multiple files at once
           </p>
+
           <input
             ref={inputRef}
             type="file"
@@ -91,14 +123,12 @@ export default function StandardizeClient() {
           />
         </div>
 
-        {/* Processing state */}
         {status === "processing" && (
           <div className="text-center py-8 text-gray-600">
-            Processing {fileCount} file{fileCount !== 1 ? "s" : ""}…
+            Processing {fileCount} file{fileCount !== 1 ? "s" : ""}...
           </div>
         )}
 
-        {/* Error state */}
         {status === "error" && error && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-8">
             <p className="font-medium">Something went wrong</p>
@@ -106,17 +136,19 @@ export default function StandardizeClient() {
           </div>
         )}
 
-        {/* Results */}
         {status === "done" && run && bundle && (
           <div className="space-y-6">
-            {/* Summary */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h2 className="font-semibold text-gray-900 mb-3">Summary</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">
+                Summary
+              </h2>
+
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500">Files processed</span>
                   <p className="font-medium">{run.files.length}</p>
                 </div>
+
                 <div>
                   <span className="text-gray-500">Missing companies</span>
                   <p className="font-medium">
@@ -134,6 +166,7 @@ export default function StandardizeClient() {
                     className="flex items-center justify-between text-sm border-t border-gray-100 pt-2"
                   >
                     <span className="text-gray-800">{f.company}</span>
+
                     <span className="text-gray-400">
                       {f.log.matchedIndicators}/
                       {f.log.matchedIndicators +
@@ -145,13 +178,16 @@ export default function StandardizeClient() {
               </div>
             </div>
 
-            {/* Downloads */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h2 className="font-semibold text-gray-900 mb-3">Downloads</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">
+                Downloads
+              </h2>
+
               <div className="space-y-2">
                 <h3 className="text-xs font-medium uppercase text-gray-400 tracking-wide">
                   Per-company cleaned workbooks
                 </h3>
+
                 <div className="flex flex-wrap gap-2 mb-4">
                   {bundle.companyWorkbooks.map((w) => (
                     <button
@@ -169,29 +205,32 @@ export default function StandardizeClient() {
                 <h3 className="text-xs font-medium uppercase text-gray-400 tracking-wide">
                   Funder views & log
                 </h3>
+
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() =>
                       downloadBlob(
                         bundle.funderQuantitative,
-                        "funder_view.xlsx",
+                        "funder_view.xlsx"
                       )
                     }
                     className="px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors"
                   >
                     Funder View (xlsx)
                   </button>
+
                   <button
                     onClick={() =>
                       downloadBlob(
                         bundle.funderQualitative,
-                        "funder_view_qualitative.csv",
+                        "funder_view_qualitative.csv"
                       )
                     }
                     className="px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors"
                   >
                     Qualitative Responses (csv)
                   </button>
+
                   <button
                     onClick={() =>
                       downloadBlob(bundle.log, "standardization_log.json")
@@ -204,10 +243,12 @@ export default function StandardizeClient() {
               </div>
             </div>
 
-            {/* Warnings */}
             {run.files.some((f) => f.log.warnings.length > 0) && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <h3 className="font-medium text-amber-800 mb-2">Warnings</h3>
+                <h3 className="font-medium text-amber-800 mb-2">
+                  Warnings
+                </h3>
+
                 {run.files
                   .filter((f) => f.log.warnings.length > 0)
                   .map((f) => (

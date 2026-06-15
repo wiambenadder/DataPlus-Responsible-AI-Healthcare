@@ -1,3 +1,5 @@
+
+// login page for the app, allows users to sign in with their email and password, redirects to the report page on successful login
 "use client";
 
 import { useState } from "react";
@@ -11,18 +13,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   async function login() {
-    const { error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (error) {
       alert(error.message);
       return;
     }
 
-    router.push("/report");
+    const user = data.user;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) {
+      router.push("/company-setup");
+      return;
+    }
+
+    router.push("/");
   }
 
   return (
@@ -32,14 +46,11 @@ export default function LoginPage() {
       </h1>
 
       <div className="flex flex-col gap-3 max-w-md">
-
         <input
           className="border p-2"
           placeholder="Email"
           value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
@@ -47,18 +58,12 @@ export default function LoginPage() {
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button
-          className="border p-2"
-          onClick={login}
-        >
+        <button className="border p-2" onClick={login}>
           Login
         </button>
-
       </div>
     </div>
   );

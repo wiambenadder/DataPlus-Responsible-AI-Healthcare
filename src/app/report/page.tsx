@@ -1,97 +1,57 @@
+// main report submission page, allows users to enter qualitative answers for a given reporting period, saves data to the database on submission
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+const QUESTIONS = [
+  "What were your organization's most important accomplishments during this reporting period?",
+
+  "What challenges or barriers did you encounter?",
+
+  "How is your organization currently using AI?",
+
+  "What progress has been made toward your program goals?",
+
+  "What support would help you achieve your goals faster?",
+
+  "Is there anything else you would like funders to know?",
+];
+
 export default function ReportPage() {
+  const router = useRouter();
+
+  const [companyId, setCompanyId] = useState("");
   const [reportingPeriod, setReportingPeriod] =
     useState("");
 
-  const [metrics, setMetrics] = useState<any[]>([]);
+  const [currentQuestion, setCurrentQuestion] =
+    useState(0);
 
-  const [answers, setAnswers] = useState({
-    aiUse: "",
-    trackedMetrics: "",
-    challenges: "",
-    success: "",
-  });
+  const [currentAnswer, setCurrentAnswer] =
+    useState("");
+
+  const [answers, setAnswers] = useState<
+    {
+      question: string;
+      answer: string;
+    }[]
+  >([]);
 
   useEffect(() => {
-    loadMetrics();
+    loadCompany();
   }, []);
 
-  async function loadMetrics() {
-    const { data } = await supabase
-      .from("metric_definitions")
-      .select("*")
-      .order("metric_name");
-
-    setMetrics(
-      (data || []).map((m) => ({
-        ...m,
-        value: "",
-        note: "",
-      }))
-    );
-  }
-
-  function updateMetric(
-    index: number,
-    field: string,
-    value: string
-  ) {
-    const updated = [...metrics];
-    updated[index][field] = value;
-    setMetrics(updated);
-  }
-
-  async function addCustomMetric() {
-    const metricName = prompt(
-      "Enter custom metric name"
-    );
-
-    if (!metricName) return;
-
+  async function loadCompany() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", user?.id)
-      .single();
-
-    if (!profile) {
-      return null;
+    if (!user) {
+      router.push("/login");
+      return;
     }
-
-    const { data } = await supabase
-      .from("metric_definitions")
-      .insert({
-        company_id: profile.company_id,
-        metric_name: metricName,
-        is_required: false,
-      })
-      .select()
-      .single();
-
-    setMetrics([
-      ...metrics,
-      {
-        ...data,
-        value: "",
-        note: "",
-      },
-    ]);
-  }
-
-  async function saveReport() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -100,183 +60,182 @@ export default function ReportPage() {
       .single();
 
     if (!profile) {
-      return null;
+      router.push("/company-setup");
+      return;
     }
 
-    const companyId = profile.company_id;
+    setCompanyId(profile.company_id);
+  }
 
-    const qualitative = [
+  function nextQuestion() {
+    if (!currentAnswer.trim()) {
+      alert("Please answer the question.");
+      return;
+    }
+
+    const updatedAnswers = [
+      ...answers,
       {
         question:
-          "How does your organization use AI?",
-        answer: answers.aiUse,
-      },
-      {
-        question:
-          "What metrics do you currently track?",
-        answer: answers.trackedMetrics,
-      },
-      {
-        question:
-          "What are your biggest scaling challenges?",
-        answer: answers.challenges,
-      },
-      {
-        question:
-          "What outcomes define success?",
-        answer: answers.success,
+          QUESTIONS[currentQuestion],
+        answer: currentAnswer,
       },
     ];
 
-    await supabase
-      .from("qualitative_responses")
-      .insert(
-        qualitative.map((q) => ({
-          company_id: companyId,
-          reporting_period: reportingPeriod,
-          ...q,
-        }))
-      );
+    setAnswers(updatedAnswers);
+    setCurrentAnswer("");
 
-    await supabase
-      .from("metric_submissions")
-      .insert(
-        metrics.map((m) => ({
-          company_id: companyId,
-          metric_definition_id: m.id,
-          metric_value:
-            Number(m.value) || null,
-          note: m.note,
-          reporting_period:
-            reportingPeriod,
-        }))
+    if (
+      currentQuestion <
+      QUESTIONS.length - 1
+    ) {
+      setCurrentQuestion(
+        currentQuestion + 1
       );
+    } else {
+      saveInterview(updatedAnswers);
+    }
+  }
 
-    alert("Report saved");
+  async function saveInterview(
+    finalAnswers: {
+      question: string;
+      answer: string;
+    }[]
+  ) {
+    if (!reportingPeriod.trim()) {
+      alert(
+        "Please enter a reporting period."
+      );
+      return;
+    }
+
+    const rows = finalAnswers.map(
+      (response) => ({
+        company_id: companyId,
+        reporting_period:
+          reportingPeriod,
+        question:
+          response.question,
+        answer: response.answer,
+      })
+    );
+
+    const { error } =
+      await supabase
+        .from(
+          "qualitative_responses"
+        )
+        .insert(rows);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    router.push("/history");
   }
 
   return (
-    <div className="p-6 max-w-4xl">
-      <h1 className="text-2xl font-bold mb-4">
-        Report Submission
+    <div className="max-w-3xl mx-auto p-8">
+
+      <h1 className="text-3xl font-bold mb-2">
+        Reporting Interview
       </h1>
 
-      <input
-        className="border p-2 mb-6"
-        placeholder="Q2 2026"
-        value={reportingPeriod}
-        onChange={(e) =>
-          setReportingPeriod(
-            e.target.value
-          )
-        }
-      />
+      <p className="text-gray-500 mb-8">
+        Answer a few questions about
+        your organization's progress.
+      </p>
 
-      <h2 className="font-bold">
-        Baseline Questions
-      </h2>
+      <div className="mb-6">
 
-      <textarea
-        className="border w-full p-2 mb-2"
-        placeholder="How does your organization use AI?"
-        onChange={(e) =>
-          setAnswers({
-            ...answers,
-            aiUse: e.target.value,
-          })
-        }
-      />
+        <label className="block font-medium mb-2">
+          Reporting Period
+        </label>
 
-      <textarea
-        className="border w-full p-2 mb-2"
-        placeholder="What metrics do you track?"
-        onChange={(e) =>
-          setAnswers({
-            ...answers,
-            trackedMetrics:
-              e.target.value,
-          })
-        }
-      />
+        <input
+          className="border p-2 w-full"
+          placeholder="Q2 2026"
+          value={reportingPeriod}
+          onChange={(e) =>
+            setReportingPeriod(
+              e.target.value
+            )
+          }
+        />
 
-      <textarea
-        className="border w-full p-2 mb-2"
-        placeholder="Biggest scaling challenges?"
-        onChange={(e) =>
-          setAnswers({
-            ...answers,
-            challenges:
-              e.target.value,
-          })
-        }
-      />
+      </div>
 
-      <textarea
-        className="border w-full p-2 mb-6"
-        placeholder="What outcomes define success?"
-        onChange={(e) =>
-          setAnswers({
-            ...answers,
-            success: e.target.value,
-          })
-        }
-      />
+      <div className="border rounded-lg p-6">
 
-      <h2 className="font-bold mb-2">
-        Metrics
-      </h2>
+        <div className="mb-2 text-sm text-gray-400">
+          Question{" "}
+          {currentQuestion + 1} of{" "}
+          {QUESTIONS.length}
+        </div>
 
-      {metrics.map(
-        (metric, index) => (
-          <div
-            key={metric.id}
-            className="mb-4 border p-3"
-          >
-            <div>
-              {metric.metric_name}
-            </div>
+        <div className="text-lg font-medium mb-4">
+          🤖{" "}
+          {
+            QUESTIONS[
+              currentQuestion
+            ]
+          }
+        </div>
 
-            <input
-              type="number"
-              placeholder="Value"
-              className="border p-2 mr-2"
-              onChange={(e) =>
-                updateMetric(
-                  index,
-                  "value",
-                  e.target.value
-                )
-              }
-            />
+        <textarea
+          value={currentAnswer}
+          onChange={(e) =>
+            setCurrentAnswer(
+              e.target.value
+            )
+          }
+          className="border p-3 w-full h-40"
+          placeholder="Type your answer here..."
+        />
 
-            <input
-              placeholder="Note"
-              className="border p-2"
-              onChange={(e) =>
-                updateMetric(
-                  index,
-                  "note",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-        )
+        <button
+          onClick={nextQuestion}
+          className="border px-4 py-2 mt-4"
+        >
+          {currentQuestion ===
+          QUESTIONS.length - 1
+            ? "Submit"
+            : "Next"}
+        </button>
+
+      </div>
+
+      {answers.length > 0 && (
+        <div className="mt-8">
+
+          <h2 className="font-bold mb-2">
+            Previous Answers
+          </h2>
+
+          {answers.map(
+            (answer, index) => (
+              <div
+                key={index}
+                className="border p-3 mb-2"
+              >
+                <div className="font-medium">
+                  {
+                    answer.question
+                  }
+                </div>
+
+                <div className="text-gray-600">
+                  {answer.answer}
+                </div>
+              </div>
+            )
+          )}
+
+        </div>
       )}
 
-      <button
-        onClick={addCustomMetric}
-        className="border px-4 py-2 mr-2"
-      >
-        Add Custom Metric
-      </button>
-
-      <button
-        onClick={saveReport}
-        className="border px-4 py-2"
-      >
-        Save Report
-      </button>
     </div>
   );
 }
