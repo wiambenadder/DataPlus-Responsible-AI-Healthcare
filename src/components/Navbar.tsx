@@ -1,5 +1,5 @@
-// creates the navigation bar at the top of the page, which includes links to different pages and a logout button if the user is signed in
 
+// Navbar component - shows different links based on whether user is signed in or not
 "use client";
 
 import Link from "next/link";
@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 import {
-  Building2,
+  LayoutDashboard,
   FileText,
   History,
+  Building2,
   LogOut,
 } from "lucide-react";
 
@@ -22,6 +23,15 @@ export default function Navbar() {
 
   useEffect(() => {
     checkUser();
+
+    const { data: listener } =
+      supabase.auth.onAuthStateChange(() => {
+        checkUser();
+      });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   async function checkUser() {
@@ -34,55 +44,132 @@ export default function Navbar() {
 
   async function logout() {
     await supabase.auth.signOut();
+
+    setSignedIn(false);
+
     router.push("/");
   }
 
   return (
-    <div className="border-b bg-white/80 backdrop-blur">
+    <div className="
+      bg-white
+      border-b
+      sticky
+      top-0
+      z-50
+    ">
 
-      <div className="max-w-6xl mx-auto flex justify-between items-center p-4">
+      <div className="
+        max-w-7xl
+        mx-auto
+        px-6
+        py-4
+        flex
+        justify-between
+        items-center
+      ">
 
         <Link
           href="/"
-          className="font-semibold text-lg"
+          className="
+            font-semibold
+            text-lg
+          "
         >
           Data Intelligence
         </Link>
 
-        {signedIn && (
-          <div className="flex gap-6">
+        {signedIn ? (
+          <div className="
+            flex
+            gap-6
+            items-center
+          ">
+
+            <Link
+              href="/dashboard"
+              className="
+                flex
+                items-center
+                gap-2
+              "
+            >
+              <LayoutDashboard
+                size={18}
+              />
+              Dashboard
+            </Link>
 
             <Link
               href="/report"
-              className="flex items-center gap-2"
+              className="
+                flex
+                items-center
+                gap-2
+              "
             >
-              <FileText size={16} />
+              <FileText
+                size={18}
+              />
               Report
             </Link>
 
             <Link
               href="/history"
-              className="flex items-center gap-2"
+              className="
+                flex
+                items-center
+                gap-2
+              "
             >
-              <History size={16} />
+              <History
+                size={18}
+              />
               History
             </Link>
 
             <Link
               href="/company"
-              className="flex items-center gap-2"
+              className="
+                flex
+                items-center
+                gap-2
+              "
             >
-              <Building2 size={16} />
+              <Building2
+                size={18}
+              />
               Company
             </Link>
 
             <button
               onClick={logout}
-              className="flex items-center gap-2"
+              className="
+                flex
+                items-center
+                gap-2
+              "
             >
-              <LogOut size={16} />
+              <LogOut
+                size={18}
+              />
               Logout
             </button>
+
+          </div>
+        ) : (
+          <div className="
+            flex
+            gap-4
+          ">
+
+            <Link href="/login">
+              Login
+            </Link>
+
+            <Link href="/signup">
+              Sign Up
+            </Link>
 
           </div>
         )}
