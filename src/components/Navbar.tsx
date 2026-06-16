@@ -1,4 +1,4 @@
-// represents the navigation bar of the application, showing different links based on the user's authentication status. It uses Supabase for authentication and Next.js for routing.
+// creates the navigation bar at the top of the page, which includes links to different pages and a logout button if the user is signed in
 
 "use client";
 
@@ -7,20 +7,21 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+import {
+  Building2,
+  FileText,
+  History,
+  LogOut,
+} from "lucide-react";
+
 export default function Navbar() {
   const router = useRouter();
-  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  const [signedIn, setSignedIn] =
+    useState(false);
 
   useEffect(() => {
     checkUser();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      checkUser();
-    });
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
   }, []);
 
   async function checkUser() {
@@ -28,44 +29,66 @@ export default function Navbar() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    setIsSignedIn(!!user);
+    setSignedIn(!!user);
   }
 
   async function logout() {
     await supabase.auth.signOut();
-    setIsSignedIn(false);
     router.push("/");
   }
 
   return (
-    <div className="border-b p-4 flex justify-between items-center">
-      <Link href="/" className="font-bold">
-        Data Intelligence Platform
-      </Link>
+    <div className="border-b bg-white/80 backdrop-blur">
 
-      <div className="flex gap-4 items-center">
-        {isSignedIn ? (
-          <>
-            <Link href="/report">Report</Link>
-            <Link href="/history">History</Link>
-            <Link href="/upload">Upload</Link>
-            <Link href="/standardize">Standardize</Link>
-            <Link href="/company">Company Profile</Link>
+      <div className="max-w-6xl mx-auto flex justify-between items-center p-4">
+
+        <Link
+          href="/"
+          className="font-semibold text-lg"
+        >
+          Data Intelligence
+        </Link>
+
+        {signedIn && (
+          <div className="flex gap-6">
+
+            <Link
+              href="/report"
+              className="flex items-center gap-2"
+            >
+              <FileText size={16} />
+              Report
+            </Link>
+
+            <Link
+              href="/history"
+              className="flex items-center gap-2"
+            >
+              <History size={16} />
+              History
+            </Link>
+
+            <Link
+              href="/company"
+              className="flex items-center gap-2"
+            >
+              <Building2 size={16} />
+              Company
+            </Link>
 
             <button
               onClick={logout}
-              className="border px-3 py-1"
+              className="flex items-center gap-2"
             >
+              <LogOut size={16} />
               Logout
             </button>
-          </>
-        ) : (
-          <>
-            <Link href="/login">Login</Link>
-            <Link href="/signup">Sign Up</Link>
-          </>
+
+          </div>
         )}
+
       </div>
+
     </div>
   );
 }
