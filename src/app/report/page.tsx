@@ -1,4 +1,3 @@
-// main report submission page, allows users to enter qualitative answers for a given reporting period, saves data to the database on submission
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,23 +5,55 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const QUESTIONS = [
-  "What were your organization's most important accomplishments during this reporting period?",
+  {
+    question:
+      "What were your organization's most important accomplishments during this reporting period?",
+    domain: "Program Progress",
+    subtopic: "Accomplishments",
+  },
 
-  "What challenges or barriers did you encounter?",
+  {
+    question:
+      "What challenges or barriers did you encounter?",
+    domain: "Operations",
+    subtopic: "Challenges",
+  },
 
-  "How is your organization currently using AI?",
+  {
+    question:
+      "How is your organization currently using AI?",
+    domain: "AI Readiness",
+    subtopic: "AI Usage",
+  },
 
-  "What progress has been made toward your program goals?",
+  {
+    question:
+      "What progress has been made toward your program goals?",
+    domain: "Program Progress",
+    subtopic: "Goal Tracking",
+  },
 
-  "What support would help you achieve your goals faster?",
+  {
+    question:
+      "What support would help you achieve your goals faster?",
+    domain: "Operations",
+    subtopic: "Support Needs",
+  },
 
-  "Is there anything else you would like funders to know?",
+  {
+    question:
+      "Is there anything else you would like funders to know?",
+    domain: "General",
+    subtopic: "Additional Information",
+  },
 ];
 
 export default function ReportPage() {
   const router = useRouter();
 
-  const [companyId, setCompanyId] = useState("");
+  const [companyId, setCompanyId] =
+    useState("");
+
   const [reportingPeriod, setReportingPeriod] =
     useState("");
 
@@ -32,12 +63,18 @@ export default function ReportPage() {
   const [currentAnswer, setCurrentAnswer] =
     useState("");
 
-  const [answers, setAnswers] = useState<
-    {
-      question: string;
-      answer: string;
-    }[]
-  >([]);
+  const [saving, setSaving] =
+    useState(false);
+
+  const [answers, setAnswers] =
+    useState<
+      {
+        question: string;
+        answer: string;
+        domain: string;
+        subtopic: string;
+      }[]
+    >([]);
 
   useEffect(() => {
     loadCompany();
@@ -53,11 +90,12 @@ export default function ReportPage() {
       return;
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", user.id)
-      .single();
+    const { data: profile } =
+      await supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .single();
 
     if (!profile) {
       router.push("/company-setup");
@@ -67,9 +105,11 @@ export default function ReportPage() {
     setCompanyId(profile.company_id);
   }
 
-  function nextQuestion() {
+  async function nextQuestion() {
     if (!currentAnswer.trim()) {
-      alert("Please answer the question.");
+      alert(
+        "Please answer the question before continuing."
+      );
       return;
     }
 
@@ -77,8 +117,15 @@ export default function ReportPage() {
       ...answers,
       {
         question:
-          QUESTIONS[currentQuestion],
+          QUESTIONS[currentQuestion]
+            .question,
         answer: currentAnswer,
+        domain:
+          QUESTIONS[currentQuestion]
+            .domain,
+        subtopic:
+          QUESTIONS[currentQuestion]
+            .subtopic,
       },
     ];
 
@@ -92,15 +139,20 @@ export default function ReportPage() {
       setCurrentQuestion(
         currentQuestion + 1
       );
-    } else {
-      saveInterview(updatedAnswers);
+      return;
     }
+
+    await submitInterview(
+      updatedAnswers
+    );
   }
 
-  async function saveInterview(
+  async function submitInterview(
     finalAnswers: {
       question: string;
       answer: string;
+      domain: string;
+      subtopic: string;
     }[]
   ) {
     if (!reportingPeriod.trim()) {
@@ -110,6 +162,8 @@ export default function ReportPage() {
       return;
     }
 
+    setSaving(true);
+
     const rows = finalAnswers.map(
       (response) => ({
         company_id: companyId,
@@ -118,6 +172,10 @@ export default function ReportPage() {
         question:
           response.question,
         answer: response.answer,
+        domain:
+          response.domain,
+        Subtopic:
+          response.subtopic,
       })
     );
 
@@ -128,6 +186,8 @@ export default function ReportPage() {
         )
         .insert(rows);
 
+    setSaving(false);
+
     if (error) {
       alert(error.message);
       return;
@@ -136,105 +196,148 @@ export default function ReportPage() {
     router.push("/history");
   }
 
+  const progress =
+    ((currentQuestion + 1) /
+      QUESTIONS.length) *
+    100;
+
   return (
-    <div className="max-w-3xl mx-auto p-8">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
 
-      <h1 className="text-3xl font-bold mb-2">
-        Reporting Interview
-      </h1>
+      <div className="max-w-3xl mx-auto p-8">
 
-      <p className="text-gray-500 mb-8">
-        Answer a few questions about
-        your organization's progress.
-      </p>
+        <h1 className="text-4xl font-bold mb-2">
+          Reporting Interview
+        </h1>
 
-      <div className="mb-6">
+        <p className="text-gray-500 mb-8">
+          Help us understand your
+          organization's progress and
+          challenges.
+        </p>
 
-        <label className="block font-medium mb-2">
-          Reporting Period
-        </label>
+        <div className="mb-8">
 
-        <input
-          className="border p-2 w-full"
-          placeholder="Q2 2026"
-          value={reportingPeriod}
-          onChange={(e) =>
-            setReportingPeriod(
-              e.target.value
-            )
-          }
-        />
+          <label className="block text-sm font-medium mb-2">
+            Reporting Period
+          </label>
+
+          <input
+            className="
+              w-full
+              border
+              p-3
+              rounded-xl
+            "
+            placeholder="Q2 2026"
+            value={reportingPeriod}
+            onChange={(e) =>
+              setReportingPeriod(
+                e.target.value
+              )
+            }
+          />
+
+        </div>
+
+        <div className="mb-8">
+
+          <div className="flex justify-between text-sm text-gray-500 mb-2">
+
+            <span>
+              Question{" "}
+              {currentQuestion + 1}
+            </span>
+
+            <span>
+              {QUESTIONS.length}
+            </span>
+
+          </div>
+
+          <div className="w-full bg-gray-200 rounded-full h-2">
+
+            <div
+              className="
+                bg-blue-600
+                h-2
+                rounded-full
+                transition-all
+              "
+              style={{
+                width: `${progress}%`,
+              }}
+            />
+
+          </div>
+
+        </div>
+
+        <div className="
+          bg-white
+          rounded-2xl
+          border
+          shadow-sm
+          p-8
+        ">
+
+          <div className="text-xl font-medium mb-6">
+
+            🤖{" "}
+            {
+              QUESTIONS[
+                currentQuestion
+              ].question
+            }
+
+          </div>
+
+          <textarea
+            value={currentAnswer}
+            onChange={(e) =>
+              setCurrentAnswer(
+                e.target.value
+              )
+            }
+            placeholder="Type your answer..."
+            className="
+              w-full
+              h-40
+              border
+              rounded-xl
+              p-4
+              resize-none
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-500
+            "
+          />
+
+          <button
+            disabled={saving}
+            onClick={nextQuestion}
+            className="
+              mt-6
+              bg-blue-600
+              text-white
+              px-6
+              py-3
+              rounded-xl
+              hover:bg-blue-700
+            "
+          >
+            {saving
+              ? "Saving..."
+              : currentQuestion ===
+                QUESTIONS.length -
+                  1
+              ? "Submit Report"
+              : "Continue"}
+          </button>
+
+        </div>
 
       </div>
-
-      <div className="border rounded-lg p-6">
-
-        <div className="mb-2 text-sm text-gray-400">
-          Question{" "}
-          {currentQuestion + 1} of{" "}
-          {QUESTIONS.length}
-        </div>
-
-        <div className="text-lg font-medium mb-4">
-          🤖{" "}
-          {
-            QUESTIONS[
-              currentQuestion
-            ]
-          }
-        </div>
-
-        <textarea
-          value={currentAnswer}
-          onChange={(e) =>
-            setCurrentAnswer(
-              e.target.value
-            )
-          }
-          className="border p-3 w-full h-40"
-          placeholder="Type your answer here..."
-        />
-
-        <button
-          onClick={nextQuestion}
-          className="border px-4 py-2 mt-4"
-        >
-          {currentQuestion ===
-          QUESTIONS.length - 1
-            ? "Submit"
-            : "Next"}
-        </button>
-
-      </div>
-
-      {answers.length > 0 && (
-        <div className="mt-8">
-
-          <h2 className="font-bold mb-2">
-            Previous Answers
-          </h2>
-
-          {answers.map(
-            (answer, index) => (
-              <div
-                key={index}
-                className="border p-3 mb-2"
-              >
-                <div className="font-medium">
-                  {
-                    answer.question
-                  }
-                </div>
-
-                <div className="text-gray-600">
-                  {answer.answer}
-                </div>
-              </div>
-            )
-          )}
-
-        </div>
-      )}
 
     </div>
   );
