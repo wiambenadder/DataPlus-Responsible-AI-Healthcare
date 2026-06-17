@@ -1,30 +1,23 @@
-// default landing page - shows company info and links to reporting and history pages if signed in, otherwise shows sign in / sign up options
-
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-type Company = {
-  company_name: string;
-  country: string | null;
-  organization_type: string | null;
-  ai_use_case: string | null;
-  benchmark_goal: string | null;
-};
-
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
-  const [signedIn, setSignedIn] =
-    useState(false);
-
   const [company, setCompany] =
-    useState<Company | null>(null);
+    useState<any>(null);
+
+  const [lastReport, setLastReport] =
+    useState("No reports yet");
 
   const [reportCount, setReportCount] =
     useState(0);
+
+  const [recentAssessments, setRecentAssessments] =
+    useState<any[]>([]);
 
   useEffect(() => {
     loadHome();
@@ -39,8 +32,6 @@ export default function HomePage() {
       setLoading(false);
       return;
     }
-
-    setSignedIn(true);
 
     const { data: profile } =
       await supabase
@@ -65,28 +56,33 @@ export default function HomePage() {
 
     const { data: reports } =
       await supabase
-        .from(
-          "qualitative_responses"
-        )
-        .select(
-          "reporting_period"
-        )
+        .from("qualitative_responses")
+        .select("*")
         .eq(
           "company_id",
           profile.company_id
         );
 
-    const uniqueReports =
-      new Set(
-        (reports || []).map(
-          (r: any) =>
-            r.reporting_period
-        )
+    if (reports?.length) {
+      const periods = [
+        ...new Set(
+          reports.map(
+            (r: any) =>
+              r.reporting_period
+          )
+        ),
+      ];
+
+      setReportCount(periods.length);
+
+      setLastReport(
+        periods[periods.length - 1]
       );
 
-    setReportCount(
-      uniqueReports.size
-    );
+      setRecentAssessments(
+        reports.slice(0, 3)
+      );
+    }
 
     setLoading(false);
   }
@@ -99,77 +95,10 @@ export default function HomePage() {
     );
   }
 
-  if (!signedIn) {
+  if (!company) {
     return (
-      <div className="
-        min-h-screen
-        bg-gradient-to-b
-        from-white
-        to-slate-50
-        flex
-        items-center
-        justify-center
-      ">
-
-        <div className="
-          max-w-xl
-          text-center
-        ">
-
-          <h1 className="
-            text-5xl
-            font-bold
-            mb-4
-          ">
-            Data Intelligence Platform
-          </h1>
-
-          <p className="
-            text-gray-500
-            mb-8
-          ">
-            Helping innovators
-            report impact,
-            benchmark progress,
-            and communicate
-            outcomes.
-          </p>
-
-          <div className="
-            flex
-            justify-center
-            gap-4
-          ">
-
-            <Link
-              href="/login"
-              className="
-                bg-blue-600
-                text-white
-                px-6
-                py-3
-                rounded-xl
-              "
-            >
-              Sign In
-            </Link>
-
-            <Link
-              href="/signup"
-              className="
-                border
-                px-6
-                py-3
-                rounded-xl
-              "
-            >
-              Create Account
-            </Link>
-
-          </div>
-
-        </div>
-
+      <div className="p-8">
+        No company profile found.
       </div>
     );
   }
@@ -188,101 +117,220 @@ export default function HomePage() {
         p-8
       ">
 
-        <h1 className="
-          text-4xl
-          font-bold
-          mb-2
-        ">
-          {company?.company_name}
-        </h1>
-
-        <p className="
-          text-gray-500
-          mb-8
-        ">
-          Welcome back.
-        </p>
+        {/* Hero */}
 
         <div className="
-          grid
-          md:grid-cols-3
-          gap-6
+          bg-white
+          rounded-3xl
+          shadow-sm
+          p-8
           mb-8
         ">
 
           <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-6
+            flex
+            justify-between
+            items-start
+            flex-wrap
+            gap-6
           ">
-            <div className="
-              text-gray-500
-              text-sm
-            ">
-              Country
+
+            <div>
+
+              <h1 className="
+                text-4xl
+                font-bold
+              ">
+                {company.company_name}
+              </h1>
+
+              <p className="
+                text-gray-500
+                mt-2
+              ">
+                {company.organization_type}
+              </p>
+
+              <p className="
+                text-gray-500
+              ">
+                {company.country}
+              </p>
+
             </div>
 
             <div className="
-              text-xl
-              font-semibold
+              text-right
             ">
-              {company?.country ||
-                "Not Set"}
-            </div>
-          </div>
 
-          <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-6
-          ">
-            <div className="
-              text-gray-500
-              text-sm
-            ">
-              Reports Submitted
+              <div className="
+                text-3xl
+                font-bold
+              ">
+                {reportCount}
+              </div>
+
+              <div className="
+                text-gray-500
+              ">
+                Reports Submitted
+              </div>
+
             </div>
 
-            <div className="
-              text-xl
-              font-semibold
-            ">
-              {reportCount}
-            </div>
-          </div>
-
-          <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-6
-          ">
-            <div className="
-              text-gray-500
-              text-sm
-            ">
-              AI Usage
-            </div>
-
-            <div className="
-              text-xl
-              font-semibold
-            ">
-              {company?.ai_use_case
-                ? "Configured"
-                : "Not Set"}
-            </div>
           </div>
 
         </div>
 
+        {/* Continue Reporting */}
+
+        <div className="
+          bg-teal-600
+          text-white
+          rounded-3xl
+          p-8
+          mb-8
+        ">
+
+          <div className="
+            flex
+            justify-between
+            items-center
+            flex-wrap
+            gap-4
+          ">
+
+            <div>
+
+              <h2 className="
+                text-2xl
+                font-semibold
+                mb-2
+              ">
+                Continue Reporting
+              </h2>
+
+              <p className="
+                text-teal-100
+              ">
+                Last report:
+                {" "}
+                {lastReport}
+              </p>
+
+            </div>
+
+            <Link
+              href="/report"
+              className="
+                bg-white
+                text-teal-600
+                px-5
+                py-3
+                rounded-xl
+                font-medium
+              "
+            >
+              Continue →
+            </Link>
+
+          </div>
+
+        </div>
+
+        {/* Stats */}
+
+        <div className="
+          grid
+          md:grid-cols-3
+          gap-4
+          mb-8
+        ">
+
+          <div className="
+            bg-white
+            rounded-2xl
+            shadow-sm
+            p-6
+          ">
+
+            <div className="
+              text-sm
+              text-gray-500
+            ">
+              Full-Time Staff
+            </div>
+
+            <div className="
+              text-2xl
+              font-bold
+            ">
+              {
+                company.full_time_staff
+              }
+            </div>
+
+          </div>
+
+          <div className="
+            bg-white
+            rounded-2xl
+            shadow-sm
+            p-6
+          ">
+
+            <div className="
+              text-sm
+              text-gray-500
+            ">
+              Part-Time Staff
+            </div>
+
+            <div className="
+              text-2xl
+              font-bold
+            ">
+              {
+                company.part_time_staff
+              }
+            </div>
+
+          </div>
+
+          <div className="
+            bg-white
+            rounded-2xl
+            shadow-sm
+            p-6
+          ">
+
+            <div className="
+              text-sm
+              text-gray-500
+            ">
+              Established
+            </div>
+
+            <div className="
+              text-2xl
+              font-bold
+            ">
+              {
+                company.year_established
+              }
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Recent Activity */}
+
         <div className="
           bg-white
-          border
-          rounded-2xl
-          p-6
+          rounded-3xl
+          shadow-sm
+          p-8
           mb-8
         ">
 
@@ -291,84 +339,82 @@ export default function HomePage() {
             font-semibold
             mb-4
           ">
-            Organization Overview
+            Recent Assessment Activity
           </h2>
 
-          <div className="space-y-3">
+          {recentAssessments.length === 0 ? (
+            <p className="
+              text-gray-500
+            ">
+              No assessments yet.
+            </p>
+          ) : (
+            <div className="
+              space-y-4
+            ">
 
-            <div>
-              <strong>
-                Organization Type:
-              </strong>{" "}
-              {
-                company?.organization_type
-              }
+              {recentAssessments.map(
+                (assessment) => (
+                  <div
+                    key={assessment.id}
+                    className="
+                      border-l-4
+                      border-blue-500
+                      pl-4
+                    "
+                  >
+
+                    <div className="
+                      font-medium
+                    ">
+                      {
+                        assessment.Subtopic
+                      }
+                    </div>
+
+                    <div className="
+                      text-sm
+                      text-gray-500
+                    ">
+                      {
+                        assessment.ai_assessment
+                      }
+                    </div>
+
+                  </div>
+                )
+              )}
+
             </div>
-
-            <div>
-              <strong>
-                AI Use:
-              </strong>{" "}
-              {
-                company?.ai_use_case
-              }
-            </div>
-
-            <div>
-              <strong>
-                Benchmark Goal:
-              </strong>{" "}
-              {
-                company?.benchmark_goal
-              }
-            </div>
-
-          </div>
+          )}
 
         </div>
 
+        {/* Reminder */}
+
         <div className="
-          flex
-          gap-4
-          flex-wrap
+          bg-white
+          rounded-3xl
+          shadow-sm
+          p-8
         ">
 
-          <Link
-            href="/report"
-            className="
-              bg-blue-600
-              text-white
-              px-6
-              py-3
-              rounded-xl
-            "
-          >
-            Continue Reporting
-          </Link>
+          <h2 className="
+            text-xl
+            font-semibold
+            mb-3
+          ">
+            Reminder
+          </h2>
 
-          <Link
-            href="/history"
-            className="
-              border
-              px-6
-              py-3
-              rounded-xl
-            "
-          >
-            View Report History
-          </Link>
-
-          <Link
-            href="/company"
-            className="
-              border
-              px-6
-              py-3
-              rounded-xl
-            "
-          >
-            Edit Company Profile
-          </Link>
+          <p className="
+            text-gray-600
+          ">
+            Continue submitting interview
+            responses and review your AI
+            readiness dashboard for updated
+            assessments and recommendations.
+          </p>
 
         </div>
 
