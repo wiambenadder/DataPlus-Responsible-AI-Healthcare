@@ -1,5 +1,3 @@
-// Dashboard page - shows the AI readiness assessment based on interview responses
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -19,21 +17,23 @@ function getBadgeColor(status: string | null) {
       return "bg-green-100 text-green-700";
 
     case "Practiced, Not Measured":
-      return "bg-yellow-100 text-yellow-700";
+      return "bg-blue-100 text-blue-700";
 
     case "Aware, Not Practiced":
-      return "bg-orange-100 text-orange-700";
+      return "bg-yellow-100 text-yellow-700";
 
     case "Not Addressed":
       return "bg-red-100 text-red-700";
 
     default:
-      return "bg-blue-100 text-blue-700";
+      return "bg-gray-100 text-gray-700";
   }
 }
 
 export default function DashboardPage() {
-  const [responses, setResponses] = useState<any[]>([]);
+  const [responses, setResponses] =
+    useState<any[]>([]);
+
   const [expandedDomains, setExpandedDomains] =
     useState<Record<string, boolean>>({});
 
@@ -51,18 +51,23 @@ export default function DashboardPage() {
 
     if (!user) return;
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", user.id)
-      .single();
+    const { data: profile } =
+      await supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .single();
 
     if (!profile) return;
 
-    const { data } = await supabase
-      .from("qualitative_responses")
-      .select("*")
-      .eq("company_id", profile.company_id);
+    const { data } =
+      await supabase
+        .from("qualitative_responses")
+        .select("*")
+        .eq(
+          "company_id",
+          profile.company_id
+        );
 
     setResponses(data || []);
   }
@@ -81,23 +86,169 @@ export default function DashboardPage() {
     }));
   }
 
+  const measuredCount =
+    responses.filter(
+      (r) =>
+        r.ai_assessment ===
+        "Measured"
+    ).length;
+
+  const practicedCount =
+    responses.filter(
+      (r) =>
+        r.ai_assessment ===
+        "Practiced, Not Measured"
+    ).length;
+
+  const awareCount =
+    responses.filter(
+      (r) =>
+        r.ai_assessment ===
+        "Aware, Not Practiced"
+    ).length;
+
+  const notAddressedCount =
+    responses.filter(
+      (r) =>
+        r.ai_assessment ===
+        "Not Addressed"
+    ).length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+    <div className="
+      min-h-screen
+      bg-gradient-to-b
+      from-white
+      to-slate-50
+    ">
 
-      <div className="max-w-6xl mx-auto p-8">
+      <div className="
+        max-w-6xl
+        mx-auto
+        p-8
+      ">
 
-        <h1 className="text-4xl font-bold mb-2">
+        <h1 className="
+          text-4xl
+          font-bold
+          mb-2
+        ">
           AI Readiness Dashboard
         </h1>
 
-        <p className="text-gray-500 mb-8">
+        <p className="
+          text-gray-500
+          mb-8
+        ">
           Assessment generated from interview responses.
         </p>
 
+        {/* Summary Cards */}
+
+        <div className="
+          grid
+          md:grid-cols-4
+          gap-4
+          mb-8
+        ">
+
+          <div className="
+            bg-white
+            border
+            rounded-2xl
+            p-5
+          ">
+            <div className="
+              text-sm
+              text-gray-500
+            ">
+              Domains
+            </div>
+
+            <div className="
+              text-2xl
+              font-bold
+            ">
+              5
+            </div>
+          </div>
+
+          <div className="
+            bg-white
+            border
+            rounded-2xl
+            p-5
+          ">
+            <div className="
+              text-sm
+              text-gray-500
+            ">
+              Measured
+            </div>
+
+            <div className="
+              text-2xl
+              font-bold
+              text-green-700
+            ">
+              {measuredCount}
+            </div>
+          </div>
+
+          <div className="
+            bg-white
+            border
+            rounded-2xl
+            p-5
+          ">
+            <div className="
+              text-sm
+              text-gray-500
+            ">
+              Practiced
+            </div>
+
+            <div className="
+              text-2xl
+              font-bold
+              text-blue-700
+            ">
+              {practicedCount}
+            </div>
+          </div>
+
+          <div className="
+            bg-white
+            border
+            rounded-2xl
+            p-5
+          ">
+            <div className="
+              text-sm
+              text-gray-500
+            ">
+              Not Addressed
+            </div>
+
+            <div className="
+              text-2xl
+              font-bold
+              text-red-700
+            ">
+              {notAddressedCount}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Domains */}
+
         {DOMAINS.map((domain) => {
-          const domainRows = responses.filter(
-            (r) => r.domain === domain
-          );
+          const domainRows =
+            responses.filter(
+              (r) =>
+                r.domain === domain
+            );
 
           return (
             <div
@@ -108,6 +259,7 @@ export default function DashboardPage() {
                 rounded-2xl
                 mb-6
                 overflow-hidden
+                shadow-sm
               "
             >
 
@@ -127,11 +279,17 @@ export default function DashboardPage() {
 
                 <div>
 
-                  <div className="text-xl font-semibold">
+                  <div className="
+                    text-xl
+                    font-semibold
+                  ">
                     {domain}
                   </div>
 
-                  <div className="text-sm text-gray-500">
+                  <div className="
+                    text-sm
+                    text-gray-500
+                  ">
                     {
                       domainRows.length
                     } subtopics
@@ -139,7 +297,9 @@ export default function DashboardPage() {
 
                 </div>
 
-                <div className="text-xl">
+                <div className="
+                  text-xl
+                ">
                   {expandedDomains[
                     domain
                   ]
@@ -152,7 +312,9 @@ export default function DashboardPage() {
               {expandedDomains[
                 domain
               ] && (
-                <div className="border-t">
+                <div className="
+                  border-t
+                ">
 
                   {domainRows.map(
                     (row) => (
@@ -181,7 +343,9 @@ export default function DashboardPage() {
 
                           <div>
 
-                            <div className="font-medium">
+                            <div className="
+                              font-medium
+                            ">
                               {
                                 row.Subtopic
                               }
@@ -210,21 +374,25 @@ export default function DashboardPage() {
                           row.id
                         ] && (
                           <div className="
-                            mt-4
-                            space-y-4
+                            mt-5
+                            space-y-5
                           ">
 
                             <div>
 
                               <div className="
                                 font-medium
-                                mb-1
+                                mb-2
                               ">
                                 AI Justification
                               </div>
 
                               <div className="
-                                text-gray-600
+                                bg-slate-50
+                                border
+                                rounded-xl
+                                p-4
+                                text-gray-700
                               ">
                                 {row.ai_reasoning ||
                                   "No AI reasoning yet."}
@@ -236,13 +404,13 @@ export default function DashboardPage() {
 
                               <div className="
                                 font-medium
-                                mb-1
+                                mb-2
                               ">
                                 Source Question
                               </div>
 
                               <div className="
-                                text-gray-600
+                                text-gray-700
                               ">
                                 {row.question}
                               </div>
@@ -253,13 +421,16 @@ export default function DashboardPage() {
 
                               <div className="
                                 font-medium
-                                mb-1
+                                mb-2
                               ">
                                 Original Response
                               </div>
 
                               <div className="
-                                text-gray-600
+                                border-l-4
+                                border-blue-500
+                                pl-4
+                                text-gray-700
                               ">
                                 {row.answer}
                               </div>
@@ -270,13 +441,13 @@ export default function DashboardPage() {
 
                               <div className="
                                 font-medium
-                                mb-1
+                                mb-2
                               ">
                                 Reporting Period
                               </div>
 
                               <div className="
-                                text-gray-600
+                                text-gray-700
                               ">
                                 {row.reporting_period}
                               </div>
@@ -296,9 +467,8 @@ export default function DashboardPage() {
                       p-5
                       text-gray-500
                     ">
-                      No responses have
-                      been mapped to this
-                      domain yet.
+                      No responses have been mapped
+                      to this domain yet.
                     </div>
                   )}
 

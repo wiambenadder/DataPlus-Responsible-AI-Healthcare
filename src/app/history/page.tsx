@@ -29,11 +29,17 @@ export default function HistoryPage() {
       Record<string, boolean>
     >({});
 
+  const [deleteTarget, setDeleteTarget] =
+    useState<string | null>(null);
+
   useEffect(() => {
     loadHistory();
   }, []);
 
   async function loadHistory() {
+    setLoading(true);
+    setReports({});
+
     try {
       const {
         data: { user },
@@ -131,6 +137,51 @@ export default function HistoryPage() {
     }
 
     alert("Saved");
+
+    await loadHistory();
+  }
+
+  async function deleteReport(
+    reportingPeriod: string
+  ) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { data: profile } =
+      await supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .single();
+
+    if (!profile) return;
+
+    const { error } =
+      await supabase
+        .from(
+          "qualitative_responses"
+        )
+        .delete()
+        .eq(
+          "company_id",
+          profile.company_id
+        )
+        .eq(
+          "reporting_period",
+          reportingPeriod
+        );
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setDeleteTarget(null);
+
+    await loadHistory();
   }
 
   if (loading) {
@@ -193,9 +244,24 @@ export default function HistoryPage() {
                       reports[
                         period
                       ].length
-                    }{" "}
-                    responses
+                    } responses
                   </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteTarget(
+                        period
+                      );
+                    }}
+                    className="
+                      text-red-600
+                      text-sm
+                      mt-2
+                    "
+                  >
+                    Delete Report
+                  </button>
 
                 </div>
 
@@ -254,6 +320,95 @@ export default function HistoryPage() {
 
       </div>
 
+      {deleteTarget && (
+
+        <div className="
+          fixed
+          inset-0
+          bg-black/40
+          flex
+          items-center
+          justify-center
+          z-50
+        ">
+
+          <div className="
+            bg-white
+            rounded-2xl
+            p-6
+            shadow-xl
+            max-w-md
+            w-full
+          ">
+
+            <h2 className="
+              text-xl
+              font-semibold
+              mb-3
+            ">
+              Delete Report?
+            </h2>
+
+            <p className="
+              text-gray-600
+              mb-6
+            ">
+              This will permanently
+              delete all responses
+              associated with
+              <strong>
+                {" "}
+                {deleteTarget}
+              </strong>.
+            </p>
+
+            <div className="
+              flex
+              justify-end
+              gap-3
+            ">
+
+              <button
+                onClick={() =>
+                  setDeleteTarget(
+                    null
+                  )
+                }
+                className="
+                  border
+                  px-4
+                  py-2
+                  rounded-xl
+                "
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() =>
+                  deleteReport(
+                    deleteTarget
+                  )
+                }
+                className="
+                  bg-red-600
+                  text-white
+                  px-4
+                  py-2
+                  rounded-xl
+                "
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
   );
 }
@@ -272,6 +427,27 @@ function EditableResponse({
     useState(
       response.answer
     );
+
+  function getAssessmentColor(
+    assessment: string | null
+  ) {
+    switch (assessment) {
+      case "Measured":
+        return "bg-green-100 text-green-700";
+
+      case "Practiced, Not Measured":
+        return "bg-blue-100 text-blue-700";
+
+      case "Aware, Not Practiced":
+        return "bg-yellow-100 text-yellow-700";
+
+      case "Not Addressed":
+        return "bg-red-100 text-red-700";
+
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  }
 
   return (
     <div className="
@@ -355,15 +531,25 @@ function EditableResponse({
 
           <div className="
             font-medium
-            mb-1
+            mb-2
           ">
             AI Assessment
           </div>
 
-          <div className="mb-3">
-            {
-              response.ai_assessment
-            }
+          <div
+            className={`
+              inline-block
+              px-3
+              py-1
+              rounded-full
+              text-sm
+              mb-3
+              ${getAssessmentColor(
+                response.ai_assessment
+              )}
+            `}
+          >
+            {response.ai_assessment}
           </div>
 
           <div className="
