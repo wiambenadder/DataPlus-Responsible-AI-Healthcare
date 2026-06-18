@@ -95,13 +95,82 @@ export default function HomePage() {
     );
   }
 
-  if (!company) {
-    return (
-      <div className="p-8">
-        No company profile found.
+ if (!company) {
+  return (
+    <div className="
+      min-h-screen
+      flex
+      items-center
+      justify-center
+      bg-gradient-to-b
+      from-white
+      to-slate-50
+    ">
+
+      <div className="
+        text-center
+        max-w-3xl
+        px-8
+      ">
+
+        <h1 className="
+          text-5xl
+          font-bold
+          mb-6
+        ">
+          Welcome to the Data Intelligence Platform
+        </h1>
+
+        <p className="
+          text-xl
+          text-gray-600
+          mb-8
+        ">
+          Assess organizational readiness,
+          collect structured reporting,
+          and generate AI-supported
+          insights across the full
+          innovation lifecycle.
+        </p>
+
+        <div className="
+          flex
+          justify-center
+          gap-4
+        ">
+
+          <Link
+            href="/login"
+            className="
+              bg-blue-600
+              text-white
+              px-6
+              py-3
+              rounded-xl
+            "
+          >
+            Sign In
+          </Link>
+
+          <Link
+            href="/signup"
+            className="
+              border
+              px-6
+              py-3
+              rounded-xl
+            "
+          >
+            Create Account
+          </Link>
+
+        </div>
+
       </div>
-    );
-  }
+
+    </div>
+  );
+}
 
   return (
     <div className="

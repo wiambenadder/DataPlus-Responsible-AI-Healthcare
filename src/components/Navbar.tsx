@@ -12,6 +12,7 @@ import {
   FileText,
   History,
   Building2,
+  FolderOpen,
   LogOut,
 } from "lucide-react";
 
@@ -76,7 +77,7 @@ export default function Navbar() {
             text-lg
           "
         >
-          Data Intelligence
+          Innovator Insights Platform
         </Link>
 
         {signedIn ? (
@@ -141,7 +142,17 @@ export default function Navbar() {
               />
               Company
             </Link>
-
+            <Link
+              href="/standardize"
+              className="
+                flex
+                items-center
+              gap-2
+            "
+            >
+  <FolderOpen size={18} />
+  Standardize
+</Link>
             <button
               onClick={logout}
               className="

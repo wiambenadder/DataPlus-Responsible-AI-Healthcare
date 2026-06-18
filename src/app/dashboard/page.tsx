@@ -8,7 +8,7 @@ const DOMAINS = [
   "Model Development",
   "Model Deployment",
   "Impact",
-  "Roadmap",
+  "Sustainability",
 ];
 
 function getBadgeColor(status: string | null) {

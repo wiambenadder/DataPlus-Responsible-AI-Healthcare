@@ -7,43 +7,50 @@ import { supabase } from "@/lib/supabase";
 const QUESTIONS = [
   {
     question:
-      "What were your organization's most important accomplishments during this reporting period?",
-    domain: "Program Progress",
+      "What were your organization's most important accomplishments during this reporting period for our your model source?",
+    domain: "Model Source",
     subtopic: "Accomplishments",
   },
 
   {
     question:
-      "What challenges or barriers did you encounter?",
-    domain: "Operations",
+      "What challenges or barriers did you encounter for your model source?",
+    domain: "Model Source",
     subtopic: "Challenges",
   },
 
   {
     question:
-      "How is your organization currently using AI?",
-    domain: "AI Readiness",
-    subtopic: "AI Usage",
+      "How is your organization currently developing its AI capabilities?",
+    domain: "Model Development",
+    subtopic: "AI capabilities",
   },
 
   {
     question:
-      "What progress has been made toward your program goals?",
-    domain: "Program Progress",
-    subtopic: "Goal Tracking",
+      "What do you measure for model deployment?",
+    domain: "Model Deployment",
+    subtopic: "Progress Toward Goals",
   },
 
   {
     question:
       "What support would help you achieve your goals faster?",
-    domain: "Operations",
+    domain: "Impact",
     subtopic: "Support Needs",
+  },
+
+   {
+    question:
+      "What is your roadmap?",
+    domain: "Sustainability",
+    subtopic: "Roadmap",
   },
 
   {
     question:
       "Is there anything else you would like funders to know?",
-    domain: "General",
+    domain: "Sustainability",
     subtopic: "Additional Information",
   },
 ];
