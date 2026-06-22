@@ -76,7 +76,7 @@ export default function CompanySetupPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/report/background");
   }
 
   return (

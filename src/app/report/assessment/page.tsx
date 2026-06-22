@@ -200,7 +200,7 @@ export default function ReportPage() {
       return;
     }
 
-    router.push("/history");
+    router.push("/report/history");
   }
 
   const progress =
@@ -214,7 +214,7 @@ export default function ReportPage() {
       <div className="max-w-3xl mx-auto p-8">
 
         <h1 className="text-4xl font-bold mb-2">
-          Reporting Interview
+          Assessment Questionare
         </h1>
 
         <p className="text-gray-500 mb-8">
