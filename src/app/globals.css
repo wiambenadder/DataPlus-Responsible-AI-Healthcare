@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #111827;
+}
+
+body {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f8fafc 100%
+  );
+
+  color: var(--foreground);
+
+  min-height: 100vh;
+}
+
+textarea,
+input {
+  border-radius: 12px;
+}
+
+button {
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+}
