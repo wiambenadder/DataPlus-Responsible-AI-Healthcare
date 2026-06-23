@@ -1,5 +1,4 @@
-// lowk confused
-
+// This page is for setting up the company information after the user signs up. It allows the user to enter their company name, country, organization type, AI use case, and benchmark goals. After submitting the form, it creates a new company record in the database and links the user to that company. Finally, it redirects the user to the report page.
 
 "use client";
 
@@ -12,9 +11,17 @@ export default function CompanySetupPage() {
 
   const [companyName, setCompanyName] = useState("");
   const [country, setCountry] = useState("");
-  const [organizationType, setOrganizationType] = useState("");
-  const [aiUseCase, setAiUseCase] = useState("");
-  const [benchmarkGoal, setBenchmarkGoal] = useState("");
+  const [yearEstablished, setYearEstablished] =
+    useState("");
+
+  const [fullTimeStaff, setFullTimeStaff] =
+    useState("");
+
+  const [partTimeStaff, setPartTimeStaff] =
+    useState("");
+
+  const [organizationType, setOrganizationType] =
+    useState("");
 
   async function createCompany() {
     const {
@@ -26,106 +33,160 @@ export default function CompanySetupPage() {
       return;
     }
 
-    // Create company
-    const { data: company, error: companyError } =
-      await supabase
-        .from("companies")
-        .insert({
-          company_name: companyName,
-          country,
-          organization_type: organizationType,
-          ai_use_case: aiUseCase,
-          benchmark_goal: benchmarkGoal,
-        })
-        .select()
-        .single();
+    const {
+      data: company,
+      error: companyError,
+    } = await supabase
+      .from("companies")
+      .insert({
+        company_name: companyName,
+
+        country,
+
+        year_established:
+          Number(yearEstablished),
+
+        full_time_staff:
+          Number(fullTimeStaff),
+
+        part_time_staff:
+          Number(partTimeStaff),
+
+        organization_type:
+          organizationType,
+      })
+      .select()
+      .single();
 
     if (companyError) {
-      console.error(companyError);
       alert(companyError.message);
       return;
     }
 
-    // Link user to company
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({
-        id: user.id,
-        company_id: company.id,
-      });
+    const { error: profileError } =
+      await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          company_id: company.id,
+        });
 
     if (profileError) {
-      console.error(profileError);
       alert(profileError.message);
       return;
     }
 
-    alert("Company created successfully");
-
-    router.push("/report");
+    router.push("/report/background");
   }
 
   return (
-    <div className="max-w-2xl p-6">
-      <h1 className="text-2xl font-bold mb-6">
-        Company Setup
+    <div className="max-w-3xl mx-auto p-8">
+
+      <h1 className="text-3xl font-bold mb-6">
+        Organization Setup
       </h1>
 
-      <div className="flex flex-col gap-4">
+      <div className="bg-white border rounded-2xl p-6">
 
-        <input
-          className="border p-2"
-          placeholder="Company Name"
-          value={companyName}
-          onChange={(e) =>
-            setCompanyName(e.target.value)
-          }
-        />
+        <div className="space-y-5">
 
-        <input
-          className="border p-2"
-          placeholder="Country"
-          value={country}
-          onChange={(e) =>
-            setCountry(e.target.value)
-          }
-        />
+          <input
+            className="w-full border rounded-xl p-3"
+            placeholder="Organization Name"
+            value={companyName}
+            onChange={(e) =>
+              setCompanyName(e.target.value)
+            }
+          />
 
-        <input
-          className="border p-2"
-          placeholder="Organization Type"
-          value={organizationType}
-          onChange={(e) =>
-            setOrganizationType(e.target.value)
-          }
-        />
+          <input
+            className="w-full border rounded-xl p-3"
+            placeholder="Country"
+            value={country}
+            onChange={(e) =>
+              setCountry(e.target.value)
+            }
+          />
 
-        <textarea
-          className="border p-2"
-          placeholder="How do you use AI?"
-          value={aiUseCase}
-          onChange={(e) =>
-            setAiUseCase(e.target.value)
-          }
-        />
+          <input
+            type="number"
+            className="w-full border rounded-xl p-3"
+            placeholder="Year Established"
+            value={yearEstablished}
+            onChange={(e) =>
+              setYearEstablished(
+                e.target.value
+              )
+            }
+          />
 
-        <textarea
-          className="border p-2"
-          placeholder="What are your benchmark goals?"
-          value={benchmarkGoal}
-          onChange={(e) =>
-            setBenchmarkGoal(e.target.value)
-          }
-        />
+          <div className="grid grid-cols-2 gap-4">
 
-        <button
-          onClick={createCompany}
-          className="border p-3"
-        >
-          Create Company
-        </button>
+            <input
+              type="number"
+              className="border rounded-xl p-3"
+              placeholder="Full-Time Staff"
+              value={fullTimeStaff}
+              onChange={(e) =>
+                setFullTimeStaff(
+                  e.target.value
+                )
+              }
+            />
+
+            <input
+              type="number"
+              className="border rounded-xl p-3"
+              placeholder="Part-Time Staff"
+              value={partTimeStaff}
+              onChange={(e) =>
+                setPartTimeStaff(
+                  e.target.value
+                )
+              }
+            />
+
+          </div>
+
+          <select
+            className="w-full border rounded-xl p-3"
+            value={organizationType}
+            onChange={(e) =>
+              setOrganizationType(
+                e.target.value
+              )
+            }
+          >
+            <option value="">
+              Organization Type
+            </option>
+
+            <option value="For-Profit">
+              For-Profit
+            </option>
+
+            <option value="Nonprofit">
+              Nonprofit
+            </option>
+          </select>
+
+          <button
+            onClick={createCompany}
+            className="
+              bg-blue-600
+              text-white
+              px-6
+              py-3
+              rounded-xl
+            "
+          >
+            Create Company
+          </button>
+
+        </div>
 
       </div>
+
     </div>
   );
 }

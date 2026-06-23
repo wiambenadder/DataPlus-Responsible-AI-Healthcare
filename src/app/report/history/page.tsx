@@ -1,0 +1,241 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+type InterviewRow = {
+  id: string;
+  reporting_period: string | null;
+  question: string;
+  answer: string;
+  domain: string | null;
+  Subtopic: string | null;
+  ai_assessment: string | null;
+  ai_reasoning: string | null;
+};
+
+type BackgroundRow = {
+  id: string;
+  section: string | null;
+  question: string;
+  answer: string;
+};
+
+export default function HistoryPage() {
+  const [loading, setLoading] = useState(true);
+  const [backgroundRows, setBackgroundRows] = useState<BackgroundRow[]>([]);
+  const [interviewReports, setInterviewReports] = useState<
+    Record<string, InterviewRow[]>
+  >({});
+  const [backgroundOpen, setBackgroundOpen] = useState(false);
+  const [openInterview, setOpenInterview] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  async function loadHistory() {
+    setLoading(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: backgroundData } = await supabase
+      .from("company_background_reports")
+      .select("*")
+      .eq("company_id", profile.company_id);
+
+    setBackgroundRows(backgroundData || []);
+
+    const { data: interviewData } = await supabase
+      .from("qualitative_responses")
+      .select("*")
+      .eq("company_id", profile.company_id);
+
+    const grouped: Record<string, InterviewRow[]> = {};
+
+    (interviewData || []).forEach((row: any) => {
+      const period = row.reporting_period || "Unknown Period";
+
+      if (!grouped[period]) {
+        grouped[period] = [];
+      }
+
+      grouped[period].push(row);
+    });
+
+    setInterviewReports(grouped);
+    setLoading(false);
+  }
+
+  if (loading) {
+    return <div className="p-8">Loading history...</div>;
+  }
+
+  const periods = Object.keys(interviewReports).sort().reverse();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+      <div className="max-w-5xl mx-auto p-8">
+        <h1 className="text-4xl font-bold mb-2">Report History</h1>
+
+        <p className="text-gray-500 mb-8">
+          View your submitted background and interview reports.
+        </p>
+
+        <div className="mb-10">
+          <h2 className="text-2xl font-semibold mb-4">
+            Background Report History
+          </h2>
+
+          <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
+            <button
+              onClick={() => setBackgroundOpen(!backgroundOpen)}
+              className="w-full p-5 flex justify-between items-center text-left"
+            >
+              <div>
+                <div className="font-semibold text-lg">
+                  Company Background
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  {backgroundRows.length} responses
+                </div>
+              </div>
+
+              <div className="text-xl">{backgroundOpen ? "−" : "+"}</div>
+            </button>
+
+            {backgroundOpen && (
+              <div className="border-t p-5">
+                {backgroundRows.length === 0 ? (
+                  <p className="text-gray-500">
+                    No background report submitted yet.
+                  </p>
+                ) : (
+                  backgroundRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="border-b pb-5 mb-5 last:border-b-0 last:mb-0"
+                    >
+                      <div className="text-sm text-blue-600 mb-2">
+                        {row.section}
+                      </div>
+
+                      <div className="font-medium mb-2">{row.question}</div>
+
+                      <div className="text-gray-700 whitespace-pre-wrap">
+                        {row.answer}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">
+            Interview Report History
+          </h2>
+
+          {periods.length === 0 && (
+            <div className="bg-white border rounded-2xl p-6">
+              No interview reports found.
+            </div>
+          )}
+
+          {periods.map((period) => (
+            <div
+              key={period}
+              className="bg-white border rounded-2xl shadow-sm mb-4 overflow-hidden"
+            >
+              <button
+                onClick={() =>
+                  setOpenInterview((prev) => ({
+                    ...prev,
+                    [period]: !prev[period],
+                  }))
+                }
+                className="w-full p-5 flex justify-between items-center text-left"
+              >
+                <div>
+                  <div className="font-semibold text-lg">{period}</div>
+
+                  <div className="text-sm text-gray-500">
+                    {interviewReports[period].length} responses
+                  </div>
+                </div>
+
+                <div className="text-xl">
+                  {openInterview[period] ? "−" : "+"}
+                </div>
+              </button>
+
+              {openInterview[period] && (
+                <div className="border-t p-5">
+                  {interviewReports[period].map((row) => (
+                    <div
+                      key={row.id}
+                      className="border-b pb-5 mb-5 last:border-b-0 last:mb-0"
+                    >
+                      {(row.domain || row.Subtopic) && (
+                        <div className="text-sm text-gray-500 mb-2">
+                          {row.domain}
+                          {row.domain && row.Subtopic && " • "}
+                          {row.Subtopic}
+                        </div>
+                      )}
+
+                      <div className="font-medium mb-2">{row.question}</div>
+
+                      <div className="text-gray-700 whitespace-pre-wrap mb-4">
+                        {row.answer}
+                      </div>
+
+                      {(row.ai_assessment || row.ai_reasoning) && (
+                        <div className="bg-slate-50 border rounded-xl p-4">
+                          <div className="font-medium mb-1">
+                            AI Assessment
+                          </div>
+
+                          <div className="mb-3">
+                            {row.ai_assessment || "Pending"}
+                          </div>
+
+                          <div className="font-medium mb-1">AI Reasoning</div>
+
+                          <div>{row.ai_reasoning || "No reasoning yet."}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
