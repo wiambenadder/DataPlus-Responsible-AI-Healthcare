@@ -7,52 +7,18 @@ import { supabase } from "@/lib/supabase";
 const QUESTIONS = [
   {
     question:
-      "What were your organization's most important accomplishments during this reporting period for our your model source?",
+      "How is data ownership governened/decision rights protected when using data that was used to train the AI model?",
     domain: "Model Source",
-    subtopic: "Accomplishments",
+    subtopic: "Governance & Stewardship",
   },
 
   {
     question:
-      "What challenges or barriers did you encounter for your model source?",
+      "Has the model been developed and tested using data that fairly represents the user population? Is there reason for concern that the models performance for some groups may be better than for others?",
     domain: "Model Source",
-    subtopic: "Challenges",
+    subtopic: "Training Data Quality & Coverage",
   },
 
-  {
-    question:
-      "How is your organization currently developing its AI capabilities?",
-    domain: "Model Development",
-    subtopic: "AI capabilities",
-  },
-
-  {
-    question:
-      "What do you measure for model deployment?",
-    domain: "Model Deployment",
-    subtopic: "Progress Toward Goals",
-  },
-
-  {
-    question:
-      "What support would help you achieve your goals faster?",
-    domain: "Impact",
-    subtopic: "Support Needs",
-  },
-
-   {
-    question:
-      "What is your roadmap?",
-    domain: "Sustainability",
-    subtopic: "Roadmap",
-  },
-
-  {
-    question:
-      "Is there anything else you would like funders to know?",
-    domain: "Sustainability",
-    subtopic: "Additional Information",
-  },
 ];
 
 export default function ReportPage() {
@@ -193,12 +159,29 @@ export default function ReportPage() {
         )
         .insert(rows);
 
+
     setSaving(false);
 
     if (error) {
       alert(error.message);
       return;
     }
+
+    await fetch(
+  "/api/run-ai-assessment",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type":
+        "application/json",
+    },
+    body: JSON.stringify({
+      reporting_period:
+        reportingPeriod,
+      company_id: companyId,
+    }),
+  }
+);
 
     router.push("/report/history");
   }
