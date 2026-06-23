@@ -73,6 +73,8 @@ const QUESTIONS = [
 ];
 
 export default function BackgroundReportPage() {
+  const [alreadySubmitted, setAlreadySubmitted] =
+  useState(false);
   const router = useRouter();
 
   const [companyId, setCompanyId] = useState("");
@@ -108,6 +110,26 @@ export default function BackgroundReportPage() {
     }
 
     setCompanyId(profile.company_id);
+    const { data: existing } =
+  await supabase
+    .from(
+      "company_background_reports"
+    )
+    .select("id")
+    .eq(
+      "company_id",
+      profile.company_id
+    )
+    .limit(1);
+
+if (
+  existing &&
+  existing.length > 0
+) {
+  setAlreadySubmitted(
+    true
+  );
+}
   }
 
   function updateAnswer(value: string) {
@@ -161,6 +183,73 @@ export default function BackgroundReportPage() {
 
   const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
 
+  if (alreadySubmitted) {
+  return (
+    <div className="
+      min-h-screen
+      bg-gradient-to-b
+      from-white
+      to-slate-50
+    ">
+
+      <div className="
+        max-w-3xl
+        mx-auto
+        p-8
+      ">
+
+        <div className="
+          bg-white
+          border
+          rounded-3xl
+          p-10
+          shadow-sm
+          text-center
+        ">
+
+          <h1 className="
+            text-3xl
+            font-bold
+            mb-4
+          ">
+            Company Background
+            Already Submitted
+          </h1>
+
+          <p className="
+            text-gray-600
+            mb-8
+          ">
+            Your organization has
+            already completed the
+            background reporting
+            section.
+          </p>
+
+          <button
+            onClick={() =>
+              router.push(
+                "/report/history"
+              )
+            }
+            className="
+              bg-blue-600
+              text-white
+              px-6
+              py-3
+              rounded-xl
+            "
+          >
+            View Submission
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-3xl mx-auto p-8">
