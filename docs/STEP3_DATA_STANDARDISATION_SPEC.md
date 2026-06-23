@@ -3,8 +3,8 @@
 **Route:** `/standardize` · **Module:** `src/lib/standardization` · **Runtime:** browser (`'use client'` island)
 
 This is the contract for how grantee reporting files are turned into clean,
-comparable data. It is written so a non-engineer can read it and an engineer can
-build to it. The behavioral rules are non-negotiable and are also stated in
+comparable data. It is written so a non-technical person can read it. 
+The behavioral rules are non-negotiable and are also written in
 `GROUND_RULES.md`.
 
 ---
@@ -12,16 +12,15 @@ build to it. The behavioral rules are non-negotiable and are also stated in
 ## 1. What this step does
 
 Grantees submit a 12-month reporting workbook (`.xlsx`). The files share a common
-template but drift in wording and structure. Step 3 reads each file, maps it onto
+template but they tend to drift in wording and structure. Step 3 reads each file, maps it onto
 a canonical master schema, cleans the values, and produces:
 
 - a **cleaned workbook per company** (Outputs / Outcomes / Qualitative / Mapping Log),
 - a **cross-company funder view** (quantitative aligned by metric; qualitative in long form),
 - a **machine-readable audit log** of every mapping decision.
 
-The work runs entirely in the browser. The page is a thin client island; all
-logic lives in framework-agnostic modules so it can also run in a Server Action
-or a test unchanged.
+The work runs entirely in the browser. All of the logic lives is in the framework modules 
+so it can also run in a Server Action or a test unchanged.
 
 ---
 
