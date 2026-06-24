@@ -60,11 +60,12 @@ export default function UserPage() {
 
     const { error } =
       await supabase
-        .from("profiles")
-        .upsert({
-          id: user.id,
-          full_name: fullName,
-        });
+  .from("profiles")
+  .upsert({
+    id: user.id,
+    full_name: fullName,
+    email: user.email,
+  });
 
     if (error) {
       alert(error.message);

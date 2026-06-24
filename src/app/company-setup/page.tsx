@@ -2,9 +2,10 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+
 
 export default function CompanySetupPage() {
   const router = useRouter();
@@ -23,71 +24,197 @@ export default function CompanySetupPage() {
   const [organizationType, setOrganizationType] =
     useState("");
 
-  async function createCompany() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const [invite, setInvite] =
+  useState<any>(null);
+  useEffect(() => {
+  loadInvite();
+}, []);
+  
+async function loadInvite() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-      alert("Please login first");
-      return;
-    }
+  if (!user?.email)
+    return;
 
-    const {
-      data: company,
-      error: companyError,
-    } = await supabase
-      .from("companies")
-      .insert({
-        company_name: companyName,
+  const { data } =
+    await supabase
+      .from("company_invites")
+      .select("*")
+      .eq(
+        "email",
+        user.email
+      )
+      .eq(
+        "accepted",
+        false
+      )
+      .maybeSingle();
 
-        country,
+  setInvite(data);
+}
 
-        year_established:
-          Number(yearEstablished),
+async function acceptInvite() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-        full_time_staff:
-          Number(fullTimeStaff),
-
-        part_time_staff:
-          Number(partTimeStaff),
-
-        organization_type:
-          organizationType,
-      })
-      .select()
-      .single();
-
-    if (companyError) {
-      alert(companyError.message);
-      return;
-    }
-
-    const { error: profileError } =
-      await supabase
-        .from("profiles")
-        .insert({
-          id: user.id,
-          company_id: company.id,
-        });
-
-    if (profileError) {
-      alert(profileError.message);
-      return;
-    }
-
-    router.push("/report/background");
+  if (!user || !invite) {
+    return;
   }
+
+  const { error: profileError } =
+    await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        company_id:
+          invite.company_id,
+        email:
+          user.email,
+        role:
+          invite.role || "member",
+      });
+
+  if (profileError) {
+    alert(profileError.message);
+    return;
+  }
+
+  const { error: inviteError } =
+    await supabase
+      .from("company_invites")
+      .update({
+        accepted: true,
+      })
+      .eq("id", invite.id);
+
+  if (inviteError) {
+    alert(inviteError.message);
+    return;
+  }
+
+  router.push("/dashboard");
+}
+
+
+  
+async function createCompany() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
+  const {
+    data: company,
+    error: companyError,
+  } = await supabase
+    .from("companies")
+    .insert({
+      company_name: companyName,
+
+      country,
+
+      year_established:
+        Number(yearEstablished),
+
+      full_time_staff:
+        Number(fullTimeStaff),
+
+      part_time_staff:
+        Number(partTimeStaff),
+
+      organization_type:
+        organizationType,
+    })
+    .select()
+    .single();
+
+  if (companyError) {
+    alert(companyError.message);
+    return;
+  }
+
+  const { error: profileError } =
+  await supabase
+    .from("profiles")
+    .upsert({
+      id: user.id,
+      company_id: company.id,
+      email: user.email,
+      role: "admin",
+    });
+
+  if (profileError) {
+    alert(profileError.message);
+    return;
+  }
+
+
+
+  router.push("/report/background");
+}
+
+
 
   return (
     <div className="max-w-3xl mx-auto p-8">
+      {invite && (
 
+  <div className="
+    bg-blue-50
+    border
+    border-blue-200
+    rounded-2xl
+    p-6
+    mb-8
+  ">
+
+    <h2 className="
+      text-xl
+      font-semibold
+      mb-2
+    ">
+      Company Invitation
+    </h2>
+
+    <p className="
+      text-gray-700
+      mb-4
+    ">
+      You have been invited
+      to join an existing
+      company.
+    </p>
+
+    <button
+      onClick={
+        acceptInvite
+      }
+      className="
+        bg-blue-600
+        text-white
+        px-5
+        py-3
+        rounded-xl
+      "
+    >
+      Join Company
+    </button>
+
+  </div>
+
+)}
       <h1 className="text-3xl font-bold mb-6">
         Organization Setup
       </h1>
 
       <div className="bg-white border rounded-2xl p-6">
-
         <div className="space-y-5">
 
           <input
@@ -184,9 +311,7 @@ export default function CompanySetupPage() {
           </button>
 
         </div>
-
       </div>
-
     </div>
   );
 }
