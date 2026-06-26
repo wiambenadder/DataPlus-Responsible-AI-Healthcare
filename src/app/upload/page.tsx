@@ -49,7 +49,7 @@ export default function UploadPage() {
       continue;
     }
 
-    const { error: dbError } =
+    const { data: upload, error: dbError } =
       await supabase
         .from("uploads")
         .insert({
@@ -57,12 +57,29 @@ export default function UploadPage() {
           file_name: file.name,
           file_type: file.type,
           file_url: data?.path,
-        });
+        })
+        .select("id")
+        .single();
 
     if (dbError) {
       console.error(dbError);
       continue;
     }
+
+    if (!upload?.id) {
+      console.error("Upload record missing id");
+      continue;
+    }
+
+    await fetch("/api/process-upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uploadId: upload.id,
+      }),
+    });
   }
 
   alert("Files uploaded successfully");
