@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-// Import for pdf-parse may need adjusting depending on your version.
-// Start with this:
-const pdfParse = require("pdf-parse");
-
 export async function POST(request: NextRequest) {
   try {
     const { uploadId } = await request.json();
@@ -16,11 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find upload record
-    const {
-      data: upload,
-      error: uploadError,
-    } = await supabase
+    const { data: upload, error: uploadError } = await supabase
       .from("uploads")
       .select("*")
       .eq("id", uploadId)
@@ -33,101 +25,83 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark as processing
     await supabase
       .from("uploads")
-      .update({
-        extraction_status: "processing",
-      })
+      .update({ extraction_status: "processing" })
       .eq("id", uploadId);
 
-    // Download file from storage
-    const {
-      data: file,
-      error: downloadError,
-    } = await supabase.storage
+    const { data: file, error: downloadError } = await supabase.storage
       .from("reports")
       .download(upload.file_url);
 
     if (downloadError || !file) {
       await supabase
         .from("uploads")
-        .update({
-          extraction_status: "failed",
-        })
+        .update({ extraction_status: "failed" })
         .eq("id", uploadId);
 
       return NextResponse.json(
-        {
-          error:
-            downloadError?.message ??
-            "Unable to download file",
-        },
+        { error: downloadError?.message ?? "Unable to download file" },
         { status: 500 }
       );
     }
 
-    // Convert PDF to Buffer
-    const arrayBuffer =
-      await file.arrayBuffer();
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    const buffer =
-      Buffer.from(arrayBuffer);
+    const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
+    const parsed = await pdfParse(buffer);
 
-    // Extract text
-    const parsed =
-      await pdfParse(buffer);
+    const extractedText = parsed.text;
 
-    const extractedText =
-      parsed.text;
+    console.log("Extracted text length:", extractedText?.length);
+    console.log("Upload ID:", uploadId);
 
-    // Save extracted text
-    const {
-      error: updateError,
-    } = await supabase
+    // ✅ Log the exact update payload
+    const updatePayload = {
+      extracted_text: extractedText,
+      extraction_status: "complete",
+      processed_at: new Date().toISOString(),
+    };
+
+    console.log("Update payload keys:", Object.keys(updatePayload));
+    console.log("extracted_text sample:", extractedText?.slice(0, 100));
+
+    const { data: updateData, error: updateError } = await supabase
       .from("uploads")
-      .update({
-        extracted_text:
-          extractedText,
+      .update(updatePayload)
+      .eq("id", uploadId)
+      .select(); // ✅ .select() forces Supabase to return what was actually written
 
-        extraction_status:
-          "complete",
-
-        processed_at:
-          new Date().toISOString(),
-      })
-      .eq("id", uploadId);
+    console.log("Update result:", updateData);
+    console.log("Update error:", updateError);
 
     if (updateError) {
       return NextResponse.json(
-        {
-          error:
-            updateError.message,
-        },
+        { error: updateError.message, details: updateError },
+        { status: 500 }
+      );
+    }
+
+    if (!updateData || updateData.length === 0) {
+      return NextResponse.json(
+        { error: "Update ran but no rows were matched — check the uploadId" },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      pages:
-        parsed.numpages,
-      characters:
-        extractedText.length,
+      pages: parsed.numpages,
+      characters: extractedText.length,
+      written: updateData[0]?.extracted_text?.length ?? 0,
     });
 
   } catch (err: any) {
     console.error(err);
-
     return NextResponse.json(
-      {
-        error:
-          err.message ??
-          "Unknown error",
-      },
-      {
-        status: 500,
-      }
+      { error: err.message ?? "Unknown error" },
+      { status: 500 }
     );
   }
 }
