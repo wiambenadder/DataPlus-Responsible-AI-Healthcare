@@ -53,6 +53,18 @@ export interface StandardizedIndicator {
   indicator: IndicatorMatch;
   quantitative: Record<string, CleanedNumber>;
   qualitative: Record<string, QualitativeField>;
+  dates: Record<string, string | null>;
+  attributes: Record<string, RawCell>;
+}
+export interface ProjectStatusRow {
+  /** Program goal this objective falls under (carried from the "Program Goal N" header row). */
+  goal?: string | null;
+  objective: QualitativeField | null; activities: QualitativeField | null; deadline: QualitativeField | null;
+  status_6m: QualitativeField | null; status_12m: QualitativeField | null; delay_reason: QualitativeField | null;
+  delay_plan: QualitativeField | null; delay_est_date: string | null; notes: QualitativeField | null;
+}
+export interface FileLog {
+  company: string; sourceName: string; processedAt: string;
   dates: Record<string, string | null>; // ISO-8601 or null
   /** Any other mapped column that is neither number, date, nor narrative (e.g. conducts_activity). */
   attributes: Record<string, RawCell>;

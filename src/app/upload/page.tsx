@@ -1,4 +1,5 @@
- // upload page for the app, allows users to upload files to their company account, files are stored in Supabase storage and metadata is stored in the uploads table
+// not current in use
+// upload page for the app, allows users to upload files to their company account, files are stored in Supabase storage and metadata is stored in the uploads table
 
 "use client";
 

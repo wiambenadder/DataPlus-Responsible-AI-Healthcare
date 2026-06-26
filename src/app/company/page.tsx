@@ -74,6 +74,16 @@ const [members, setMembers] =
       .eq("id", profile.company_id)
       .single();
 
+
+    const {
+      data: company,
+      error: companyError,
+    } = await supabase
+      .from("companies")
+      .select("*")
+      .eq("id", profile.company_id)
+      .single();
+
     if (companyError || !company) {
       alert("Company profile not found");
       return;
@@ -202,6 +212,12 @@ const [members, setMembers] =
     router.push("/dashboard");
   }
 
+  if (loading) {
+    return (
+      <div className="p-8">
+        Loading company profile...
+      </div>
+    );
   async function inviteMember() {
   if (!inviteEmail.trim()) {
     return;
