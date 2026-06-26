@@ -30,6 +30,13 @@ export default function CompanyPage() {
   const [organizationType, setOrganizationType] =
     useState("");
 
+    const [inviteEmail, setInviteEmail] =
+  useState("");
+
+
+const [members, setMembers] =
+  useState<any[]>([]);
+
   useEffect(() => {
     loadCompany();
   }, []);
@@ -57,6 +64,16 @@ export default function CompanyPage() {
       router.push("/company-setup");
       return;
     }
+
+    const {
+      data: company,
+      error: companyError,
+    } = await supabase
+      .from("companies")
+      .select("*")
+      .eq("id", profile.company_id)
+      .single();
+
 
     const {
       data: company,
@@ -101,6 +118,54 @@ export default function CompanyPage() {
       company.organization_type ||
         ""
     );
+
+    const { data: memberData } =
+  await supabase
+    .from("company_members")
+    .select("*")
+    .eq(
+      "company_id",
+      company.id
+    );
+
+    const memberIds =
+  memberData?.map(
+    (m) => m.user_id
+  ) || [];
+
+  const { data: profileData } =
+  await supabase
+    .from("profiles")
+    .select(`
+      id,
+      full_name,
+      email
+    `)
+    .in(
+      "id",
+      memberIds
+    );
+
+    const mergedMembers =
+  memberData?.map(
+    (member) => ({
+      ...member,
+
+      profile:
+        profileData?.find(
+          (profile) =>
+            profile.id ===
+            member.user_id
+        ),
+    })
+  ) || [];
+
+  setMembers(
+  mergedMembers
+);
+    
+
+
 
     setLoading(false);
   }
@@ -153,7 +218,42 @@ export default function CompanyPage() {
         Loading company profile...
       </div>
     );
+  async function inviteMember() {
+  if (!inviteEmail.trim()) {
+    return;
   }
+
+  const { error } =
+    await supabase
+      .from("company_invites")
+      .insert({
+        company_id:
+          companyId,
+        email:
+          inviteEmail,
+        role: "member",
+      });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  setInviteEmail("");
+
+  alert(
+    "Invitation created"
+  );
+}
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        Loading company profile...
+      </div>
+    );
+  }
+
 
   return (
     <div className="
@@ -400,6 +500,131 @@ export default function CompanyPage() {
             >
               Save Changes
             </button>
+
+            <div className="
+  mt-10
+  border-t
+  pt-8
+">
+
+  <h2 className="
+    text-2xl
+    font-semibold
+    mb-4
+  ">
+    Team Members
+  </h2>
+
+  {members.length === 0 ? (
+    <div className="
+      text-gray-500
+      mb-6
+    ">
+      No team members yet.
+    </div>
+  ) : (
+    <div className="
+      space-y-2
+      mb-6
+    ">
+
+      {members.map(
+        (member) => (
+          <div
+            key={member.id}
+            className="
+              flex
+              justify-between
+              items-center
+              border
+              rounded-xl
+              p-3
+            "
+          >
+
+            <div>
+
+  <div className="
+    font-medium
+  ">
+    {member.profile
+      ?.full_name ||
+      "Unnamed User"}
+  </div>
+
+  <div className="
+    text-sm
+    text-gray-500
+  ">
+    {member.profile
+      ?.email ||
+      "No email"
+    }
+  </div>
+
+</div>
+
+            <div className="
+              text-sm
+              bg-slate-100
+              px-2
+              py-1
+              rounded-full
+            ">
+              {member.role}
+            </div>
+
+          </div>
+        )
+      )}
+
+    </div>
+  )}
+
+  <h3 className="
+    text-lg
+    font-medium
+    mb-3
+  ">
+    Invite User
+  </h3>
+
+  <div className="
+    flex
+    gap-3
+  ">
+
+    <input
+      value={inviteEmail}
+      onChange={(e) =>
+        setInviteEmail(
+          e.target.value
+        )
+      }
+      placeholder="email@example.com"
+      className="
+        flex-1
+        border
+        rounded-xl
+        p-3
+      "
+    />
+
+    <button
+      onClick={inviteMember}
+      className="
+        bg-blue-600
+        text-white
+        px-5
+        rounded-xl
+      "
+    >
+      Invite
+    </button>
+
+  </div>
+
+</div>
 
           </div>
 

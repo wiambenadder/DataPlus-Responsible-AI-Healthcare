@@ -3,9 +3,6 @@ import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from supabase import create_client
-from dotenv import load_dotenv
-from openai import OpenAI
-from supabase import create_client
 
 load_dotenv()
 
@@ -13,9 +10,6 @@ client = OpenAI(
     api_key=os.getenv("LITELLM_TOKEN"),
     base_url="https://litellm.oit.duke.edu"
 )
-
-print("SUPABASE_URL:", os.getenv("SUPABASE_URL"))
-print("SUPABASE_KEY exists:", os.getenv("SUPABASE_KEY") is not None)
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
@@ -30,18 +24,18 @@ result = (
     .execute()
 )
 
-row = result.data[0]
+rows = result.data
 
-# Pull fields from Supabase
-domain = row["domain"]
-subtopic = row["Subtopic"]
-response = row["answer"]
+for row in rows:
+    domain = row["domain"]
+    subtopic = row["Subtopic"]
+    response = row["answer"]
 
-print("USING DOMAIN:", domain)
-print("USING SUBTOPIC:", subtopic)
-print("USING RESPONSE:", response[:200])
+    print("USING DOMAIN:", domain)
+    print("USING SUBTOPIC:", subtopic)
+    print("USING RESPONSE:", response[:200])
 
-prompt = f"""
+    prompt = f"""
 You are a qualitative research coder applying a predefined assessment framework.
 Your task is to analyze an interview transcript section and assess the innovator's response for a single framework subpoint.
 
@@ -59,14 +53,14 @@ Summarize and evaluate only the content provided within the specified subpoint s
 Use an evidence-first approach.
 Do not infer the existence of:
 
-*   practices    
-*   policies    
-*   governance structures    
-*   metrics    
-*   monitoring systems    
-*   responsibilities    
-*   measurement activities
-    
+* practices
+* policies
+* governance structures
+* metrics
+* monitoring systems
+* responsibilities
+* measurement activities
+
 unless they are explicitly described by the innovator.
 Base all conclusions solely on information contained in the transcript section.
 If evidence is ambiguous, incomplete, or uncertain, choose the lower rating.
@@ -80,47 +74,44 @@ Apply the following decision process exactly.
 
 If no evidence exists:
 
-*   Rating = Not Addressed    
+* Rating = Not Addressed
 
 If evidence exists:
 
-*   Proceed to Question 2    
+* Proceed to Question 2
 
 ### Question 2: Does an equivalent practice exist that addresses the subpoint?
 
 An equivalent practice is an actual activity, process, responsibility, policy, workflow, or mechanism that addresses the intent of the subpoint.
 If no equivalent practice exists:
 
-*   Rating = Aware, Not Practiced
-    
+* Rating = Aware, Not Practiced
+
 If an equivalent practice exists:
 
-*   Proceed to Question 3    
+* Proceed to Question 3
 
 ### Question 3: Is the practice formally tracked and producing repeatable outputs?
 
 Formal tracking includes explicit evidence of:
 
-*   metrics    
-*   indicators    
-*   KPIs    
-*   dashboards    
-*   monitoring systems    
-*   logs    
-*   audits    
-*   reports    
-*   scheduled reviews  
-*   documented measurement processes
-    
+* metrics
+* indicators
+* KPIs
+* dashboards
+* monitoring systems
+* logs
+* audits
+* reports
+* scheduled reviews
+* documented measurement processes
 
 Do not infer measurement from the existence of a practice.
 If formal tracking is explicitly described:
-*   Rating = Measured
-    
+* Rating = Measured
 
 If a practice exists but formal tracking is not described:
-*   Rating = Practiced, Not Measured
-    
+* Rating = Practiced, Not Measured
 
 ## Additional Coding Fields
 
@@ -144,14 +135,14 @@ The innovator explicitly indicates that they have deliberately chosen not to imp
 
 The innovator indicates that they would like to address the subpoint but lack sufficient:
 
-*   resources    
-*   staff   
-*   funding    
-*   expertise    
-*   infrastructure    
-*   data    
-*   time
-    
+* resources
+* staff
+* funding
+* expertise
+* infrastructure
+* data
+* time
+
 If insufficient evidence exists to determine the barrier type, state:
 Cannot determine from transcript.
 
@@ -160,10 +151,9 @@ Cannot determine from transcript.
 Assess whether the innovator appears confused by the subpoint, requires clarification, misunderstands terminology, or needs the concept reframed.
 Record:
 
-*   Yes
-    
-*   No
-    
+* Yes
+* No
+
 Provide a brief explanation.
 
 ## Relevant Innovator Information
@@ -189,7 +179,7 @@ Keep the summary factual and concise.
 
 ### Evidence Assessment
 
-Evidence Found:  
+Evidence Found:
 Yes / No
 
 ### Rating
@@ -198,13 +188,13 @@ Yes / No
 
 ### Rating Justification
 
-Question 1: Is there evidence that the subpoint is addressed?  
+Question 1: Is there evidence that the subpoint is addressed?
 Answer: [Yes/No]
-Question 2: Does an equivalent practice exist?  
+Question 2: Does an equivalent practice exist?
 Answer: [Yes/No]
-Question 3: Is the practice formally tracked and producing repeatable outputs?  
+Question 3: Is the practice formally tracked and producing repeatable outputs?
 Answer: [Yes/No]
-Reasoning:  
+Reasoning:
 [Brief explanation based strictly on transcript evidence]
 
 ### Actual Metric Used
@@ -218,16 +208,16 @@ Reasoning:
 ### Language Misalignment
 
 [Yes / No]
-Explanation:  
+Explanation:
 [Brief explanation]
 
-Transcript Section:  
+Transcript Section:
 {response}
-  
-Domain:  
+
+Domain:
 {domain}
 
-Subtopic:  
+Subtopic:
 {subtopic}
 
 Return JSON only:
@@ -236,33 +226,31 @@ Return JSON only:
   "ai_rating": "Not Addressed / Aware, Not Practiced / Practiced, Not Measured / Measured",
   "ai_explanation": "Brief explanation based strictly on transcription"
 }}
-
 """
 
-result = client.chat.completions.create(
-    model="gpt-5.2",
-    temperature=0,
-    messages=[
-        {"role": "user", "content": prompt}
-    ]
-)
-ai_text = result.choices[0].message.content
-print(ai_text)
+    ai_result = client.chat.completions.create(
+        model="gpt-5.2",
+        temperature=0,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
 
-ai_json = json.loads(ai_text)
+    ai_text = ai_result.choices[0].message.content
+    print(ai_text)
 
-row_id = row["id"]
+    ai_json = json.loads(ai_text)
 
-update_result = (
-    supabase
-    .table("qualitative_responses")
-    .update({
-        "ai_assessment": ai_json["ai_rating"],
-        "ai_reasoning": ai_json["ai_explanation"]
-    })
-    .eq("id", row_id)
-    .execute()
-)
+    update_result = (
+        supabase
+        .table("qualitative_responses")
+        .update({
+            "ai_assessment": ai_json["ai_rating"],
+            "ai_reasoning": ai_json["ai_explanation"]
+        })
+        .eq("id", row["id"])
+        .execute()
+    )
 
-print("UPDATE RESULT:")
-print(update_result.data)
+    print("UPDATED ROW:", row["id"])
+    print(update_result.data)

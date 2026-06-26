@@ -2,9 +2,10 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+
 
 export default function CompanySetupPage() {
   const router = useRouter();
@@ -87,7 +88,6 @@ export default function CompanySetupPage() {
       </h1>
 
       <div className="bg-white border rounded-2xl p-6">
-
         <div className="space-y-5">
 
           <input
@@ -184,9 +184,7 @@ export default function CompanySetupPage() {
           </button>
 
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -2,485 +2,314 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { FRAMEWORK } from "@/lib/framework";
 
-const DOMAINS = [
-  "Model Source",
-  "Model Development",
-  "Model Deployment",
-  "Impact",
-  "Roadmap",
-];
+function normalizeStatus(status: string | null) {
+  return status === "Practiced" ? "Practiced" : "Not Practiced";
+}
+
+function getPercentage(practiced: number, total: number) {
+  if (total === 0) return 0;
+  return Math.round((practiced / total) * 100);
+}
 
 function getBadgeColor(status: string | null) {
   switch (status) {
     case "Measured":
       return "bg-green-100 text-green-700";
-
     case "Practiced, Not Measured":
       return "bg-blue-100 text-blue-700";
-
     case "Aware, Not Practiced":
       return "bg-yellow-100 text-yellow-700";
-
     case "Not Addressed":
       return "bg-red-100 text-red-700";
-
     default:
       return "bg-gray-100 text-gray-700";
   }
 }
+function getPercentageColor(
+  percentage: number
+) {
+  if (percentage >= 75) {
+    return "text-green-600";
+  }
+
+  if (percentage >= 40) {
+    return "text-yellow-600";
+  }
+
+  return "text-red-600";
+}
+
+
 
 export default function DashboardPage() {
-  const [responses, setResponses] =
-    useState<any[]>([]);
+  const [responses, setResponses] = useState<any[]>([]);
+  const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({});
+  const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
+  // ✅ FIXED: moved inside the component
+  const [activeDomain, setActiveDomain] = useState<string | null>(null);
 
-  const [expandedDomains, setExpandedDomains] =
-    useState<Record<string, boolean>>({});
-
-  const [expandedTopics, setExpandedTopics] =
-    useState<Record<string, boolean>>({});
-
+  
   useEffect(() => {
     loadDashboard();
   }, []);
 
   async function loadDashboard() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data: profile } =
-      await supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single();
 
     if (!profile) return;
 
-    const { data } =
-      await supabase
-        .from("qualitative_responses")
-        .select("*")
-        .eq(
-          "company_id",
-          profile.company_id
-        );
+    const { data } = await supabase
+      .from("qualitative_responses")
+      .select("*")
+      .eq("company_id", profile.company_id);
 
     setResponses(data || []);
   }
 
   function toggleDomain(domain: string) {
-    setExpandedDomains((prev) => ({
-      ...prev,
-      [domain]: !prev[domain],
-    }));
+    setExpandedDomains((prev) => ({ ...prev, [domain]: !prev[domain] }));
   }
 
   function toggleTopic(id: string) {
-    setExpandedTopics((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setExpandedTopics((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  const measuredCount =
-    responses.filter(
-      (r) =>
-        r.ai_assessment ===
-        "Measured"
-    ).length;
+  const allSubtopics = Object.values(FRAMEWORK).flat();
 
-  const practicedCount =
-    responses.filter(
-      (r) =>
-        r.ai_assessment ===
-        "Practiced, Not Measured"
-    ).length;
+  const practicedCount = responses.filter(
+    (r) => r.ai_assessment === "Practiced"
+  ).length;
 
-  const awareCount =
-    responses.filter(
-      (r) =>
-        r.ai_assessment ===
-        "Aware, Not Practiced"
-    ).length;
-
-  const notAddressedCount =
-    responses.filter(
-      (r) =>
-        r.ai_assessment ===
-        "Not Addressed"
-    ).length;
+  const overallPercentage = getPercentage(practicedCount, allSubtopics.length);
 
   return (
-    <div className="
-      min-h-screen
-      bg-gradient-to-b
-      from-white
-      to-slate-50
-    ">
+    // ✅ FIXED: everything is now inside the return
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+      <div className="max-w-6xl mx-auto p-8">
 
-      <div className="
-        max-w-6xl
-        mx-auto
-        p-8
-      ">
+        <h1 className="text-4xl font-bold mb-2">AI Readiness Dashboard</h1>
+        <p className="text-gray-500 mb-8">Assessment generated from interview responses.</p>
 
-        <h1 className="
-          text-4xl
-          font-bold
-          mb-2
-        ">
-          AI Readiness Dashboard
-        </h1>
-
-        <p className="
-          text-gray-500
-          mb-8
-        ">
-          Assessment generated from interview responses.
-        </p>
-
-        {/* Summary Cards */}
-
-        <div className="
-          grid
-          md:grid-cols-4
-          gap-4
-          mb-8
-        ">
-
-          <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-5
-          ">
-            <div className="
-              text-sm
-              text-gray-500
-            ">
-              Domains
-            </div>
-
-            <div className="
-              text-2xl
-              font-bold
-            ">
-              5
-            </div>
-          </div>
-
-          <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-5
-          ">
-            <div className="
-              text-sm
-              text-gray-500
-            ">
-              Measured
-            </div>
-
-            <div className="
-              text-2xl
-              font-bold
-              text-green-700
-            ">
-              {measuredCount}
-            </div>
-          </div>
-
-          <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-5
-          ">
-            <div className="
-              text-sm
-              text-gray-500
-            ">
-              Practiced
-            </div>
-
-            <div className="
-              text-2xl
-              font-bold
-              text-blue-700
-            ">
-              {practicedCount}
-            </div>
-          </div>
-
-          <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-5
-          ">
-            <div className="
-              text-sm
-              text-gray-500
-            ">
-              Not Addressed
-            </div>
-
-            <div className="
-              text-2xl
-              font-bold
-              text-red-700
-            ">
-              {notAddressedCount}
-            </div>
-          </div>
-
+        {/* Summary Card */}
+        <div className="bg-white border rounded-3xl p-8 shadow-sm mb-8">
+          <div className="text-sm text-gray-500">Overall Topics Practiced</div>
+          <div className={`text-6xl font-bold ${getPercentageColor(
+    overallPercentage
+  )}`}
+>
+  {overallPercentage}%</div>
         </div>
 
-        {/* Domains */}
+        {/* Domain Cards */}
+        <div className="grid md:grid-cols-5 gap-4 mb-8">
+          {Object.entries(FRAMEWORK).map(([domain, subtopics]) => {
+            const practiced = subtopics.filter((subtopic) =>
+              responses.some(
+                (r) => r.Subtopic === subtopic && r.ai_assessment === "Practiced"
+              )
+            ).length;
 
-        {DOMAINS.map((domain) => {
-          const domainRows =
-            responses.filter(
-              (r) =>
-                r.domain === domain
-            );
+            const percent = getPercentage(practiced, subtopics.length);
 
-          return (
-            <div
-              key={domain}
-              className="
-                bg-white
-                border
-                rounded-2xl
-                mb-6
-                overflow-hidden
-                shadow-sm
-              "
-            >
-
+            return (
               <button
-                onClick={() =>
-                  toggleDomain(domain)
-                }
-                className="
-                  w-full
-                  p-6
-                  flex
-                  justify-between
-                  items-center
-                  text-left
-                "
+                key={domain}
+                onClick={() => setActiveDomain(domain)}
+                className="bg-white border rounded-2xl p-5 text-left shadow-sm"
               >
-
-                <div>
-
-                  <div className="
-                    text-xl
-                    font-semibold
-                  ">
-                    {domain}
-                  </div>
-
-                  <div className="
-                    text-sm
-                    text-gray-500
-                  ">
-                    {
-                      domainRows.length
-                    } subtopics
-                  </div>
-
-                </div>
-
-                <div className="
-                  text-xl
-                ">
-                  {expandedDomains[
-                    domain
-                  ]
-                    ? "−"
-                    : "+"}
-                </div>
-
+                <div className="text-sm text-gray-500">{domain}</div>
+                <div
+  className={`text-3xl font-bold ${getPercentageColor(
+    percent
+  )}`}
+>
+  {percent}%
+</div>
               </button>
+            );
+          })}
+        </div>
 
-              {expandedDomains[
-                domain
-              ] && (
-                <div className="
-                  border-t
-                ">
+      
+        {activeDomain && (
+          <div className="bg-white border rounded-3xl p-6 shadow-sm mb-8">
+            <h2 className="text-2xl font-semibold mb-6">{activeDomain}</h2>
 
-                  {domainRows.map(
-                    (row) => (
-                      <div
-                        key={row.id}
-                        className="
-                          border-b
-                          p-5
-                        "
-                      >
+            {/* ✅ FIXED: subtopic map is now inside JSX, not floating */}
+            {FRAMEWORK[activeDomain as keyof typeof FRAMEWORK].map((subtopic) => {
+              const row = responses.find((r) => r.Subtopic === subtopic);
+              const status = row ? normalizeStatus(row.ai_assessment) : "Not Yet Assessed";
 
-                        <button
-                          onClick={() =>
-                            toggleTopic(
-                              row.id
-                            )
-                          }
-                          className="
-                            w-full
-                            flex
-                            justify-between
-                            items-center
-                            text-left
-                          "
-                        >
+              // ✅ FIXED: filter recommendations per subtopic, not globally
+              const recommendations = responses.filter(
+                (r) => r.Subtopic === subtopic && r.ai_assessment === "Not Practiced"
+              );
 
-                          <div>
+              return (
+                <div
+  key={subtopic}
+  className="
+    border
+    rounded-xl
+    mb-3
+    overflow-hidden
+  "
+>
 
-                            <div className="
-                              font-medium
-                            ">
-                              {
-                                row.Subtopic
-                              }
-                            </div>
+  <button
+    onClick={() =>
+      toggleTopic(
+        subtopic
+      )
+    }
+    className="
+      w-full
+      flex
+      justify-between
+      items-center
+      p-4
+      text-left
+    "
+  >
 
-                          </div>
+    <div>
 
-                          <div
-                            className={`
-                              px-3
-                              py-1
-                              rounded-full
-                              text-sm
-                              ${getBadgeColor(
-                                row.ai_assessment
-                              )}
-                            `}
-                          >
-                            {row.ai_assessment ||
-                              "Pending"}
-                          </div>
+      <div className="font-medium">
+        {subtopic}
+      </div>
 
-                        </button>
+    </div>
 
-                        {expandedTopics[
-                          row.id
-                        ] && (
-                          <div className="
-                            mt-5
-                            space-y-5
-                          ">
+    <div className="flex items-center gap-3">
 
-                            <div>
+      <span
+        className={`
+          text-xs
+          px-2
+          py-1
+          rounded-full
+          ${getBadgeColor(
+            row?.ai_assessment ??
+              null
+          )}
+        `}
+      >
+        {status}
+      </span>
 
-                              <div className="
-                                font-medium
-                                mb-2
-                              ">
-                                AI Justification
-                              </div>
+      <span>
+        {expandedTopics[
+          subtopic
+        ]
+          ? "−"
+          : "+"}
+      </span>
 
-                              <div className="
-                                bg-slate-50
-                                border
-                                rounded-xl
-                                p-4
-                                text-gray-700
-                              ">
-                                {row.ai_reasoning ||
-                                  "No AI reasoning yet."}
-                              </div>
+    </div>
 
-                            </div>
+  </button>
 
-                            <div>
+  {expandedTopics[
+    subtopic
+  ] && (
+    <div className="
+      border-t
+      p-4
+      space-y-4
+    ">
 
-                              <div className="
-                                font-medium
-                                mb-2
-                              ">
-                                Source Question
-                              </div>
+      <div>
 
-                              <div className="
-                                text-gray-700
-                              ">
-                                {row.question}
-                              </div>
+        <div className="
+          font-medium
+          mb-1
+        ">
+          AI Justification
+        </div>
 
-                            </div>
-
-                            <div>
-
-                              <div className="
-                                font-medium
-                                mb-2
-                              ">
-                                Original Response
-                              </div>
-
-                              <div className="
-                                border-l-4
-                                border-blue-500
-                                pl-4
-                                text-gray-700
-                              ">
-                                {row.answer}
-                              </div>
-
-                            </div>
-
-                            <div>
-
-                              <div className="
-                                font-medium
-                                mb-2
-                              ">
-                                Reporting Period
-                              </div>
-
-                              <div className="
-                                text-gray-700
-                              ">
-                                {row.reporting_period}
-                              </div>
-
-                            </div>
-
-                          </div>
-                        )}
-
-                      </div>
-                    )
-                  )}
-
-                  {domainRows.length ===
-                    0 && (
-                    <div className="
-                      p-5
-                      text-gray-500
-                    ">
-                      No responses have been mapped
-                      to this domain yet.
-                    </div>
-                  )}
-
-                </div>
-              )}
-
-            </div>
-          );
-        })}
+        <div className="
+          bg-slate-50
+          border
+          rounded-xl
+          p-3
+        ">
+          {row?.ai_reasoning ||
+            "No assessment available yet."}
+        </div>
 
       </div>
 
+      <div>
+
+        <div className="
+          font-medium
+          mb-1
+        ">
+          Source Question
+        </div>
+
+        <div>
+          {row?.question ||
+            "No source question available."}
+        </div>
+
+      </div>
+
+      <div>
+
+        <div className="
+          font-medium
+          mb-1
+        ">
+          Original Response
+        </div>
+
+        <div className="
+          border-l-4
+          border-blue-500
+          pl-3
+        ">
+          {row?.answer ||
+            "No response available."}
+        </div>
+
+      </div>
+
+      <div>
+
+        <div className="
+          font-medium
+          mb-1
+        ">
+          Reporting Period
+        </div>
+
+        <div>
+          {row?.reporting_period ||
+            "N/A"}
+        </div>
+
+      </div>
+
+    </div>
+  )}
+
+</div>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
