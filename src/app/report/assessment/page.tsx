@@ -24,7 +24,8 @@ export default function ReportPage() {
     subtopic: string;
   }[]
 >([]);
-
+const [interviewQuestions, setInterviewQuestions] =
+  useState<typeof QUESTIONS>([]);
   useEffect(() => {
     loadCompany();
   }, []);
@@ -139,7 +140,46 @@ setUploadComplete(true);
     }
 
     setCompanyId(profile.company_id);
+
+    await loadInterviewQuestions(
+  profile.company_id
+);
   }
+  
+
+  
+
+  async function loadInterviewQuestions(
+  companyId: string
+) {
+  const { data: mappedTopics } =
+    await supabase
+      .from("domain_mapping")
+      .select("domain, subtopic")
+      .eq("company_id", companyId);
+
+  if (!mappedTopics) {
+    setInterviewQuestions(QUESTIONS);
+    return;
+  }
+
+  const missingQuestions =
+    QUESTIONS.filter((question) => {
+
+      return !mappedTopics.some(
+        (mapping) =>
+          mapping.domain ===
+            question.domain &&
+          mapping.subtopic ===
+            question.subtopic
+      );
+
+    });
+
+  setInterviewQuestions(
+    missingQuestions
+  );
+}
 
   async function nextQuestion() {
     if (!currentAnswer.trim()) {
@@ -150,17 +190,17 @@ setUploadComplete(true);
     const updatedAnswers = [
       ...answers,
       {
-        question: QUESTIONS[currentQuestion].question,
+        question: interviewQuestions[currentQuestion].question,
         answer: currentAnswer,
-        domain: QUESTIONS[currentQuestion].domain,
-        subtopic: QUESTIONS[currentQuestion].subtopic,
+        domain: interviewQuestions[currentQuestion].domain,
+        subtopic: interviewQuestions[currentQuestion].subtopic,
       },
     ];
 
     setAnswers(updatedAnswers);
     setCurrentAnswer("");
 
-    if (currentQuestion < QUESTIONS.length - 1) {
+    if (currentQuestion < interviewQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       return;
     }
@@ -217,9 +257,10 @@ setUploadComplete(true);
     router.push("/report/history");
   }
 
-  const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
+  const progress = ((currentQuestion + 1) / interviewQuestions.length) * 100;
 
   return (
+    
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-3xl mx-auto p-8">
         <h1 className="text-4xl font-bold mb-2">Assessment Questionnaire</h1>
@@ -227,6 +268,8 @@ setUploadComplete(true);
         <p className="text-gray-500 mb-8">
           Help us understand your organization's progress and challenges.
         </p>
+
+        
 
         {!uploadComplete && (
           <div className="bg-white border rounded-2xl shadow-sm p-8 mb-8">
@@ -278,7 +321,7 @@ setUploadComplete(true);
             <div className="mb-8">
               <div className="flex justify-between text-sm text-gray-500 mb-2">
                 <span>Question {currentQuestion + 1}</span>
-                <span>{QUESTIONS.length}</span>
+                <span>{interviewQuestions.length}</span>
               </div>
 
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -291,7 +334,7 @@ setUploadComplete(true);
 
             <div className="bg-white rounded-2xl border shadow-sm p-8">
               <div className="text-xl font-medium mb-6">
-                🤖 {QUESTIONS[currentQuestion].question}
+                🤖 {interviewQuestions[currentQuestion].question}
               </div>
 
               <textarea
@@ -308,7 +351,7 @@ setUploadComplete(true);
               >
                 {saving
                   ? "Saving..."
-                  : currentQuestion === QUESTIONS.length - 1
+                  : currentQuestion === interviewQuestions.length - 1
                   ? "Submit Report"
                   : "Continue"}
               </button>
