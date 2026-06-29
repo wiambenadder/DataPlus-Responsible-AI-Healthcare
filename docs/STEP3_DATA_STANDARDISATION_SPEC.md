@@ -12,7 +12,7 @@ build to it. The behavioral rules are non-negotiable and are also stated in
 ## 1. What this step does
 
 Grantees submit a 12-month reporting workbook (`.xlsx`). The files share a common
-template but drift in wording and structure. Step 3 reads each file, maps it onto
+template but they tend to drift in wording and structure. Step 3 reads each file, maps it onto
 a canonical master schema, cleans the values, and produces:
 
 - a **cleaned workbook per company** (Outputs / Outcomes / Qualitative / Mapping Log),

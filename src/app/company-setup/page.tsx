@@ -24,192 +24,65 @@ export default function CompanySetupPage() {
   const [organizationType, setOrganizationType] =
     useState("");
 
-    const [invite, setInvite] =
-  useState<any>(null);
-  useEffect(() => {
-  loadInvite();
-}, []);
-  
-async function loadInvite() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  async function createCompany() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user?.email)
-    return;
+    if (!user) {
+      alert("Please login first");
+      return;
+    }
 
-  const { data } =
-    await supabase
-      .from("company_invites")
-      .select("*")
-      .eq(
-        "email",
-        user.email
-      )
-      .eq(
-        "accepted",
-        false
-      )
-      .maybeSingle();
+    const {
+      data: company,
+      error: companyError,
+    } = await supabase
+      .from("companies")
+      .insert({
+        company_name: companyName,
 
-  setInvite(data);
-}
+        country,
 
-async function acceptInvite() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+        year_established:
+          Number(yearEstablished),
 
-  if (!user || !invite) {
-    return;
-  }
+        full_time_staff:
+          Number(fullTimeStaff),
 
-  const { error: profileError } =
-    await supabase
-      .from("profiles")
-      .upsert({
-        id: user.id,
-        company_id:
-          invite.company_id,
-        email:
-          user.email,
-        role:
-          invite.role || "member",
-      });
+        part_time_staff:
+          Number(partTimeStaff),
 
-  if (profileError) {
-    alert(profileError.message);
-    return;
-  }
-
-  const { error: inviteError } =
-    await supabase
-      .from("company_invites")
-      .update({
-        accepted: true,
+        organization_type:
+          organizationType,
       })
-      .eq("id", invite.id);
+      .select()
+      .single();
 
-  if (inviteError) {
-    alert(inviteError.message);
-    return;
+    if (companyError) {
+      alert(companyError.message);
+      return;
+    }
+
+    const { error: profileError } =
+      await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          company_id: company.id,
+        });
+
+    if (profileError) {
+      alert(profileError.message);
+      return;
+    }
+
+    router.push("/dashboard");
   }
-
-  router.push("/dashboard");
-}
-
-
-  
-async function createCompany() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    alert("Please login first");
-    return;
-  }
-
-  const {
-    data: company,
-    error: companyError,
-  } = await supabase
-    .from("companies")
-    .insert({
-      company_name: companyName,
-
-      country,
-
-      year_established:
-        Number(yearEstablished),
-
-      full_time_staff:
-        Number(fullTimeStaff),
-
-      part_time_staff:
-        Number(partTimeStaff),
-
-      organization_type:
-        organizationType,
-    })
-    .select()
-    .single();
-
-  if (companyError) {
-    alert(companyError.message);
-    return;
-  }
-
-  const { error: profileError } =
-  await supabase
-    .from("profiles")
-    .upsert({
-      id: user.id,
-      company_id: company.id,
-      email: user.email,
-      role: "admin",
-    });
-
-  if (profileError) {
-    alert(profileError.message);
-    return;
-  }
-
-
-
-  router.push("/report/background");
-}
-
-
 
   return (
     <div className="max-w-3xl mx-auto p-8">
-      {invite && (
 
-  <div className="
-    bg-blue-50
-    border
-    border-blue-200
-    rounded-2xl
-    p-6
-    mb-8
-  ">
-
-    <h2 className="
-      text-xl
-      font-semibold
-      mb-2
-    ">
-      Company Invitation
-    </h2>
-
-    <p className="
-      text-gray-700
-      mb-4
-    ">
-      You have been invited
-      to join an existing
-      company.
-    </p>
-
-    <button
-      onClick={
-        acceptInvite
-      }
-      className="
-        bg-blue-600
-        text-white
-        px-5
-        py-3
-        rounded-xl
-      "
-    >
-      Join Company
-    </button>
-
-  </div>
-
-)}
       <h1 className="text-3xl font-bold mb-6">
         Organization Setup
       </h1>

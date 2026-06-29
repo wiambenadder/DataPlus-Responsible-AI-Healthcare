@@ -1,3 +1,5 @@
+
+// Navbar component - shows different links based on whether user is signed in or not
 "use client";
 
 import Link from "next/link";

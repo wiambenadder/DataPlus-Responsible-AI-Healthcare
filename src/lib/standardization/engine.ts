@@ -4,6 +4,12 @@
 // audit log, applying every ground rule along the way. Pure with respect to I/O:
 // it takes bytes in and returns data out, so it runs identically in the browser,
 // in a Server Action, or in a test.
+//
+// CHANGED (project-status reconciliation):
+//   - carry `goal` from each parsed row into the ProjectStatusRow (drives the
+//     goal banners in the exported Project Status tab);
+//   - strip the "Name of Organization:" / "Project Manager:" label prefixes from
+//     the anchor cells so orgName / projectManager hold just the value.
 
 import { readWorkbook, extractIndicatorRows, extractProjectStatusRows, readAnchorCell } from "./parse";
 import { matchSheetRole, matchIndicator } from "./catalog";
@@ -85,10 +91,11 @@ export function processSource(source: WorkbookSource): StandardizedFile {
   const psInfo = roleToSheet.get("project_status");
   if (psInfo) {
     const cfg = schema.sheet_roles.project_status;
-    orgName = textOrNull(readAnchorCell(psInfo.grid, cfg.org_name_cell));
-    projectManager = textOrNull(readAnchorCell(psInfo.grid, cfg.pm_name_cell));
+    orgName = stripAnchorLabel(readAnchorCell(psInfo.grid, cfg.org_name_cell), "Name of Organization");
+    projectManager = stripAnchorLabel(readAnchorCell(psInfo.grid, cfg.pm_name_cell), "Project Manager");
     for (const row of extractProjectStatusRows(psInfo.grid)) {
       projectStatus.push({
+        goal: row.goal,
         objective: cleanQualitative(row.values["objective"]),
         activities: cleanQualitative(row.values["activities"]),
         deadline: cleanQualitative(row.values["deadline"]),
@@ -166,6 +173,15 @@ function textOrNull(v: RawCell): string | null {
   if (v === null || v === undefined) return null;
   const t = String(v).trim();
   return t === "" ? null : t;
+}
+
+/** Read an anchor cell and strip a leading "Label:" prefix, e.g. "Name of Organization: Foo" -> "Foo". */
+function stripAnchorLabel(v: RawCell, label: string): string | null {
+  const t = textOrNull(v);
+  if (!t) return null;
+  const re = new RegExp("^\\s*" + label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*:?\\s*", "i");
+  const out = t.replace(re, "").trim();
+  return out === "" ? null : out;
 }
 
 /**
