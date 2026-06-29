@@ -108,14 +108,38 @@ export default function ReportPage() {
         }),
       });
 
-      if (!response.ok) {
-        setProcessingDocument(false);
-        alert("Document processing failed.");
-        return;
-      }
 
-      setProcessingDocument(false);
-      setUploadComplete(true);
+if (!response.ok) {
+  setProcessingDocument(false);
+
+  alert("Document processing failed.");
+
+  return;
+}
+
+// Now map the extracted text into domains/subtopics
+const mappingResponse = await fetch("/api/map-domains", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    uploadId: upload.id,
+  }),
+});
+
+if (!mappingResponse.ok) {
+  setProcessingDocument(false);
+
+  alert("Domain mapping failed.");
+
+  return;
+}
+
+setProcessingDocument(false);
+
+setUploadComplete(true);
+
     }
   }
 

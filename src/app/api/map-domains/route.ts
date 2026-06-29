@@ -16,6 +16,10 @@ function cleanSubtopic(subpoint: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const body = await request.json();
+
+    const uploadId = body.uploadId;
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_KEY!
@@ -28,9 +32,10 @@ export async function POST(request: NextRequest) {
 
     // Get every completed extraction
     const { data: uploads, error } = await supabase
-      .from("uploads")
-      .select("*")
-      .eq("extraction_status", "complete");
+  .from("uploads")
+  .select("*")
+  .eq("id", uploadId)
+  .eq("extraction_status", "complete");
 
     if (error) {
       throw error;
