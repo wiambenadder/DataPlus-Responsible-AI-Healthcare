@@ -17,15 +17,16 @@ export default function ReportPage() {
   const [uploading, setUploading] = useState(false);
   const [processingDocument, setProcessingDocument] = useState(false);
   const [answers, setAnswers] = useState<
-  {
-    question: string;
-    answer: string;
-    domain: string;
-    subtopic: string;
-  }[]
->([]);
-const [interviewQuestions, setInterviewQuestions] =
-  useState<typeof QUESTIONS>([]);
+    {
+      question: string;
+      answer: string;
+      domain: string;
+      subtopic: string;
+    }[]
+  >([]);
+  const [interviewQuestions, setInterviewQuestions] =
+    useState<typeof QUESTIONS>([]);
+
   useEffect(() => {
     loadCompany();
   }, []);
@@ -34,7 +35,10 @@ const [interviewQuestions, setInterviewQuestions] =
     setUploading(true);
     const files = event.target.files;
 
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      setUploading(false);
+      return;
+    }
 
     const {
       data: { user },
@@ -42,6 +46,7 @@ const [interviewQuestions, setInterviewQuestions] =
 
     if (!user) {
       alert("Please log in");
+      setUploading(false);
       return;
     }
 
@@ -53,6 +58,7 @@ const [interviewQuestions, setInterviewQuestions] =
 
     if (profileError || !profile) {
       alert("No company linked to account");
+      setUploading(false);
       return;
     }
 
@@ -88,7 +94,6 @@ const [interviewQuestions, setInterviewQuestions] =
         console.error("Upload record missing id");
         continue;
       }
-      
 
       setUploading(false);
       setProcessingDocument(true);
@@ -103,18 +108,14 @@ const [interviewQuestions, setInterviewQuestions] =
         }),
       });
 
+      if (!response.ok) {
+        setProcessingDocument(false);
+        alert("Document processing failed.");
+        return;
+      }
 
-if (!response.ok) {
-    setProcessingDocument(false);
-
-    alert("Document processing failed.");
-
-    return;
-}
-
-setProcessingDocument(false);
-
-setUploadComplete(true);
+      setProcessingDocument(false);
+      setUploadComplete(true);
     }
   }
 
@@ -140,46 +141,40 @@ setUploadComplete(true);
     }
 
     setCompanyId(profile.company_id);
-
-    await loadInterviewQuestions(
-  profile.company_id
-);
+    await loadInterviewQuestions(profile.company_id);
   }
-  
 
-  
-
-  async function loadInterviewQuestions(
-  companyId: string
-) {
-  const { data: mappedTopics } =
-    await supabase
+  async function loadInterviewQuestions(companyId: string) {
+    const { data: mappedTopics, error } = await supabase
       .from("domain_mapping")
       .select("domain, subtopic")
       .eq("company_id", companyId);
 
-  if (!mappedTopics) {
-    setInterviewQuestions(QUESTIONS);
-    return;
-  }
+    if (error) {
+      console.error("Error fetching domain_mapping:", error);
+      setInterviewQuestions(QUESTIONS);
+      return;
+    }
 
-  const missingQuestions =
-    QUESTIONS.filter((question) => {
+    // If nothing is mapped yet, show all questions
+    if (!mappedTopics || mappedTopics.length === 0) {
+      setInterviewQuestions(QUESTIONS);
+      return;
+    }
 
+    // Only keep questions whose domain+subtopic are NOT already covered
+    const missingQuestions = QUESTIONS.filter((question) => {
       return !mappedTopics.some(
         (mapping) =>
-          mapping.domain ===
-            question.domain &&
-          mapping.subtopic ===
-            question.subtopic
+          mapping.domain.trim().toLowerCase() ===
+            question.domain.trim().toLowerCase() &&
+          mapping.subtopic.trim().toLowerCase() ===
+            question.subtopic.trim().toLowerCase()
       );
-
     });
 
-  setInterviewQuestions(
-    missingQuestions
-  );
-}
+    setInterviewQuestions(missingQuestions);
+  }
 
   async function nextQuestion() {
     if (!currentAnswer.trim()) {
@@ -257,10 +252,12 @@ setUploadComplete(true);
     router.push("/report/history");
   }
 
-  const progress = ((currentQuestion + 1) / interviewQuestions.length) * 100;
+  const progress =
+    interviewQuestions.length === 0
+      ? 0
+      : ((currentQuestion + 1) / interviewQuestions.length) * 100;
 
   return (
-    
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-3xl mx-auto p-8">
         <h1 className="text-4xl font-bold mb-2">Assessment Questionnaire</h1>
@@ -268,8 +265,6 @@ setUploadComplete(true);
         <p className="text-gray-500 mb-8">
           Help us understand your organization's progress and challenges.
         </p>
-
-        
 
         {!uploadComplete && (
           <div className="bg-white border rounded-2xl shadow-sm p-8 mb-8">
@@ -282,11 +277,7 @@ setUploadComplete(true);
               analyze the document before beginning the interview.
             </p>
 
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleUpload}
-            />
+            <input type="file" accept=".pdf" onChange={handleUpload} />
 
             {uploading && <div className="mt-6">Uploading...</div>}
 
@@ -303,7 +294,13 @@ setUploadComplete(true);
           </div>
         )}
 
-        {uploadComplete && (
+        {uploadComplete && interviewQuestions.length === 0 && (
+          <div className="bg-white border rounded-2xl shadow-sm p-8 text-center text-gray-500">
+            All topics have already been covered. No questions remaining.
+          </div>
+        )}
+
+        {uploadComplete && interviewQuestions.length > 0 && (
           <>
             <div className="mb-8">
               <label className="block text-sm font-medium mb-2">
