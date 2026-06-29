@@ -17,13 +17,15 @@ export default function ReportPage() {
   const [uploading, setUploading] = useState(false);
   const [processingDocument, setProcessingDocument] = useState(false);
   const [answers, setAnswers] = useState<
-  {
-    question: string;
-    answer: string;
-    domain: string;
-    subtopic: string;
-  }[]
->([]);
+    {
+      question: string;
+      answer: string;
+      domain: string;
+      subtopic: string;
+    }[]
+  >([]);
+  const [interviewQuestions, setInterviewQuestions] =
+    useState<typeof QUESTIONS>([]);
 
   useEffect(() => {
     loadCompany();
@@ -33,7 +35,10 @@ export default function ReportPage() {
     setUploading(true);
     const files = event.target.files;
 
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      setUploading(false);
+      return;
+    }
 
     const {
       data: { user },
@@ -41,6 +46,7 @@ export default function ReportPage() {
 
     if (!user) {
       alert("Please log in");
+      setUploading(false);
       return;
     }
 
@@ -52,6 +58,7 @@ export default function ReportPage() {
 
     if (profileError || !profile) {
       alert("No company linked to account");
+      setUploading(false);
       return;
     }
 
@@ -87,7 +94,6 @@ export default function ReportPage() {
         console.error("Upload record missing id");
         continue;
       }
-      
 
       setUploading(false);
       setProcessingDocument(true);
@@ -102,18 +108,14 @@ export default function ReportPage() {
         }),
       });
 
+      if (!response.ok) {
+        setProcessingDocument(false);
+        alert("Document processing failed.");
+        return;
+      }
 
-if (!response.ok) {
-    setProcessingDocument(false);
-
-    alert("Document processing failed.");
-
-    return;
-}
-
-setProcessingDocument(false);
-
-setUploadComplete(true);
+      setProcessingDocument(false);
+      setUploadComplete(true);
     }
   }
 
@@ -139,6 +141,39 @@ setUploadComplete(true);
     }
 
     setCompanyId(profile.company_id);
+    await loadInterviewQuestions(profile.company_id);
+  }
+
+  async function loadInterviewQuestions(companyId: string) {
+    const { data: mappedTopics, error } = await supabase
+      .from("domain_mapping")
+      .select("domain, subtopic")
+      .eq("company_id", companyId);
+
+    if (error) {
+      console.error("Error fetching domain_mapping:", error);
+      setInterviewQuestions(QUESTIONS);
+      return;
+    }
+
+    // If nothing is mapped yet, show all questions
+    if (!mappedTopics || mappedTopics.length === 0) {
+      setInterviewQuestions(QUESTIONS);
+      return;
+    }
+
+    // Only keep questions whose domain+subtopic are NOT already covered
+    const missingQuestions = QUESTIONS.filter((question) => {
+      return !mappedTopics.some(
+        (mapping) =>
+          mapping.domain.trim().toLowerCase() ===
+            question.domain.trim().toLowerCase() &&
+          mapping.subtopic.trim().toLowerCase() ===
+            question.subtopic.trim().toLowerCase()
+      );
+    });
+
+    setInterviewQuestions(missingQuestions);
   }
 
   async function nextQuestion() {
@@ -150,17 +185,17 @@ setUploadComplete(true);
     const updatedAnswers = [
       ...answers,
       {
-        question: QUESTIONS[currentQuestion].question,
+        question: interviewQuestions[currentQuestion].question,
         answer: currentAnswer,
-        domain: QUESTIONS[currentQuestion].domain,
-        subtopic: QUESTIONS[currentQuestion].subtopic,
+        domain: interviewQuestions[currentQuestion].domain,
+        subtopic: interviewQuestions[currentQuestion].subtopic,
       },
     ];
 
     setAnswers(updatedAnswers);
     setCurrentAnswer("");
 
-    if (currentQuestion < QUESTIONS.length - 1) {
+    if (currentQuestion < interviewQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       return;
     }
@@ -217,7 +252,10 @@ setUploadComplete(true);
     router.push("/report/history");
   }
 
-  const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
+  const progress =
+    interviewQuestions.length === 0
+      ? 0
+      : ((currentQuestion + 1) / interviewQuestions.length) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
@@ -239,11 +277,7 @@ setUploadComplete(true);
               analyze the document before beginning the interview.
             </p>
 
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleUpload}
-            />
+            <input type="file" accept=".pdf" onChange={handleUpload} />
 
             {uploading && <div className="mt-6">Uploading...</div>}
 
@@ -260,7 +294,13 @@ setUploadComplete(true);
           </div>
         )}
 
-        {uploadComplete && (
+        {uploadComplete && interviewQuestions.length === 0 && (
+          <div className="bg-white border rounded-2xl shadow-sm p-8 text-center text-gray-500">
+            All topics have already been covered. No questions remaining.
+          </div>
+        )}
+
+        {uploadComplete && interviewQuestions.length > 0 && (
           <>
             <div className="mb-8">
               <label className="block text-sm font-medium mb-2">
@@ -278,7 +318,7 @@ setUploadComplete(true);
             <div className="mb-8">
               <div className="flex justify-between text-sm text-gray-500 mb-2">
                 <span>Question {currentQuestion + 1}</span>
-                <span>{QUESTIONS.length}</span>
+                <span>{interviewQuestions.length}</span>
               </div>
 
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -291,7 +331,7 @@ setUploadComplete(true);
 
             <div className="bg-white rounded-2xl border shadow-sm p-8">
               <div className="text-xl font-medium mb-6">
-                🤖 {QUESTIONS[currentQuestion].question}
+                🤖 {interviewQuestions[currentQuestion].question}
               </div>
 
               <textarea
@@ -308,7 +348,7 @@ setUploadComplete(true);
               >
                 {saving
                   ? "Saving..."
-                  : currentQuestion === QUESTIONS.length - 1
+                  : currentQuestion === interviewQuestions.length - 1
                   ? "Submit Report"
                   : "Continue"}
               </button>
