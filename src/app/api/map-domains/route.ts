@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 
+function cleanDomain(domain: string) {
+  return domain
+    .replace(/^D\d+\s*[-—–]+\s*/, "")
+    .trim();
+}
+
+function cleanSubtopic(subpoint: string) {
+  return subpoint
+    .replace(/^D\d+\.\d+\s*/, "")
+    .trim();
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient(
@@ -18,7 +30,7 @@ export async function POST(request: NextRequest) {
     const { data: uploads, error } = await supabase
       .from("uploads")
       .select("*")
-      .eq("extraction_status", "completed");
+      .eq("extraction_status", "complete");
 
     if (error) {
       throw error;
@@ -81,8 +93,6 @@ transformation handled by the machine learning team. They further stated
 that a medical quality assurance team reviews training content for
 clinical correctness. Training data is stored internally using random
 UUIDs and is not shared or open sourced."
-
-Include 1--5 direct quotations supporting the summary.
 
 ------------------------------------------------------------------------
 
@@ -329,8 +339,8 @@ ${upload.extracted_text}
 
       const aiResult =
         await openai.chat.completions.create({
-          model: "gpt-5.5",
-          temperature: 0,
+          model: "gpt-5.4",
+          temperature: 1,
           messages: [
             {
               role: "user",
@@ -339,30 +349,53 @@ ${upload.extracted_text}
           ],
         });
 
-      const aiText =
-        aiResult.choices[0].message.content ?? "";
+ const aiText =
+  aiResult.choices[0].message.content ?? "";
 
-      const aiJson =
-        JSON.parse(aiText);
+console.log("GPT RESPONSE:");
+console.log(aiText);
 
-      // Save every domain match
-      for (const match of aiJson.matches) {
+const aiJson =
+  JSON.parse(aiText);
 
-        await supabase
-          .from("domain_mapping")
-          .insert({
+console.log("AI JSON:");
+console.log(aiJson);
 
-            domain: match.domain,
+console.log("Matches Found:");
+console.log(aiJson.matches);
 
-            subtopic: match.subpoint,
+for (const match of aiJson.matches) {
 
-            summary: match.summary,
+  const { data, error } = await supabase
+    .from("domain_mapping")
+    .insert({
 
-            source_pdf: upload.file_name,
+      domain: cleanDomain(match.domain),
+      
+      subtopic: cleanSubtopic(match.subpoint),
 
-          });
+      source_quotes: match.summary,
 
-      }
+      source_pdf: upload.file_name,
+
+      company_id: upload.company_id,
+      
+      upload_id: upload.id,
+
+      confidence: match.confidence
+
+    })
+    .select();
+
+  console.log("Inserted Row:");
+  console.log(data);
+
+  if (error) {
+    console.log("INSERT ERROR:");
+    console.log(error);
+  }
+
+}
 
     }
 
@@ -371,19 +404,21 @@ ${upload.extracted_text}
       documentsProcessed: uploads?.length ?? 0,
     });
 
-  } catch (error) {
+} catch (error: any) {
 
-    console.error(error);
+  console.error("DOMAIN MAPPING ERROR:");
+  console.error(error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Domain mapping failed",
-      },
-      {
-        status: 500,
-      }
-    );
+  return NextResponse.json(
+    {
+      success: false,
+      error: error.message,
+    },
+    {
+      status: 500,
+    }
+  );
+
+}
 
   }
-}
