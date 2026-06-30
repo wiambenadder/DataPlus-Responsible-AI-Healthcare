@@ -7,7 +7,7 @@ import { QUESTIONS } from "@/lib/assessment-q";
 
 type FileStatus = {
   name: string;
-  status: "uploading" | "processing" | "done" | "error";
+  status: "uploading" | "processing" | "mapping" | "done" | "error";
 };
 
 export default function ReportPage() {
@@ -32,6 +32,41 @@ export default function ReportPage() {
   useEffect(() => {
     loadCompany();
   }, []);
+
+  // Polls the uploads table until the PDF parser has finished extracting
+  // text (extraction_status === "complete"), or until we give up.
+  async function waitForExtraction(
+    uploadId: string,
+    maxAttempts = 20,
+    intervalMs = 3000
+  ): Promise<boolean> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const { data, error } = await supabase
+        .from("uploads")
+        .select("extraction_status")
+        .eq("id", uploadId)
+        .single();
+
+      if (error) {
+        console.error("Error polling extraction status:", error);
+        return false;
+      }
+
+      if (data?.extraction_status === "complete") {
+        return true;
+      }
+
+      if (data?.extraction_status === "error") {
+        console.error("Extraction failed for upload", uploadId);
+        return false;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+
+    console.error("Timed out waiting for extraction on upload", uploadId);
+    return false;
+  }
 
   async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -63,68 +98,81 @@ export default function ReportPage() {
       fileArray.map((f) => ({ name: f.name, status: "uploading" }))
     );
 
-    // Process files in parallel. Swap to a sequential for...of loop
-    // (with await inside) if you want to throttle server load instead.
-    await Promise.all(
-      fileArray.map(async (file, index) => {
-        const filePath = `${Date.now()}-${file.name}`;
+    for (let index = 0; index < fileArray.length; index++) {
+      const file = fileArray[index];
+      const filePath = `${Date.now()}-${file.name}`;
 
-        const { data, error: uploadError } = await supabase.storage
-          .from("reports")
-          .upload(filePath, file);
+      const { data, error: uploadError } = await supabase.storage
+        .from("reports")
+        .upload(filePath, file);
 
-        if (uploadError) {
-          console.error(uploadError);
-          setFileStatuses((prev) =>
-            prev.map((f, i) =>
-              i === index ? { ...f, status: "error" } : f
-            )
-          );
-          return;
-        }
-
-        const { data: upload, error: dbError } = await supabase
-          .from("uploads")
-          .insert({
-            company_id: profile.company_id,
-            file_name: file.name,
-            file_type: file.type,
-            file_url: data?.path,
-          })
-          .select("id")
-          .single();
-
-        if (dbError || !upload?.id) {
-          console.error(dbError ?? "Upload record missing id");
-          setFileStatuses((prev) =>
-            prev.map((f, i) =>
-              i === index ? { ...f, status: "error" } : f
-            )
-          );
-          return;
-        }
-
+      if (uploadError) {
+        console.error(uploadError);
         setFileStatuses((prev) =>
-          prev.map((f, i) =>
-            i === index ? { ...f, status: "processing" } : f
-          )
+          prev.map((f, i) => (i === index ? { ...f, status: "error" } : f))
         );
+        continue;
+      }
 
-        const response = await fetch("/api/process-upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uploadId: upload.id }),
-        });
+      const { data: upload, error: dbError } = await supabase
+        .from("uploads")
+        .insert({
+          company_id: profile.company_id,
+          file_name: file.name,
+          file_type: file.type,
+          file_url: data?.path,
+        })
+        .select("id")
+        .single();
 
+      if (dbError || !upload?.id) {
+        console.error(dbError ?? "Upload record missing id");
         setFileStatuses((prev) =>
-          prev.map((f, i) =>
-            i === index
-              ? { ...f, status: response.ok ? "done" : "error" }
-              : f
-          )
+          prev.map((f, i) => (i === index ? { ...f, status: "error" } : f))
         );
-      })
-    );
+        continue;
+      }
+
+      setFileStatuses((prev) =>
+        prev.map((f, i) => (i === index ? { ...f, status: "processing" } : f))
+      );
+
+const response = await fetch("/api/process-upload", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ uploadId: upload.id }),
+});
+
+if (!response.ok) {
+  setFileStatuses((prev) =>
+    prev.map((f, i) => (i === index ? { ...f, status: "error" } : f))
+  );
+  continue;
+}
+
+setFileStatuses((prev) =>
+  prev.map((f, i) => (i === index ? { ...f, status: "mapping" } : f))
+);
+
+const mappingResponse = await fetch("/api/map-domains", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ uploadId: upload.id }),
+});
+
+setFileStatuses((prev) =>
+  prev.map((f, i) =>
+    i === index
+      ? { ...f, status: mappingResponse.ok ? "done" : "error" }
+      : f
+  )
+);
+    }
+
+    // Domain mapping may have just inserted new rows into domain_mapping,
+    // so refresh the list of remaining/missing interview questions before
+    // moving on to the interview itself.
+    await loadInterviewQuestions(profile.company_id);
 
     setUploadComplete(true);
   }
@@ -182,6 +230,7 @@ export default function ReportPage() {
     });
 
     setInterviewQuestions(missingQuestions);
+    setCurrentQuestion(0);
   }
 
   async function nextQuestion() {
@@ -246,16 +295,43 @@ export default function ReportPage() {
       return;
     }
 
-    await fetch("/api/run-ai-assessment", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        reporting_period: reportingPeriod,
-        company_id: companyId,
-      }),
-    });
+    // 1. Copy mapped evidence into qualitative_responses
+const transferResponse = await fetch(
+  "/api/transfer-map",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      company_id: companyId,
+      reporting_period: reportingPeriod,
+    }),
+  }
+);
+
+const transferResult =
+  await transferResponse.json();
+
+if (!transferResponse.ok) {
+  alert(
+    transferResult.error ||
+      "Transfer failed."
+  );
+  return;
+}
+
+// 2. Run AI assessment
+await fetch("/api/run-ai-assessment", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    reporting_period: reportingPeriod,
+    company_id: companyId,
+  }),
+});
 
     router.push("/report/history");
   }
@@ -266,7 +342,10 @@ export default function ReportPage() {
       : ((currentQuestion + 1) / interviewQuestions.length) * 100;
 
   const stillWorking = fileStatuses.some(
-    (f) => f.status === "uploading" || f.status === "processing"
+    (f) =>
+      f.status === "uploading" ||
+      f.status === "processing" ||
+      f.status === "mapping"
   );
 
   return (
