@@ -9,6 +9,15 @@ try {
 
 const { company_id, reporting_period } = await request.json();
 
+<<<<<<< HEAD
+=======
+    const grouped: Record<string, {
+      domain: string;
+      Subtopic: string;
+      texts: string[];
+      sources: Set<string>;
+    }> = {};
+>>>>>>> 17551af7757207cb174000300fbf56084658083a
 
 if (!company_id || !reporting_period) {
 
@@ -16,11 +25,35 @@ return NextResponse.json(
 
 { error: "Missing company_id or reporting_period" },
 
+<<<<<<< HEAD
 { status: 400 }
 
 );
 
 }
+=======
+      if (!grouped[key]) {
+        grouped[key] = {
+          domain,
+          Subtopic,
+          texts: [],
+          sources: new Set(),
+        };
+      }
+
+      grouped[key].texts.push(text);
+      grouped[key].sources.add(source);
+    }
+
+    const rowsToInsert = Object.values(grouped).map((group) => ({
+      company_id,
+      reporting_period,
+      question: `Evidence extracted from ${Array.from(group.sources).join(", ")}`,
+      answer: group.texts.join("\n\n"),
+      domain: group.domain,
+      Subtopic: group.Subtopic,
+    }));
+>>>>>>> 17551af7757207cb174000300fbf56084658083a
 
 
 const { data: mappings, error: mappingError } = await supabase
