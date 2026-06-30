@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-type ResponseRow = {
+type InterviewRow = {
   id: string;
-  company_id: string;
   reporting_period: string | null;
   question: string;
   answer: string;
@@ -15,22 +14,64 @@ type ResponseRow = {
   ai_reasoning: string | null;
 };
 
+type BackgroundRow = {
+  id: string;
+  section: string | null;
+  question: string;
+  answer: string;
+};
+
+function EditableBackgroundResponse({
+  row,
+  onSave,
+}: {
+  row: BackgroundRow;
+  onSave: (id: string, answer: string) => void;
+}) {
+  const [answer, setAnswer] = useState(row.answer || "");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    await onSave(row.id, answer);
+    setSaving(false);
+  }
+
+  return (
+    <div className="border-b last:border-b-0 py-5">
+      {row.section && (
+        <div className="text-sm text-blue-600 mb-2">{row.section}</div>
+      )}
+
+      <div className="font-medium mb-3">{row.question}</div>
+
+      <textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        className="w-full h-32 border rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-xl disabled:opacity-50"
+      >
+        {saving ? "Saving..." : "Save Changes"}
+      </button>
+    </div>
+  );
+}
+
 export default function HistoryPage() {
-  const [loading, setLoading] =
-    useState(true);
-
-  const [reports, setReports] =
-    useState<
-      Record<string, ResponseRow[]>
-    >({});
-
-  const [expanded, setExpanded] =
-    useState<
-      Record<string, boolean>
-    >({});
-
-  const [deleteTarget, setDeleteTarget] =
-    useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [backgroundRows, setBackgroundRows] = useState<BackgroundRow[]>([]);
+  const [interviewReports, setInterviewReports] = useState<
+    Record<string, InterviewRow[]>
+  >({});
+  const [backgroundOpen, setBackgroundOpen] = useState(false);
+  const [openInterview, setOpenInterview] = useState<Record<string, boolean>>(
+    {}
+  );
 
   useEffect(() => {
     loadHistory();
@@ -38,536 +79,213 @@ export default function HistoryPage() {
 
   async function loadHistory() {
     setLoading(true);
-    setReports({});
 
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      const {
-        data: profile,
-      } = await supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        setLoading(false);
-        return;
-      }
-
-      const {
-        data,
-        error,
-      } = await supabase
-        .from("qualitative_responses")
-        .select("*")
-        .eq(
-          "company_id",
-          profile.company_id
-        );
-
-      if (error) {
-        console.error(error);
-        setLoading(false);
-        return;
-      }
-
-      const grouped: Record<
-        string,
-        ResponseRow[]
-      > = {};
-
-      (data || []).forEach(
-        (row: any) => {
-          const period =
-            row.reporting_period ||
-            "Unknown Period";
-
-          if (!grouped[period]) {
-            grouped[period] = [];
-          }
-
-          grouped[period].push(row);
-        }
-      );
-
-      setReports(grouped);
-    } catch (err) {
-      console.error(err);
-    }
-
-    setLoading(false);
-  }
-
-  function togglePeriod(
-    period: string
-  ) {
-    setExpanded((prev) => ({
-      ...prev,
-      [period]:
-        !prev[period],
-    }));
-  }
-
-  async function saveResponse(
-    id: string,
-    answer: string
-  ) {
-    const { error } =
-      await supabase
-        .from(
-          "qualitative_responses"
-        )
-        .update({
-          answer,
-        })
-        .eq("id", id);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    alert("Saved");
-
-    await loadHistory();
-  }
-
-  async function deleteReport(
-    reportingPeriod: string
-  ) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-    const { data: profile } =
-      await supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single();
 
-    if (!profile) return;
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
 
-    const { error } =
-      await supabase
-        .from(
-          "qualitative_responses"
-        )
-        .delete()
-        .eq(
-          "company_id",
-          profile.company_id
-        )
-        .eq(
-          "reporting_period",
-          reportingPeriod
-        );
+    const { data: backgroundData } = await supabase
+      .from("company_background_reports")
+      .select("*")
+      .eq("company_id", profile.company_id);
+
+    setBackgroundRows(backgroundData || []);
+
+    const { data: interviewData } = await supabase
+      .from("qualitative_responses")
+      .select("*")
+      .eq("company_id", profile.company_id);
+
+    const grouped: Record<string, InterviewRow[]> = {};
+
+    (interviewData || []).forEach((row: any) => {
+      const period = row.reporting_period || "Unknown Period";
+
+      if (!grouped[period]) {
+        grouped[period] = [];
+      }
+
+      grouped[period].push(row);
+    });
+
+    setInterviewReports(grouped);
+    setLoading(false);
+  }
+
+  async function saveBackgroundResponse(id: string, answer: string) {
+    const { error } = await supabase
+      .from("company_background_reports")
+      .update({ answer })
+      .eq("id", id);
 
     if (error) {
       alert(error.message);
       return;
     }
 
-    setDeleteTarget(null);
+    setBackgroundRows((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, answer } : row))
+    );
 
-    await loadHistory();
+    alert("Background response saved");
   }
 
   if (loading) {
-    return (
-      <div className="p-8">
-        Loading history...
-      </div>
-    );
+    return <div className="p-8">Loading history...</div>;
   }
+
+  const periods = Object.keys(interviewReports).sort().reverse();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-
       <div className="max-w-5xl mx-auto p-8">
+        <h1 className="text-4xl font-bold mb-2">Report History</h1>
 
-        <h1 className="text-4xl font-bold mb-8">
-          Report History
-        </h1>
+        <p className="text-gray-500 mb-8">
+          View your submitted background and interview reports.
+        </p>
 
-        {Object.keys(reports)
-          .sort()
-          .reverse()
-          .map((period) => (
+        <div className="mb-10">
+          <h2 className="text-2xl font-semibold mb-4">
+            Background Report History
+          </h2>
+
+          <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
+            <button
+              onClick={() => setBackgroundOpen(!backgroundOpen)}
+              className="w-full p-5 flex justify-between items-center text-left"
+            >
+              <div>
+                <div className="font-semibold text-lg">
+                  Company Background
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  {backgroundRows.length} responses
+                </div>
+              </div>
+
+              <div className="text-xl">{backgroundOpen ? "−" : "+"}</div>
+            </button>
+
+            {backgroundOpen && (
+              <div className="border-t p-5">
+                {backgroundRows.length === 0 ? (
+                  <p className="text-gray-500">
+                    No background report submitted yet.
+                  </p>
+                ) : (
+                  backgroundRows.map((row) => (
+                    <EditableBackgroundResponse
+                      key={row.id}
+                      row={row}
+                      onSave={saveBackgroundResponse}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">
+            Interview Report History
+          </h2>
+
+          {periods.length === 0 && (
+            <div className="bg-white border rounded-2xl p-6">
+              No interview reports found.
+            </div>
+          )}
+
+          {periods.map((period) => (
             <div
               key={period}
-              className="
-                bg-white
-                border
-                rounded-2xl
-                shadow-sm
-                mb-4
-                overflow-hidden
-              "
+              className="bg-white border rounded-2xl shadow-sm mb-4 overflow-hidden"
             >
-
               <button
                 onClick={() =>
-                  togglePeriod(
-                    period
-                  )
+                  setOpenInterview((prev) => ({
+                    ...prev,
+                    [period]: !prev[period],
+                  }))
                 }
-                className="
-                  w-full
-                  text-left
-                  p-5
-                  flex
-                  justify-between
-                  items-center
-                "
+                className="w-full p-5 flex justify-between items-center text-left"
               >
-
                 <div>
-
-                  <div className="font-semibold text-lg">
-                    {period}
-                  </div>
+                  <div className="font-semibold text-lg">{period}</div>
 
                   <div className="text-sm text-gray-500">
-                    {
-                      reports[
-                        period
-                      ].length
-                    } responses
+                    {interviewReports[period].length} responses
                   </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteTarget(
-                        period
-                      );
-                    }}
-                    className="
-                      text-red-600
-                      text-sm
-                      mt-2
-                    "
-                  >
-                    Delete Report
-                  </button>
-
                 </div>
 
                 <div className="text-xl">
-                  {expanded[
-                    period
-                  ]
-                    ? "−"
-                    : "+"}
+                  {openInterview[period] ? "−" : "+"}
                 </div>
-
               </button>
 
-              {expanded[
-                period
-              ] && (
+              {openInterview[period] && (
                 <div className="border-t p-5">
+                  {interviewReports[period].map((row) => (
+                    <div
+                      key={row.id}
+                      className="border-b pb-5 mb-5 last:border-b-0 last:mb-0"
+                    >
+                      {(row.domain || row.Subtopic) && (
+                        <div className="text-sm text-gray-500 mb-2">
+                          {row.domain}
+                          {row.domain && row.Subtopic && " • "}
+                          {row.Subtopic}
+                        </div>
+                      )}
 
-                  {reports[
-                    period
-                  ].map(
-                    (
-                      response
-                    ) => (
-                      <EditableResponse
-                        key={
-                          response.id
-                        }
-                        response={
-                          response
-                        }
-                        onSave={
-                          saveResponse
-                        }
-                      />
-                    )
-                  )}
+                      <div className="font-medium mb-2">{row.question}</div>
 
+                      <div className="text-gray-700 whitespace-pre-wrap mb-4">
+                        {row.answer}
+                      </div>
+
+                      {(row.ai_assessment || row.ai_reasoning) && (
+                        <div className="bg-slate-50 border rounded-xl p-4">
+                          <div className="font-medium mb-1">
+                            AI Assessment
+                          </div>
+
+                          <div className="mb-3">
+                            {row.ai_assessment || "Pending"}
+                          </div>
+
+                          <div className="font-medium mb-1">AI Reasoning</div>
+
+                          <div>{row.ai_reasoning || "No reasoning yet."}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
-
             </div>
           ))}
-
-        {Object.keys(reports)
-          .length === 0 && (
-          <div className="
-            bg-white
-            border
-            rounded-2xl
-            p-6
-          ">
-            No reports found.
-          </div>
-        )}
-
+        </div>
       </div>
-
-      {deleteTarget && (
-
-        <div className="
-          fixed
-          inset-0
-          bg-black/40
-          flex
-          items-center
-          justify-center
-          z-50
-        ">
-
-          <div className="
-            bg-white
-            rounded-2xl
-            p-6
-            shadow-xl
-            max-w-md
-            w-full
-          ">
-
-            <h2 className="
-              text-xl
-              font-semibold
-              mb-3
-            ">
-              Delete Report?
-            </h2>
-
-            <p className="
-              text-gray-600
-              mb-6
-            ">
-              This will permanently
-              delete all responses
-              associated with
-              <strong>
-                {" "}
-                {deleteTarget}
-              </strong>.
-            </p>
-
-            <div className="
-              flex
-              justify-end
-              gap-3
-            ">
-
-              <button
-                onClick={() =>
-                  setDeleteTarget(
-                    null
-                  )
-                }
-                className="
-                  border
-                  px-4
-                  py-2
-                  rounded-xl
-                "
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={() =>
-                  deleteReport(
-                    deleteTarget
-                  )
-                }
-                className="
-                  bg-red-600
-                  text-white
-                  px-4
-                  py-2
-                  rounded-xl
-                "
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-    </div>
-  );
-}
-
-function EditableResponse({
-  response,
-  onSave,
-}: {
-  response: ResponseRow;
-  onSave: (
-    id: string,
-    answer: string
-  ) => void;
-}) {
-  const [answer, setAnswer] =
-    useState(
-      response.answer
-    );
-
-  function getAssessmentColor(
-    assessment: string | null
-  ) {
-    switch (assessment) {
-      case "Measured":
-        return "bg-green-100 text-green-700";
-
-      case "Practiced, Not Measured":
-        return "bg-blue-100 text-blue-700";
-
-      case "Aware, Not Practiced":
-        return "bg-yellow-100 text-yellow-700";
-
-      case "Not Addressed":
-        return "bg-red-100 text-red-700";
-
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  }
-
-  return (
-    <div className="
-      border-b
-      pb-6
-      mb-6
-      last:border-b-0
-    ">
-
-      {(response.domain ||
-        response.Subtopic) && (
-        <div className="
-          text-sm
-          text-gray-500
-          mb-2
-        ">
-
-          {response.domain}
-
-          {response.domain &&
-            response.Subtopic &&
-            " • "}
-
-          {response.Subtopic}
-
-        </div>
-      )}
-
-      <div className="
-        font-medium
-        mb-3
-      ">
-        {response.question}
-      </div>
-
-      <textarea
-        value={answer}
-        onChange={(e) =>
-          setAnswer(
-            e.target.value
-          )
-        }
-        className="
-          w-full
-          h-32
-          border
-          rounded-xl
-          p-3
-          resize-none
-        "
-      />
-
-      <button
-        onClick={() =>
-          onSave(
-            response.id,
-            answer
-          )
-        }
-        className="
-          mt-3
-          bg-blue-600
-          text-white
-          px-4
-          py-2
-          rounded-xl
-        "
-      >
-        Save Changes
-      </button>
-
-      {(response.ai_assessment ||
-        response.ai_reasoning) && (
-        <div className="
-          mt-4
-          bg-slate-50
-          border
-          rounded-xl
-          p-4
-        ">
-
-          <div className="
-            font-medium
-            mb-2
-          ">
-            AI Assessment
-          </div>
-
-          <div
-            className={`
-              inline-block
-              px-3
-              py-1
-              rounded-full
-              text-sm
-              mb-3
-              ${getAssessmentColor(
-                response.ai_assessment
-              )}
-            `}
-          >
-            {response.ai_assessment}
-          </div>
-
-          <div className="
-            font-medium
-            mb-1
-          ">
-            AI Reasoning
-          </div>
-
-          <div>
-            {
-              response.ai_reasoning
-            }
-          </div>
-
-        </div>
-      )}
-
     </div>
   );
 }

@@ -49,8 +49,12 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Import the internal implementation file directly instead of the
+    // package's index.js — index.js runs debug code on import that tries
+    // to read a sample PDF from the package's own test/ folder, which
+    // throws ENOENT under Next.js bundling. lib/pdf-parse.js skips that.
     // @ts-ignore
-    const { default: pdfParse } = await import("pdf-parse");
+    const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
     const parsed = await pdfParse(buffer);
 
     const extractedText = parsed.text;
@@ -58,7 +62,6 @@ export async function POST(request: NextRequest) {
     console.log("Extracted text length:", extractedText?.length);
     console.log("Upload ID:", uploadId);
 
-    // ✅ Log the exact update payload
     const updatePayload = {
       extracted_text: extractedText,
       extraction_status: "complete",
@@ -72,7 +75,7 @@ export async function POST(request: NextRequest) {
       .from("uploads")
       .update(updatePayload)
       .eq("id", uploadId)
-      .select(); // ✅ .select() forces Supabase to return what was actually written
+      .select();
 
     console.log("Update result:", updateData);
     console.log("Update error:", updateError);
@@ -97,9 +100,22 @@ export async function POST(request: NextRequest) {
       characters: extractedText.length,
       written: updateData[0]?.extracted_text?.length ?? 0,
     });
-
   } catch (err: any) {
     console.error(err);
+
+    // Mark this upload as failed so it doesn't sit stuck on "processing"
+    try {
+      const { uploadId } = await request.clone().json();
+      if (uploadId) {
+        await supabase
+          .from("uploads")
+          .update({ extraction_status: "failed" })
+          .eq("id", uploadId);
+      }
+    } catch {
+      // ignore — best-effort cleanup only
+    }
+
     return NextResponse.json(
       { error: err.message ?? "Unknown error" },
       { status: 500 }
