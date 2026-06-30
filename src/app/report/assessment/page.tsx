@@ -34,100 +34,89 @@ export default function ReportPage() {
   }, []);
 
   async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-      alert("Please log in");
-      return;
+  if (!user) {
+    alert("Please log in");
+    return;
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile) {
+    alert("No company linked to account");
+    return;
+  }
+
+  const fileArray = Array.from(files);
+
+  setFileStatuses(
+    fileArray.map((f) => ({ name: f.name, status: "uploading" }))
+  );
+
+  for (let index = 0; index < fileArray.length; index++) {
+    const file = fileArray[index];
+    const filePath = `${Date.now()}-${file.name}`;
+
+    const { data, error: uploadError } = await supabase.storage
+      .from("reports")
+      .upload(filePath, file);
+
+    if (uploadError) {
+      console.error(uploadError);
+      setFileStatuses((prev) =>
+        prev.map((f, i) => (i === index ? { ...f, status: "error" } : f))
+      );
+      continue;
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", user.id)
+    const { data: upload, error: dbError } = await supabase
+      .from("uploads")
+      .insert({
+        company_id: profile.company_id,
+        file_name: file.name,
+        file_type: file.type,
+        file_url: data?.path,
+      })
+      .select("id")
       .single();
 
-    if (profileError || !profile) {
-      alert("No company linked to account");
-      return;
+    if (dbError || !upload?.id) {
+      console.error(dbError ?? "Upload record missing id");
+      setFileStatuses((prev) =>
+        prev.map((f, i) => (i === index ? { ...f, status: "error" } : f))
+      );
+      continue;
     }
 
-    const fileArray = Array.from(files);
-
-    setFileStatuses(
-      fileArray.map((f) => ({ name: f.name, status: "uploading" }))
+    setFileStatuses((prev) =>
+      prev.map((f, i) => (i === index ? { ...f, status: "processing" } : f))
     );
 
-    // Process files in parallel. Swap to a sequential for...of loop
-    // (with await inside) if you want to throttle server load instead.
-    await Promise.all(
-      fileArray.map(async (file, index) => {
-        const filePath = `${Date.now()}-${file.name}`;
+    const response = await fetch("/api/process-upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uploadId: upload.id }),
+    });
 
-        const { data, error: uploadError } = await supabase.storage
-          .from("reports")
-          .upload(filePath, file);
-
-        if (uploadError) {
-          console.error(uploadError);
-          setFileStatuses((prev) =>
-            prev.map((f, i) =>
-              i === index ? { ...f, status: "error" } : f
-            )
-          );
-          return;
-        }
-
-        const { data: upload, error: dbError } = await supabase
-          .from("uploads")
-          .insert({
-            company_id: profile.company_id,
-            file_name: file.name,
-            file_type: file.type,
-            file_url: data?.path,
-          })
-          .select("id")
-          .single();
-
-        if (dbError || !upload?.id) {
-          console.error(dbError ?? "Upload record missing id");
-          setFileStatuses((prev) =>
-            prev.map((f, i) =>
-              i === index ? { ...f, status: "error" } : f
-            )
-          );
-          return;
-        }
-
-        setFileStatuses((prev) =>
-          prev.map((f, i) =>
-            i === index ? { ...f, status: "processing" } : f
-          )
-        );
-
-        const response = await fetch("/api/process-upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uploadId: upload.id }),
-        });
-
-        setFileStatuses((prev) =>
-          prev.map((f, i) =>
-            i === index
-              ? { ...f, status: response.ok ? "done" : "error" }
-              : f
-          )
-        );
-      })
+    setFileStatuses((prev) =>
+      prev.map((f, i) =>
+        i === index ? { ...f, status: response.ok ? "done" : "error" } : f
+      )
     );
-
-    setUploadComplete(true);
   }
+
+  setUploadComplete(true);
+}
 
   async function loadCompany() {
     const {
