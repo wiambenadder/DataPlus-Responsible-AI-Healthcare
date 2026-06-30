@@ -86,10 +86,12 @@ export default function MetricsPage() {
   }
 
   return (
+    
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">
         Metrics Entry
       </h1>
+
 
       <input
         type="text"
@@ -150,6 +152,9 @@ export default function MetricsPage() {
         >
           Save All
         </button>
+        
+
+        
       </div>
     </div>
   );
