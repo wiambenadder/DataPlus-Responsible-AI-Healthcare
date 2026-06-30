@@ -18,45 +18,20 @@ export async function POST(request: NextRequest) {
       .eq("company_id", company_id);
 
     if (mappingError) {
-      return NextResponse.json(
-        { error: mappingError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: mappingError.message }, { status: 500 });
     }
 
-    if (!mappings || mappings.length === 0) {
-      return NextResponse.json({
-        success: true,
-        inserted: 0,
-        message: "No rows found in domain_mapping",
-      });
-    }
+    const grouped: Record<string, {
+      domain: string;
+      Subtopic: string;
+      texts: string[];
+    }> = {};
 
-    const grouped: Record<
-      string,
-      {
-        domain: string;
-        Subtopic: string;
-        texts: string[];
-      }
-    > = {};
-
-    for (const row of mappings) {
-      const domain = row.domain?.trim();
-      const Subtopic = row.Subtopic?.trim();
-
-      const text =
-        row.mapped_text ||
-        row.text ||
-        row.response_text ||
-        row.evidence ||
-        row.answer;
-
-      const source =
-        row.source ||
-        row.file_name ||
-        row.source_document ||
-        "Source";
+    for (const row of mappings || []) {
+      const domain = row.domain;
+      const Subtopic = row.subtopic;
+      const text = row.source_quotes;
+      const source = row.source_pdf || "Source";
 
       if (!domain || !Subtopic || !text) continue;
 
@@ -82,23 +57,12 @@ export async function POST(request: NextRequest) {
       Subtopic: group.Subtopic,
     }));
 
-    if (rowsToInsert.length === 0) {
-      return NextResponse.json({
-        success: true,
-        inserted: 0,
-        message: "No usable rows found to transfer",
-      });
-    }
-
     const { error: insertError } = await supabase
       .from("qualitative_responses")
       .insert(rowsToInsert);
 
     if (insertError) {
-      return NextResponse.json(
-        { error: insertError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
     return NextResponse.json({
