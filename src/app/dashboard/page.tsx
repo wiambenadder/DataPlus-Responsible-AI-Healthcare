@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { FRAMEWORK } from "@/lib/framework";
@@ -16,25 +17,17 @@ type ResponseRow = {
 };
 
 function isPracticed(status: string | null) {
-  return (
-    status === "Measured" ||
-    status === "Practiced, Not Measured" ||
-    status === "Practiced"
-  );
+  return status === "Practiced";
 }
 
 function getDisplayStatus(status: string | null) {
   switch (status) {
-    case "Measured":
-      return "Measured";
-    case "Practiced, Not Measured":
-      return "Practiced, Not Measured";
-    case "Aware, Not Practiced":
-      return "Aware, Not Practiced";
-    case "Not Addressed":
-      return "Not Addressed";
     case "Practiced":
       return "Practiced";
+
+    case "Not Practiced":
+      return "Not Practiced";
+
     default:
       return "Not Yet Assessed";
   }
@@ -47,15 +40,12 @@ function getPercentage(practiced: number, total: number) {
 
 function getBadgeColor(status: string | null) {
   switch (status) {
-    case "Measured":
-      return "bg-green-100 text-green-700 ring-1 ring-green-200";
-    case "Practiced, Not Measured":
     case "Practiced":
-      return "bg-blue-100 text-blue-700 ring-1 ring-blue-200";
-    case "Aware, Not Practiced":
-      return "bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200";
-    case "Not Addressed":
+      return "bg-green-100 text-green-700 ring-1 ring-green-200";
+
+    case "Not Practiced":
       return "bg-red-100 text-red-700 ring-1 ring-red-200";
+
     default:
       return "bg-slate-100 text-slate-700 ring-1 ring-slate-200";
   }
@@ -189,7 +179,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+       <div className="grid grid-cols-5 gap-3">
           {domainEntries.map(([domain, subtopics]) => {
             const practiced = subtopics.filter((subtopic) => {
               const row = responses.find(
@@ -228,7 +218,7 @@ export default function DashboardPage() {
               </button>
             );
           })}
-        </section>
+        </div>
 
         {activeDomain ? (
           <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
