@@ -144,16 +144,6 @@ export default function DashboardPage() {
   const selectedDomainSubtopics =
     domainEntries.find(([domain]) => domain === activeDomain)?.[1] || [];
 
-  const selectedDomainPracticed = selectedDomainSubtopics.filter((subtopic) => {
-    const row = responses.find((response) => response.Subtopic === subtopic);
-    return isPracticed(row?.ai_assessment ?? null);
-  }).length;
-
-  const selectedDomainPercentage = getPercentage(
-    selectedDomainPracticed,
-    selectedDomainSubtopics.length
-  );
-
   if (loading) {
     return (
       <main className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100">
@@ -181,102 +171,63 @@ export default function DashboardPage() {
           </p>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[1.15fr,0.85fr]">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-            <p className="text-sm font-medium text-slate-500">
-              Overall topics practiced
-            </p>
-            <div className="mt-3 flex items-end gap-3">
-              <span
-                className={`text-5xl font-bold tracking-tight sm:text-6xl ${getPercentageColor(
-                  overallPercentage
-                )}`}
-              >
-                {overallPercentage}%
-              </span>
-              <span className="pb-2 text-sm text-slate-500">
-                {overallPracticedCount} of {allSubtopics.length} topics
-              </span>
-            </div>
-            <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className="h-full rounded-full bg-blue-600 transition-all"
-                style={{ width: `${overallPercentage}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-            <p className="text-sm font-medium text-slate-500">
-              Selected domain
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-              {activeDomain ?? "No domain selected"}
-            </h2>
-            <p className="mt-3 text-sm text-slate-500">
-              {selectedDomainSubtopics.length} subtopics in this domain
-            </p>
-            <div className="mt-4 flex items-end gap-3">
-              <span
-                className={`text-4xl font-bold tracking-tight ${getPercentageColor(
-                  selectedDomainPercentage
-                )}`}
-              >
-                {selectedDomainPercentage}%
-              </span>
-              <span className="pb-1 text-sm text-slate-500">practiced</span>
-            </div>
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <p className="text-sm font-medium text-slate-500">
+            Overall Topics Practiced
+          </p>
+          <div className="mt-3 flex items-end gap-3">
+            <span
+              className={`text-5xl font-bold tracking-tight sm:text-6xl ${getPercentageColor(
+                overallPercentage
+              )}`}
+            >
+              {overallPercentage}%
+            </span>
+            <span className="pb-2 text-sm text-slate-500">
+              {overallPracticedCount} of {allSubtopics.length} topics
+            </span>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-slate-900">Domains</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Select a domain to inspect topic-level detail.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            {domainEntries.map(([domain, subtopics]) => {
-              const practiced = subtopics.filter((subtopic) => {
-                const row = responses.find(
-                  (response) => response.Subtopic === subtopic
-                );
-                return isPracticed(row?.ai_assessment ?? null);
-              }).length;
-
-              const percent = getPercentage(practiced, subtopics.length);
-              const isActive = activeDomain === domain;
-
-              return (
-                <button
-                  key={domain}
-                  type="button"
-                  onClick={() => setActiveDomain(domain)}
-                  className={`rounded-2xl border p-5 text-left shadow-sm transition ${
-                    isActive
-                      ? "border-blue-600 bg-blue-50/50 ring-4 ring-blue-600/10"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="text-sm font-medium text-slate-500">
-                    {domain}
-                  </div>
-                  <div
-                    className={`mt-3 text-3xl font-bold tracking-tight ${getPercentageColor(
-                      percent
-                    )}`}
-                  >
-                    {percent}%
-                  </div>
-                  <div className="mt-2 text-sm text-slate-500">
-                    {practiced} of {subtopics.length} practiced
-                  </div>
-                </button>
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {domainEntries.map(([domain, subtopics]) => {
+            const practiced = subtopics.filter((subtopic) => {
+              const row = responses.find(
+                (response) => response.Subtopic === subtopic
               );
-            })}
-          </div>
+              return isPracticed(row?.ai_assessment ?? null);
+            }).length;
+
+            const percent = getPercentage(practiced, subtopics.length);
+            const isActive = activeDomain === domain;
+
+            return (
+              <button
+                key={domain}
+                type="button"
+                onClick={() => setActiveDomain(domain)}
+                className={`rounded-2xl border bg-white p-5 text-left shadow-sm transition ${
+                  isActive
+                    ? "border-blue-600 ring-4 ring-blue-600/10"
+                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                <div className="text-sm font-medium text-slate-500">
+                  {domain}
+                </div>
+                <div
+                  className={`mt-2 text-4xl font-bold tracking-tight ${getPercentageColor(
+                    percent
+                  )}`}
+                >
+                  {percent}%
+                </div>
+                <div className="mt-2 text-sm text-slate-500">
+                  {practiced} of {subtopics.length} practiced
+                </div>
+              </button>
+            );
+          })}
         </section>
 
         {activeDomain ? (
