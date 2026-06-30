@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       .from("domain_mapping")
       .select("*")
       .eq("company_id", company_id);
-
+      
     if (mappingError) {
       return NextResponse.json({ error: mappingError.message }, { status: 500 });
     }
