@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import AuthCard from "../_components/AuthCard";
+import AuthCard from "../../../_components/auth/AuthCard";
 
 export default function SignupPageRedesigned() {
   const router = useRouter();

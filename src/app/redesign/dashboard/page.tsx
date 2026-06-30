@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import DashboardView, { WelcomeHero } from "../_components/DashboardView";
+import DashboardView, { WelcomeHero } from "../../../_components/DashboardView";
 
 export default function DashboardRedesigned() {
   const [loading, setLoading] = useState(true);
