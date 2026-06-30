@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       domain: string;
       Subtopic: string;
       texts: string[];
+      sources: Set<string>;
     }> = {};
 
     for (const row of mappings || []) {
@@ -42,17 +43,24 @@ export async function POST(request: NextRequest) {
           domain,
           Subtopic,
           texts: [],
+          sources: new Set(),
         };
       }
 
-      grouped[key].texts.push(`=== ${source} ===\n${text}`);
+      grouped[key].texts.push(text);
+      grouped[key].sources.add(source);
     }
 
     const rowsToInsert = Object.values(grouped).map((group) => ({
       company_id,
       reporting_period,
+<<<<<<< HEAD
       question: "Evidence extracted from uploaded documentation",
       answer: group.texts.join("\n\n"),git 
+=======
+      question: `Evidence extracted from ${Array.from(group.sources).join(", ")}`,
+      answer: group.texts.join("\n\n"),
+>>>>>>> main
       domain: group.domain,
       Subtopic: group.Subtopic,
     }));
