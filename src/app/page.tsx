@@ -110,6 +110,7 @@ export default function HomePage() {
       from-white
       to-slate-50
     ">
+      
 
       <div className="
         max-w-6xl
@@ -156,6 +157,7 @@ export default function HomePage() {
               ">
                 {company.country}
               </p>
+              
 
             </div>
 
@@ -183,7 +185,7 @@ export default function HomePage() {
         </div>
 
         {/* Continue Reporting */}
-
+          
         <div className="
           bg-teal-600
           text-white

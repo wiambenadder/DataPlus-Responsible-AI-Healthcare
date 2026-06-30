@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { QUESTIONS } from "@/lib/assessment-q";
 
+type FileStatus = {
+  name: string;
+  status: "uploading" | "processing" | "done" | "error";
+};
+
 export default function ReportPage() {
   const router = useRouter();
 
@@ -14,16 +19,13 @@ export default function ReportPage() {
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [processingDocument, setProcessingDocument] = useState(false);
-  const [answers, setAnswers] = useState<
-    {
-      question: string;
-      answer: string;
-      domain: string;
-      subtopic: string;
-    }[]
-  >([]);
+  const [fileStatuses, setFileStatuses] = useState<FileStatus[]>([]);
+  const [answers, setAnswers] = useState<{
+    question: string;
+    answer: string;
+    domain: string;
+    subtopic: string;
+  }[]>([]);
   const [interviewQuestions, setInterviewQuestions] =
     useState<typeof QUESTIONS>([]);
 
@@ -32,13 +34,8 @@ export default function ReportPage() {
   }, []);
 
   async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    setUploading(true);
     const files = event.target.files;
-
-    if (!files || files.length === 0) {
-      setUploading(false);
-      return;
-    }
+    if (!files || files.length === 0) return;
 
     const {
       data: { user },
@@ -46,7 +43,6 @@ export default function ReportPage() {
 
     if (!user) {
       alert("Please log in");
-      setUploading(false);
       return;
     }
 
@@ -58,65 +54,79 @@ export default function ReportPage() {
 
     if (profileError || !profile) {
       alert("No company linked to account");
-      setUploading(false);
       return;
     }
 
-    for (const file of Array.from(files)) {
-      const filePath = `${Date.now()}-${file.name}`;
+    const fileArray = Array.from(files);
 
-      const { data, error: uploadError } = await supabase.storage
-        .from("reports")
-        .upload(filePath, file);
+    setFileStatuses(
+      fileArray.map((f) => ({ name: f.name, status: "uploading" }))
+    );
 
-      if (uploadError) {
-        console.error(uploadError);
-        continue;
-      }
+    // Process files in parallel. Swap to a sequential for...of loop
+    // (with await inside) if you want to throttle server load instead.
+    await Promise.all(
+      fileArray.map(async (file, index) => {
+        const filePath = `${Date.now()}-${file.name}`;
 
-      const { data: upload, error: dbError } = await supabase
-        .from("uploads")
-        .insert({
-          company_id: profile.company_id,
-          file_name: file.name,
-          file_type: file.type,
-          file_url: data?.path,
-        })
-        .select("id")
-        .single();
+        const { data, error: uploadError } = await supabase.storage
+          .from("reports")
+          .upload(filePath, file);
 
-      if (dbError) {
-        console.error(dbError);
-        continue;
-      }
+        if (uploadError) {
+          console.error(uploadError);
+          setFileStatuses((prev) =>
+            prev.map((f, i) =>
+              i === index ? { ...f, status: "error" } : f
+            )
+          );
+          return;
+        }
 
-      if (!upload?.id) {
-        console.error("Upload record missing id");
-        continue;
-      }
+        const { data: upload, error: dbError } = await supabase
+          .from("uploads")
+          .insert({
+            company_id: profile.company_id,
+            file_name: file.name,
+            file_type: file.type,
+            file_url: data?.path,
+          })
+          .select("id")
+          .single();
 
-      setUploading(false);
-      setProcessingDocument(true);
+        if (dbError || !upload?.id) {
+          console.error(dbError ?? "Upload record missing id");
+          setFileStatuses((prev) =>
+            prev.map((f, i) =>
+              i === index ? { ...f, status: "error" } : f
+            )
+          );
+          return;
+        }
 
-      const response = await fetch("/api/process-upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uploadId: upload.id,
-        }),
-      });
+        setFileStatuses((prev) =>
+          prev.map((f, i) =>
+            i === index ? { ...f, status: "processing" } : f
+          )
+        );
 
-      if (!response.ok) {
-        setProcessingDocument(false);
-        alert("Document processing failed.");
-        return;
-      }
+        const response = await fetch("/api/process-upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uploadId: upload.id }),
+        });
 
-      setProcessingDocument(false);
-      setUploadComplete(true);
-    }
+        setFileStatuses((prev) =>
+          prev.map((f, i) =>
+            i === index
+              ? { ...f, status: response.ok ? "done" : "error" }
+              : f
+          )
+        );
+      })
+    );
+
+    setUploadComplete(true);
   }
 
   async function loadCompany() {
@@ -156,13 +166,11 @@ export default function ReportPage() {
       return;
     }
 
-    // If nothing is mapped yet, show all questions
     if (!mappedTopics || mappedTopics.length === 0) {
       setInterviewQuestions(QUESTIONS);
       return;
     }
 
-    // Only keep questions whose domain+subtopic are NOT already covered
     const missingQuestions = QUESTIONS.filter((question) => {
       return !mappedTopics.some(
         (mapping) =>
@@ -257,6 +265,10 @@ export default function ReportPage() {
       ? 0
       : ((currentQuestion + 1) / interviewQuestions.length) * 100;
 
+  const stillWorking = fileStatuses.some(
+    (f) => f.status === "uploading" || f.status === "processing"
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-3xl mx-auto p-8">
@@ -274,20 +286,41 @@ export default function ReportPage() {
 
             <p className="text-gray-600 mb-6">
               Upload brochures, reports, evaluations, or case studies. We'll
-              analyze the document before beginning the interview.
+              analyze the documents before beginning the interview.
             </p>
 
-            <input type="file" accept=".pdf" onChange={handleUpload} />
+            <input
+              type="file"
+              accept=".pdf"
+              multiple
+              onChange={handleUpload}
+            />
 
-            {uploading && <div className="mt-6">Uploading...</div>}
-
-            {processingDocument && (
-              <div className="mt-6">Processing document...</div>
+            {fileStatuses.length > 0 && (
+              <ul className="mt-6 space-y-1 text-sm">
+                {fileStatuses.map((f) => (
+                  <li key={f.name} className="flex justify-between">
+                    <span>{f.name}</span>
+                    <span
+                      className={
+                        f.status === "error"
+                          ? "text-red-600"
+                          : f.status === "done"
+                          ? "text-green-600"
+                          : "text-gray-500"
+                      }
+                    >
+                      {f.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
 
             <button
+              disabled={stillWorking}
               onClick={() => setUploadComplete(true)}
-              className="mt-6 border rounded-xl px-5 py-3"
+              className="mt-6 border rounded-xl px-5 py-3 disabled:opacity-50"
             >
               Continue Without Upload
             </button>
