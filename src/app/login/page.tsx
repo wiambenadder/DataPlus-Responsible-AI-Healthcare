@@ -68,7 +68,7 @@ export default function LoginPage() {
         <>
           Don't have an account?{" "}
           <Link
-            href="/redesign/signup"
+            href="/signup"
             className="font-semibold text-blue-600 hover:underline"
           >
             Create one
