@@ -76,13 +76,13 @@ export function WelcomeHero() {
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
-            href="/redesign/login"
+            href="/login"
             className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-600/30"
           >
             Sign In
           </Link>
           <Link
-            href="/redesign/signup"
+            href="/signup"
             className="rounded-lg border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-900 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-300/60"
           >
             Create Account
