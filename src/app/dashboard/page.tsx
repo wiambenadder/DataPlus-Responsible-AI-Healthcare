@@ -2,28 +2,62 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import DashboardView, { WelcomeHero } from "@/_components/DashboardView";
+import { FRAMEWORK } from "@/lib/framework";
+
+function normalizeStatus(status: string | null) {
+  return status === "Practiced" ? "Practiced" : "Not Practiced";
+}
+
+function getPercentage(practiced: number, total: number) {
+  if (total === 0) return 0;
+  return Math.round((practiced / total) * 100);
+}
+
+function getBadgeColor(status: string | null) {
+  switch (status) {
+    case "Measured":
+      return "bg-green-100 text-green-700";
+    case "Practiced, Not Measured":
+      return "bg-blue-100 text-blue-700";
+    case "Aware, Not Practiced":
+      return "bg-yellow-100 text-yellow-700";
+    case "Not Addressed":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
+function getPercentageColor(
+  percentage: number
+) {
+  if (percentage >= 75) {
+    return "text-green-600";
+  }
+
+  if (percentage >= 40) {
+    return "text-yellow-600";
+  }
+
+  return "text-red-600";
+}
+
+
 
 export default function DashboardPage() {
-  const [loading, setLoading] = useState(true);
-  const [company, setCompany] = useState<any>(null);
-  const [lastReport, setLastReport] = useState("No reports yet");
-  const [reportCount, setReportCount] = useState(0);
-  const [recentAssessments, setRecentAssessments] = useState<any[]>([]);
+  const [responses, setResponses] = useState<any[]>([]);
+  const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({});
+  const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
+  // ✅ FIXED: moved inside the component
+  const [activeDomain, setActiveDomain] = useState<string | null>(null);
 
+  
   useEffect(() => {
-    loadHome();
+    loadDashboard();
   }, []);
 
-  async function loadHome() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+  async function loadDashboard() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -31,55 +65,251 @@ export default function DashboardPage() {
       .eq("id", user.id)
       .single();
 
-    if (!profile) {
-      setLoading(false);
-      return;
-    }
+    if (!profile) return;
 
-    const { data: companyData } = await supabase
-      .from("companies")
-      .select("*")
-      .eq("id", profile.company_id)
-      .single();
-
-    setCompany(companyData);
-
-    const { data: reports } = await supabase
+    const { data } = await supabase
       .from("qualitative_responses")
       .select("*")
       .eq("company_id", profile.company_id);
 
-    if (reports?.length) {
-      const periods = [...new Set(reports.map((r: any) => r.reporting_period))];
-      setReportCount(periods.length);
-      setLastReport(periods[periods.length - 1]);
-      setRecentAssessments(reports.slice(0, 3));
-    }
-
-    setLoading(false);
+    setResponses(data || []);
   }
 
-  if (loading) {
-    return (
-      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100">
-        <div className="flex items-center gap-3 text-slate-500">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
-          Loading…
-        </div>
-      </main>
-    );
+  function toggleDomain(domain: string) {
+    setExpandedDomains((prev) => ({ ...prev, [domain]: !prev[domain] }));
   }
 
-  if (!company) {
-    return <WelcomeHero />;
+  function toggleTopic(id: string) {
+    setExpandedTopics((prev) => ({ ...prev, [id]: !prev[id] }));
   }
+
+  const allSubtopics = Object.values(FRAMEWORK).flat();
+
+  const practicedCount = responses.filter(
+    (r) => r.ai_assessment === "Practiced"
+  ).length;
+
+  const overallPercentage = getPercentage(practicedCount, allSubtopics.length);
 
   return (
-    <DashboardView
-      company={company}
-      reportCount={reportCount}
-      lastReport={lastReport}
-      recentAssessments={recentAssessments}
-    />
+    // ✅ FIXED: everything is now inside the return
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+      <div className="max-w-6xl mx-auto p-8">
+
+        <h1 className="text-4xl font-bold mb-2">AI Readiness Dashboard</h1>
+        <p className="text-gray-500 mb-8">Assessment generated from interview responses.</p>
+
+        {/* Summary Card */}
+        <div className="bg-white border rounded-3xl p-8 shadow-sm mb-8">
+          <div className="text-sm text-gray-500">Overall Topics Practiced</div>
+          <div className={`text-6xl font-bold ${getPercentageColor(
+    overallPercentage
+  )}`}
+>
+  {overallPercentage}%</div>
+        </div>
+
+        {/* Domain Cards */}
+        <div className="grid md:grid-cols-5 gap-4 mb-8">
+          {Object.entries(FRAMEWORK).map(([domain, subtopics]) => {
+            const practiced = subtopics.filter((subtopic) =>
+              responses.some(
+                (r) => r.Subtopic === subtopic && r.ai_assessment === "Practiced"
+              )
+            ).length;
+
+            const percent = getPercentage(practiced, subtopics.length);
+
+            return (
+              <button
+                key={domain}
+                onClick={() => setActiveDomain(domain)}
+                className="bg-white border rounded-2xl p-5 text-left shadow-sm"
+              >
+                <div className="text-sm text-gray-500">{domain}</div>
+                <div
+  className={`text-3xl font-bold ${getPercentageColor(
+    percent
+  )}`}
+>
+  {percent}%
+</div>
+              </button>
+            );
+          })}
+        </div>
+
+      
+        {activeDomain && (
+          <div className="bg-white border rounded-3xl p-6 shadow-sm mb-8">
+            <h2 className="text-2xl font-semibold mb-6">{activeDomain}</h2>
+
+            {/* ✅ FIXED: subtopic map is now inside JSX, not floating */}
+            {FRAMEWORK[activeDomain as keyof typeof FRAMEWORK].map((subtopic) => {
+              const row = responses.find((r) => r.Subtopic === subtopic);
+              const status = row ? normalizeStatus(row.ai_assessment) : "Not Yet Assessed";
+
+              // ✅ FIXED: filter recommendations per subtopic, not globally
+              const recommendations = responses.filter(
+                (r) => r.Subtopic === subtopic && r.ai_assessment === "Not Practiced"
+              );
+
+              return (
+                <div
+  key={subtopic}
+  className="
+    border
+    rounded-xl
+    mb-3
+    overflow-hidden
+  "
+>
+
+  <button
+    onClick={() =>
+      toggleTopic(
+        subtopic
+      )
+    }
+    className="
+      w-full
+      flex
+      justify-between
+      items-center
+      p-4
+      text-left
+    "
+  >
+
+    <div>
+
+      <div className="font-medium">
+        {subtopic}
+      </div>
+
+    </div>
+
+    <div className="flex items-center gap-3">
+
+      <span
+        className={`
+          text-xs
+          px-2
+          py-1
+          rounded-full
+          ${getBadgeColor(
+            row?.ai_assessment ??
+              null
+          )}
+        `}
+      >
+        {status}
+      </span>
+
+      <span>
+        {expandedTopics[
+          subtopic
+        ]
+          ? "−"
+          : "+"}
+      </span>
+
+    </div>
+
+  </button>
+
+  {expandedTopics[
+    subtopic
+  ] && (
+    <div className="
+      border-t
+      p-4
+      space-y-4
+    ">
+
+      <div>
+
+        <div className="
+          font-medium
+          mb-1
+        ">
+          AI Justification
+        </div>
+
+        <div className="
+          bg-slate-50
+          border
+          rounded-xl
+          p-3
+        ">
+          {row?.ai_reasoning ||
+            "No assessment available yet."}
+        </div>
+
+      </div>
+
+      <div>
+
+        <div className="
+          font-medium
+          mb-1
+        ">
+          Source Question
+        </div>
+
+        <div>
+          {row?.question ||
+            "No source question available."}
+        </div>
+
+      </div>
+
+      <div>
+
+        <div className="
+          font-medium
+          mb-1
+        ">
+          Original Response
+        </div>
+
+        <div className="
+          border-l-4
+          border-blue-500
+          pl-3
+        ">
+          {row?.answer ||
+            "No response available."}
+        </div>
+
+      </div>
+
+      <div>
+
+        <div className="
+          font-medium
+          mb-1
+        ">
+          Reporting Period
+        </div>
+
+        <div>
+          {row?.reporting_period ||
+            "N/A"}
+        </div>
+
+      </div>
+
+    </div>
+  )}
+
+</div>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
+    </div>
   );
 }
