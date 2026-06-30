@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       company_id,
       reporting_period,
       question: "Evidence extracted from uploaded documentation",
-      answer: group.texts.join("\n\n"),
+      answer: group.texts.join("\n\n"),git 
       domain: group.domain,
       Subtopic: group.Subtopic,
     }));
