@@ -54,6 +54,8 @@ export function processSource(source: WorkbookSource): StandardizedFile {
     company,
     sourceName: source.name,
     processedAt: new Date().toISOString(),
+    dates: {},
+    attributes: {},
     sheetsMatched: [],
     matchedIndicators: 0,
     unmatchedIndicators: [],

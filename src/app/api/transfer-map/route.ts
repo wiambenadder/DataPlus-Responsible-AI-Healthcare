@@ -3,25 +3,27 @@ import { supabase } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      company_id,
-      reporting_period,
-    } = await request.json();
+    const rawBody = await request.text();
+
+    if (!rawBody) {
+      return NextResponse.json(
+        { error: "Request body is empty" },
+        { status: 400 }
+      );
+    }
+
+    const { company_id, reporting_period } = JSON.parse(rawBody);
 
     if (!company_id || !reporting_period) {
       return NextResponse.json(
         {
-          error:
-            "Missing company_id or reporting_period",
+          error: "Missing company_id or reporting_period",
         },
         { status: 400 }
       );
     }
 
-    const {
-      data: mappings,
-      error: mappingError,
-    } = await supabase
+    const { data: mappings, error: mappingError } = await supabase
       .from("domain_mapping")
       .select("*")
       .eq("company_id", company_id);
@@ -67,50 +69,41 @@ export async function POST(request: NextRequest) {
         row.source_document ||
         "Source";
 
-      if (!domain || !subtopic || !text) {
-        return;
-      }
+      if (!domain || !subtopic || !text) return;
 
-      const key = `${domain}__${subtopic}`;
+      const key = `${domain.trim()}__${subtopic.trim()}`;
 
       if (!grouped[key]) {
         grouped[key] = {
-          domain,
-          subtopic,
+          domain: domain.trim(),
+          subtopic: subtopic.trim(),
           texts: [],
         };
       }
 
-      grouped[key].texts.push(
-        `=== ${source} ===\n${text}`
-      );
+      grouped[key].texts.push(`=== ${source} ===\n${text}`);
     });
 
-    const rows = Object.values(grouped).map(
-      (group) => ({
-        company_id,
-        reporting_period,
-        question:
-          "Evidence extracted from uploaded documentation",
-        answer: group.texts.join("\n\n"),
-        domain: group.domain,
-        subtopic: group.subtopic,
-      })
-    );
+    const rows = Object.values(grouped).map((group) => ({
+      company_id,
+      reporting_period,
+      question: "Evidence extracted from uploaded documentation",
+      answer: group.texts.join("\n\n"),
+      domain: group.domain,
+      Subtopic: group.subtopic,
+    }));
 
     if (rows.length === 0) {
       return NextResponse.json({
         success: true,
         inserted: 0,
-        message:
-          "No usable mapped evidence found",
+        message: "No usable mapped evidence found",
       });
     }
 
-    const { error: insertError } =
-      await supabase
-        .from("qualitative_responses")
-        .insert(rows);
+    const { error: insertError } = await supabase
+      .from("qualitative_responses")
+      .insert(rows);
 
     if (insertError) {
       return NextResponse.json(
@@ -126,8 +119,7 @@ export async function POST(request: NextRequest) {
   } catch (err: any) {
     return NextResponse.json(
       {
-        error:
-          err.message || "Unknown error",
+        error: err.message || "Unknown error",
       },
       { status: 500 }
     );
