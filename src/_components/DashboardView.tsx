@@ -197,7 +197,7 @@ export default function DashboardView({
               </div>
             </div>
             <Link
-              href="/report"
+              href="/report/assessment"
               className="rounded-lg bg-white px-5 py-2.5 font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-white/40"
             >
               {hasReports ? "Continue →" : "Start now →"}
