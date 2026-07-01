@@ -85,10 +85,11 @@ The summary should:
 -   Be written as flowing prose.
 -   Avoid repetition.
 -   Remain factual and objective.
+-   Do not refer to any company by name. Instead just say the company. 
 
 Example style:
 
-"Jacaranda Health stated that they are authorised to collect data from
+"The company stated that they are authorised to collect data from
 mothers through partner health facilities and operate under Ministry of
 Health approval. They explained that the only personal identifier
 collected is a mother's phone number, which is excluded from
