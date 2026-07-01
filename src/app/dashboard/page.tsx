@@ -155,6 +155,7 @@ export default function DashboardPage() {
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             AI Readiness Dashboard
           </h1>
+               
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
             Review progress across domains, inspect subtopics, and explore the
             source reasoning behind each assessment.
