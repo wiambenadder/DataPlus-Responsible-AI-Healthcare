@@ -38,10 +38,10 @@ export default function CompanyPage() {
       .eq("id", user.id)
       .single();
 
-    if (profileError || !profile) {
-      router.push("/company-setup");
-      return;
-    }
+    if (!profile || !profile.company_id) {
+  router.push("/company-setup");
+  return;
+}
 
     const { data: company, error: companyError } = await supabase
       .from("companies")
@@ -127,6 +127,37 @@ export default function CompanyPage() {
     setInviteEmail("");
     alert("Invitation created");
   }
+
+  async function removeMember(member: any) {
+  const confirmed = window.confirm(
+    `Remove ${member.profile?.full_name || member.profile?.email} from this company?`
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from("company_members")
+    .delete()
+    .eq("id", member.id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await supabase
+    .from("profiles")
+    .update({
+      company_id: null,
+    })
+    .eq("id", member.user_id);
+
+  setMembers((prev) =>
+    prev.filter(
+      (m) => m.id !== member.id
+    )
+  );
+}
 
   if (loading) {
     return <div className="p-8">Loading company profile...</div>;
@@ -233,9 +264,38 @@ export default function CompanyPage() {
                       {member.profile?.email || "No email"}
                     </div>
                   </div>
-                  <div className="text-sm bg-slate-100 px-2 py-1 rounded-full">
-                    {member.role}
-                  </div>
+                  <div className="flex items-center gap-3">
+
+  <div
+    className={`text-sm px-3 py-1 rounded-full ${
+      member.role === "admin"
+        ? "bg-blue-100 text-blue-700"
+        : "bg-slate-100 text-slate-700"
+    }`}
+  >
+    {member.role === "admin"
+      ? "Owner"
+      : "Member"}
+  </div>
+
+  {member.role !== "admin" && (
+
+    <button
+      onClick={() =>
+        removeMember(member)
+      }
+      className="
+        text-red-600
+        hover:text-red-700
+        text-sm
+      "
+    >
+      Remove
+    </button>
+
+  )}
+
+</div>
                 </div>
               ))}
             </div>

@@ -34,6 +34,7 @@ export default function CompanySetupPage() {
       return;
     }
 
+
     const {
       data: company,
       error: companyError,
@@ -63,6 +64,13 @@ export default function CompanySetupPage() {
       alert(companyError.message);
       return;
     }
+    await supabase
+  .from("company_members")
+  .insert({
+    company_id: company.id,
+    user_id: user.id,
+    role: "admin",
+  });
 
     const { error: profileError } =
       await supabase
