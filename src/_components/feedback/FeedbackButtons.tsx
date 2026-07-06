@@ -23,10 +23,16 @@ export default function FeedbackButtons({
   answer,
 }: FeedbackButtonsProps) {
   const [pendingType, setPendingType] = useState<FeedbackType | null>(null);
-  const [reason, setReason] = useState("");
   const [submittedType, setSubmittedType] = useState<FeedbackType | null>(null);
+  const [reason, setReason] = useState("");
+  const [savedReason, setSavedReason] = useState("");
+  const [feedbackId, setFeedbackId] = useState<string | number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const hasSavedFeedback = feedbackId !== null;
+  const hasUnsavedChanges =
+    pendingType !== submittedType || reason.trim() !== savedReason;
 
   function openNoteFor(type: FeedbackType) {
     setError(null);
@@ -34,15 +40,24 @@ export default function FeedbackButtons({
   }
 
   function cancelNote() {
+    setError(null);
+
+    if (hasSavedFeedback && submittedType) {
+      setPendingType(submittedType);
+      setReason(savedReason);
+      return;
+    }
+
     setPendingType(null);
     setReason("");
-    setError(null);
   }
 
   async function submitFeedback() {
     if (!pendingType) return;
 
-    if (!reason.trim()) {
+    const trimmedReason = reason.trim();
+
+    if (!trimmedReason) {
       setError("Please add a short note explaining your feedback.");
       return;
     }
@@ -54,31 +69,50 @@ export default function FeedbackButtons({
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { data, error: insertError } = await supabase
-      .from("feedback")
-      .insert({
-        company_id: companyId,
-        company_name: companyName ?? null,
-        question,
-        domain,
-        subdomain,
-        answer,
-        feedback_type: pendingType,
-        reason: reason.trim(),
-        reported_by: user?.id ?? null,
-        reporter_email: user?.email ?? null,
-      })
-      .select()
-      .single();
+    let data = null;
+    let saveError = null;
 
-    if (insertError || !data) {
+    if (feedbackId) {
+      const result = await supabase
+        .from("feedback")
+        .update({
+          feedback_type: pendingType,
+          reason: trimmedReason,
+        })
+        .eq("id", feedbackId)
+        .select()
+        .single();
+
+      data = result.data;
+      saveError = result.error;
+    } else {
+      const result = await supabase
+        .from("feedback")
+        .insert({
+          company_id: companyId,
+          company_name: companyName ?? null,
+          question,
+          domain,
+          subdomain,
+          answer,
+          feedback_type: pendingType,
+          reason: trimmedReason,
+          reported_by: user?.id ?? null,
+          reporter_email: user?.email ?? null,
+        })
+        .select()
+        .single();
+
+      data = result.data;
+      saveError = result.error;
+    }
+
+    if (saveError || !data) {
       setSubmitting(false);
       setError("Something went wrong submitting your feedback. Please try again.");
       return;
     }
 
-    // Fire-and-forget the email notification. The feedback row is already
-    // saved, so a failed email shouldn't block or error out the UI.
     fetch("/api/feedback/notify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -86,17 +120,10 @@ export default function FeedbackButtons({
     }).catch(() => {});
 
     setSubmitting(false);
+    setFeedbackId(data.id);
     setSubmittedType(pendingType);
-    setPendingType(null);
-    setReason("");
-  }
-
-  if (submittedType) {
-    return (
-      <div className="mt-3 text-sm font-medium text-slate-500">
-        Thanks — your {submittedType === "like" ? "positive" : "negative"} feedback was recorded.
-      </div>
-    );
+    setSavedReason(trimmedReason);
+    setReason(trimmedReason);
   }
 
   return (
@@ -113,6 +140,7 @@ export default function FeedbackButtons({
         >
           👍 Like
         </button>
+
         <button
           type="button"
           onClick={() => openNoteFor("dislike")}
@@ -126,11 +154,18 @@ export default function FeedbackButtons({
         </button>
       </div>
 
+      {hasSavedFeedback && !hasUnsavedChanges ? (
+        <div className="mt-3 rounded-2xl border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
+          Thank you — your feedback was recorded.
+        </div>
+      ) : null}
+
       {pendingType ? (
         <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
           <label className="mb-1.5 block text-xs font-semibold text-slate-600">
-            Why? (required)
+            {hasSavedFeedback ? "Your feedback" : "Why? (required)"}
           </label>
+
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -142,7 +177,17 @@ export default function FeedbackButtons({
             }
             className="w-full resize-none rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-700 focus:border-blue-400 focus:outline-none"
           />
-          {error ? <p className="mt-1.5 text-xs font-medium text-red-600">{error}</p> : null}
+
+          {hasSavedFeedback && submittedType ? (
+            <p className="mt-2 text-xs font-medium text-slate-500">
+              Saved feedback: {submittedType === "like" ? "👍 Like" : "👎 Dislike"}
+            </p>
+          ) : null}
+
+          {error ? (
+            <p className="mt-1.5 text-xs font-medium text-red-600">{error}</p>
+          ) : null}
+
           <div className="mt-2 flex items-center gap-2">
             <button
               type="button"
@@ -150,8 +195,13 @@ export default function FeedbackButtons({
               onClick={submitFeedback}
               className="rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
             >
-              {submitting ? "Submitting..." : "Submit feedback"}
+              {submitting
+                ? "Submitting..."
+                : hasSavedFeedback
+                ? "Update feedback"
+                : "Submit feedback"}
             </button>
+
             <button
               type="button"
               disabled={submitting}
