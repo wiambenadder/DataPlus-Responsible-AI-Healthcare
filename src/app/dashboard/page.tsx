@@ -4,6 +4,7 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { FRAMEWORK } from "@/lib/framework";
+import FeedbackButtons from "@/_components/feedback/FeedbackButtons";
 
 type ResponseRow = {
   id: string;
@@ -64,6 +65,7 @@ export default function DashboardPage() {
   );
   const [activeDomain, setActiveDomain] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [companyId, setCompanyId] = useState<string | null>(null); // NEW
 
   const domainEntries = useMemo(
     () => Object.entries(FRAMEWORK) as [string, string[]][],
@@ -96,6 +98,8 @@ export default function DashboardPage() {
       setLoading(false);
       return;
     }
+
+    setCompanyId(profile.company_id); // NEW
 
     const { data } = await supabase
       .from("qualitative_responses")
@@ -317,6 +321,22 @@ export default function DashboardPage() {
                               {row?.reporting_period || "N/A"}
                             </div>
                           </div>
+
+                          {/* NEW: feedback */}
+                          {companyId && activeDomain ? (
+                            <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:col-span-2">
+                              <div className="mb-1 text-sm font-semibold text-slate-900">
+                                Was this assessment accurate?
+                              </div>
+                              <FeedbackButtons
+                                companyId={companyId}
+                                question={row?.question ?? null}
+                                domain={activeDomain}
+                                subdomain={subtopic}
+                                answer={row?.answer ?? null}
+                              />
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     ) : null}
