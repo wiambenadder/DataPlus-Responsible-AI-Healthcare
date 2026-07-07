@@ -128,7 +128,7 @@ export default function Navbar() {
                   "
                 >
 
-                  <Link
+                  {/* <Link
                     href="/report/background"
                     onClick={() =>
                       setReportOpen(false)
@@ -143,7 +143,7 @@ export default function Navbar() {
                     "
                   >
                     Background
-                  </Link>
+                  </Link> */}
 
                   <Link
                     href="/report/assessment"
@@ -162,7 +162,7 @@ export default function Navbar() {
                     Assessment
                   </Link>
 
-                  <Link
+                  {/* <Link
                     href="/report/data"
                     onClick={() =>
                       setReportOpen(false)
@@ -177,7 +177,7 @@ export default function Navbar() {
                     "
                   >
                     Data
-                  </Link>
+                  </Link> */}
 
                   <Link
                     href="/report/history"
