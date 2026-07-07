@@ -383,14 +383,25 @@ export default function ReportPage() {
           answers.some((a, i) => a !== originalAnswers[i]));
 
       if (!editingExisting || answersChanged) {
-        await fetch("/api/run-ai-assessment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reporting_period: reportingPeriod,
-            company_id: companyId,
-          }),
-        });
+        await Promise.all([
+  fetch("/api/run-ai-assessment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      reporting_period: reportingPeriod,
+      company_id: companyId,
+    }),
+  }),
+
+  fetch("/api/bullet-points", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      reporting_period: reportingPeriod,
+      company_id: companyId,
+    }),
+  }),
+]);
       }
 
       router.push("/dashboard");
