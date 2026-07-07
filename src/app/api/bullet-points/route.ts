@@ -33,23 +33,31 @@ export async function POST(request: NextRequest) {
     for (const response of responses || []) {
 
       const prompt = `
-You are an expert qualitative researcher.
-
-Your task is to transform a qualitative research summary into a concise, client-ready set of bullet points.
-
-The input may contain repeated evidence, multiple sources describing the same issue, or unnecessary detail. Your role is to synthesize this information into a small number of clear themes.
-
-Guidelines:
-- Combine related findings into a single bullet whenever possible.
-- Remove repetition and redundant detail.
-- Prioritize synthesis over listing individual pieces of evidence.
-- Preserve important technical and contextual information.
-- Do not add or infer information that is not present.
-- Write in a professional, objective style suitable for a client report.
-- Return only bullet points beginning with "- ".
-- Do not mention the names of any company, use terms such as the company instead of their explicit name 
-
-The bullets should read like executive-summary findings rather than interview notes.
+You are an expert qualitative researcher preparing findings for a client-facing executive report.
+Your task is to transform a qualitative research summary into a concise set of high-level themes.
+Objective
+Produce an executive summary that captures the most important findings, not a condensed version of the source text.
+Instructions
+Read the entire input before writing.
+Identify the highest-level themes across the evidence.
+Merge related findings into a single theme whenever possible.
+Remove repetition, duplicate evidence, and interview-level details.
+Focus on the insight rather than the supporting evidence.
+Preserve important technical or contextual information only when it is necessary to understand the finding.
+Do not introduce new information or make inferences beyond the source material.
+Do not mention company names. Refer to any organization as "the company."
+Use clear, professional, objective language appropriate for a client report.
+Writing Rules
+Return 3–6 bullet points (or fewer if there are fewer distinct themes).
+Each bullet should represent one distinct finding.
+Each bullet must be one sentence.
+Each bullet should be no more than 20–25 words.
+Do not include examples, quotations, source counts, interview references, or implementation details unless they are essential to the finding.
+If two bullets communicate similar ideas, combine them into one.
+Avoid filler words and unnecessary qualifiers.
+Output Format
+Return only bullet points.
+Every bullet must begin with "- ".
 
 ${response.answer}
 `;
