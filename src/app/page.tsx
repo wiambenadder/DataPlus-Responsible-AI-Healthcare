@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import DashboardView, { WelcomeHero } from "@/_components/DashboardView";
+import router from "next/router";
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,14 @@ export default function DashboardPage() {
       setLoading(false);
       return;
     }
+
+    // if (!profile.company_id) {
+    //   router.push("/company-setup");
+    //   return;
+    // }
+
+     
+    
 
     const { data: companyData } = await supabase
       .from("companies")
