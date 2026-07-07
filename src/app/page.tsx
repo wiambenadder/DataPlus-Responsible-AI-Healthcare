@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import DashboardView, { WelcomeHero } from "@/_components/DashboardView";
-import router from "next/router";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<any>(null);
   const [lastReport, setLastReport] = useState("No reports yet");
@@ -37,13 +38,10 @@ export default function DashboardPage() {
       return;
     }
 
-    // if (!profile.company_id) {
-    //   router.push("/company-setup");
-    //   return;
-    // }
-
-     
-    
+    if (!profile.company_id) {
+      router.push("/company-setup");
+      return; // keep loading=true so WelcomeHero never flashes before the redirect
+    }
 
     const { data: companyData } = await supabase
       .from("companies")
