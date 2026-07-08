@@ -1,3 +1,12 @@
+// src/lib/framework.ts
+import { DOMAINS } from "@/lib/roadmap/framework";
+
+/**
+ * Legacy shape used by the dashboard page:
+ * { "Model Source": ["Governance & Stewardship", ...], ... }
+ * Derived from the roadmap framework so there is one source of truth.
+ */
+
 export const FRAMEWORK = {
   "Model Source": [
     "Governance & Stewardship",
