@@ -3,24 +3,27 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-
 import { DOMAINS } from "@/lib/roadmap/framework";
 import HomeView from "@/_components/home/HomeView";
 import WelcomeHero from "@/_components/home/WelcomeHero";
 import type { DomainProgress } from "@/_components/home/FrameworkOverview";
+import type { HistoryItem } from "@/_components/home/HistorySection";
 
 /**
  * Homepage / dashboard landing.
  *
  * Data flow: auth check → profile → company redirect → company +
- * reports. The reports feed the per-domain progress bars in the
- * framework overview and the report count for the Next Steps CTAs.
+ * reports + uploaded documents. The reports feed two things: the
+ * per-domain progress bars in the framework overview, and the
+ * "reports submitted" entries in the history timeline. Uploaded
+ * documents (if the table exists) are merged into the same timeline.
  */
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<any>(null);
   const [reportCount, setReportCount] = useState(0);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [domainProgress, setDomainProgress] = useState<DomainProgress[]>([]);
 
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function DashboardPage() {
 
     if (!profile.company_id) {
       router.push("/company-setup");
-      return; // keep loading=true so WelcomeHero never flashes before the redirect
+      return;
     }
 
     const { data: companyData } = await supabase
@@ -66,14 +69,65 @@ export default function DashboardPage() {
       .select("*")
       .eq("company_id", profile.company_id);
 
+    const items: HistoryItem[] = [];
+
     if (reports?.length) {
-      const periods = [...new Set(reports.map((r: any) => r.reporting_period))];
-      setReportCount(periods.length);
       setDomainProgress(computeDomainProgress(reports));
+
+      // One history entry per reporting period, dated by its latest row.
+      const byPeriod = new Map<string, string | null>();
+      for (const r of reports as any[]) {
+        const period = String(r?.reporting_period ?? "").trim();
+        if (!period) continue;
+        const prev = byPeriod.get(period);
+        const created = r?.created_at ?? null;
+        if (!prev || (created && created > prev)) {
+          byPeriod.set(period, created);
+        }
+      }
+      setReportCount(byPeriod.size);
+
+      for (const [period, createdAt] of byPeriod) {
+        items.push({
+          id: `report-${period}`,
+          kind: "report",
+          title: `Report submitted — ${period}`,
+          date: createdAt,
+        });
+      }
     } else {
       setDomainProgress(computeDomainProgress([]));
     }
 
+    // Uploaded documents. If your table is named differently, change
+    // the table name and column mapping here.
+    const { data: docs, error: docsError } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("company_id", profile.company_id)
+      .order("created_at", { ascending: false });
+
+    if (!docsError && docs?.length) {
+      for (const d of docs as any[]) {
+        items.push({
+          id: `doc-${d.id}`,
+          kind: "document",
+          title:
+            d.file_name ?? d.name ?? d.title ?? "Uploaded document",
+          date: d.created_at ?? null,
+        });
+      }
+    }
+
+    // Newest first (entries without a date sink to the bottom).
+    items.sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date < b.date ? 1 : -1;
+    });
+
+    setHistory(items);
     setLoading(false);
   }
 
@@ -99,6 +153,7 @@ export default function DashboardPage() {
     <HomeView
       company={company}
       reportCount={reportCount}
+      history={history}
       domainProgress={domainProgress}
     />
   );
@@ -110,8 +165,7 @@ export default function DashboardPage() {
  * roadmap page. Case/whitespace differences are normalized.
  */
 function computeDomainProgress(reports: any[]): DomainProgress[] {
-  const latest = new Map<string, string>();
-
+  const latest = new Map<string, string>(); // key -> ai_assessment
   for (const r of reports) {
     if (!r?.domain || !r?.Subtopic) continue;
     const key = `${String(r.domain).trim().toLowerCase()}::${String(r.Subtopic)
@@ -123,14 +177,12 @@ function computeDomainProgress(reports: any[]): DomainProgress[] {
   return DOMAINS.map((d) => {
     let practiced = 0;
     let assessed = 0;
-
     for (const sub of d.subdomains) {
       const key = `${d.name.toLowerCase()}::${sub.trim().toLowerCase()}`;
       const status = latest.get(key);
       if (status) assessed += 1;
       if (status === "practiced") practiced += 1;
     }
-
     return {
       domainId: d.id,
       name: d.name,
