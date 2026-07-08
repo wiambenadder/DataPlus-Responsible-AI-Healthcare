@@ -9,8 +9,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Data Intelligence Platform",
-  description:
-    "AI-enabled reporting and impact tracking platform",
+  description: "AI-enabled reporting and impact tracking platform",
 };
 
 export default function RootLayout({
@@ -23,14 +22,15 @@ export default function RootLayout({
       lang="en"
       className={`${inter.className} h-full antialiased`}
     >
-      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-
+      <body
+        suppressHydrationWarning
+        className="min-h-screen flex flex-col bg-slate-50 text-slate-900"
+      >
         <Navbar />
 
         <main className="flex-1">
           {children}
         </main>
-
       </body>
     </html>
   );
