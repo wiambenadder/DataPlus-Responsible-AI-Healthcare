@@ -15,6 +15,7 @@ type ResponseRow = {
   ai_reasoning: string | null;
   question: string | null;
   answer: string | null;
+  bullet_point_summary: string | null;
   reporting_period: string | null;
 };
 
@@ -60,8 +61,23 @@ function getPercentageColor(percentage: number) {
 }
 
 /**
+ * Parses a bullet_point_summary string into an array of clean bullet lines.
+ * Handles newline-separated bullets and strips any leading bullet markers
+ * (-, •, *, or "1.") that may already be present in the stored text.
+ */
+function parseBullets(summary: string | null | undefined): string[] {
+  if (!summary) return [];
+  return summary
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[-•*]\s*|^\d+[.)]\s*/, "").trim())
+    .filter(Boolean);
+}
+
+/**
  * Builds a full PDF report with every domain/subtopic "expanded" —
- * justification, question, answer, reporting period, and scores —
+ * justification, question, bullet-point summary, reporting period, and scores —
  * so it can be shared with someone without them needing the dashboard.
  */
 function generatePDFReport(
@@ -96,6 +112,29 @@ function generatePDFReport(
       ensureSpace(fontSize * 1.4);
       doc.text(line, margin, y);
       y += fontSize * 1.4;
+    }
+  }
+
+  function addBulletList(
+    bullets: string[],
+    fontSize: number,
+    color: string = "#475569"
+  ) {
+    const bulletIndent = 12;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(fontSize);
+    doc.setTextColor(color);
+    for (const bullet of bullets) {
+      const lines = doc.splitTextToSize(
+        bullet,
+        maxWidth - bulletIndent
+      ) as string[];
+      lines.forEach((line, idx) => {
+        ensureSpace(fontSize * 1.4);
+        const prefix = idx === 0 ? "•  " : "   ";
+        doc.text(prefix + line, margin, y);
+        y += fontSize * 1.4;
+      });
     }
   }
 
@@ -187,13 +226,13 @@ function generatePDFReport(
       );
       y += 4;
 
-      addText("Original Response", 10, "bold", "#334155");
-      addText(
-        row?.answer || "No response available.",
-        10,
-        "normal",
-        "#475569"
-      );
+      addText("Summary Response", 10, "bold", "#334155");
+      const bullets = parseBullets(row?.bullet_point_summary);
+      if (bullets.length > 0) {
+        addBulletList(bullets, 10);
+      } else {
+        addText("No response available.", 10, "normal", "#475569");
+      }
       y += 4;
 
       addText(
@@ -457,6 +496,7 @@ export default function DashboardPage() {
                 const displayStatus = getDisplayStatus(
                   row?.ai_assessment ?? null
                 );
+                const bullets = parseBullets(row?.bullet_point_summary);
 
                 return (
                   <article
@@ -514,9 +554,17 @@ export default function DashboardPage() {
                             <div className="mb-2 text-sm font-semibold text-slate-900">
                               Original Response
                             </div>
-                            <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
-                              {row?.answer || "No response available."}
-                            </div>
+                            {bullets.length > 0 ? (
+                              <ul className="list-disc space-y-1.5 border-l-4 border-blue-500 pl-8 text-sm leading-6 text-slate-600">
+                                {bullets.map((bullet, idx) => (
+                                  <li key={idx}>{bullet}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
+                                No response available.
+                              </div>
+                            )}
                           </div>
 
                           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:col-span-2">
