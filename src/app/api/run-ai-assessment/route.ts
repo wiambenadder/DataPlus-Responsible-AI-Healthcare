@@ -14,6 +14,13 @@ export async function POST(
     const companyId =
       body.company_id;
 
+    // Optional: [{ domain, subtopic }, ...]. When present, only rows
+    // matching one of these domain/subtopic pairs are reprocessed — this is
+    // what lets an edit re-assess just the changed entries instead of
+    // everything for the reporting period.
+    const subtopics: { domain: string; subtopic: string }[] | undefined =
+      body.subtopics;
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_KEY!
@@ -55,7 +62,23 @@ export async function POST(
       );
     }
 
-    for (const row of rows || []) {
+    // When a subtopics filter is provided, only reprocess rows matching one
+    // of those domain/subtopic pairs. No filter (or an empty array) falls
+    // back to the previous behavior of processing every row for the period.
+    const rowsToProcess =
+      subtopics && subtopics.length > 0
+        ? (rows || []).filter((row) =>
+            subtopics.some(
+              (s) =>
+                s.domain.trim().toLowerCase() ===
+                  (row.domain ?? "").trim().toLowerCase() &&
+                s.subtopic.trim().toLowerCase() ===
+                  (row.Subtopic ?? "").trim().toLowerCase()
+            )
+          )
+        : rows || [];
+
+    for (const row of rowsToProcess) {
       const domain =
         row.domain;
 
@@ -203,7 +226,7 @@ ${response}
     return NextResponse.json({
       success: true,
       rowsProcessed:
-        rows?.length ?? 0,
+        rowsToProcess.length,
     });
   } catch (error) {
     console.error(error);

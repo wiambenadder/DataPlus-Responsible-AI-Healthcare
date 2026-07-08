@@ -19,6 +19,17 @@ type ResponseRow = {
   reporting_period: string | null;
 };
 
+// Rows created from document extraction store a question that starts with
+// this prefix (e.g. "Evidence extracted from uploaded report..."). Those
+// rows show the bullet-point summary; rows sourced from an actual interview
+// question show the user's raw typed answer instead.
+const EXTRACTED_EVIDENCE_PREFIX = "evidence extracted";
+
+function isExtractedFromDocument(question: string | null | undefined) {
+  if (!question) return false;
+  return question.trim().toLowerCase().startsWith(EXTRACTED_EVIDENCE_PREFIX);
+}
+
 function isPracticed(status: string | null) {
   return status === "Practiced";
 }
@@ -77,7 +88,7 @@ function parseBullets(summary: string | null | undefined): string[] {
 
 /**
  * Builds a full PDF report with every domain/subtopic "expanded" —
- * justification, question, bullet-point summary, reporting period, and scores —
+ * justification, question, response, and reporting period, and scores —
  * so it can be shared with someone without them needing the dashboard.
  */
 function generatePDFReport(
@@ -226,12 +237,26 @@ function generatePDFReport(
       );
       y += 4;
 
-      addText("Summary Response", 10, "bold", "#334155");
-      const bullets = parseBullets(row?.bullet_point_summary);
-      if (bullets.length > 0) {
-        addBulletList(bullets, 10);
+      // Extracted-evidence rows show the bullet-point summary; rows from an
+      // actual interview question show the user's raw typed answer.
+      const fromDocument = isExtractedFromDocument(row?.question);
+
+      if (fromDocument) {
+        addText("Summary Response", 10, "bold", "#334155");
+        const bullets = parseBullets(row?.bullet_point_summary);
+        if (bullets.length > 0) {
+          addBulletList(bullets, 10);
+        } else {
+          addText("No response available.", 10, "normal", "#475569");
+        }
       } else {
-        addText("No response available.", 10, "normal", "#475569");
+        addText("Original Response", 10, "bold", "#334155");
+        addText(
+          row?.answer || "No response available.",
+          10,
+          "normal",
+          "#475569"
+        );
       }
       y += 4;
 
@@ -496,7 +521,10 @@ export default function DashboardPage() {
                 const displayStatus = getDisplayStatus(
                   row?.ai_assessment ?? null
                 );
-                const bullets = parseBullets(row?.bullet_point_summary);
+                const fromDocument = isExtractedFromDocument(row?.question);
+                const bullets = fromDocument
+                  ? parseBullets(row?.bullet_point_summary)
+                  : [];
 
                 return (
                   <article
@@ -552,17 +580,25 @@ export default function DashboardPage() {
 
                           <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:col-span-2">
                             <div className="mb-2 text-sm font-semibold text-slate-900">
-                              Original Response
+                              {fromDocument
+                                ? "Summary Response"
+                                : "Original Response"}
                             </div>
-                            {bullets.length > 0 ? (
-                              <ul className="list-disc space-y-1.5 border-l-4 border-blue-500 pl-8 text-sm leading-6 text-slate-600">
-                                {bullets.map((bullet, idx) => (
-                                  <li key={idx}>{bullet}</li>
-                                ))}
-                              </ul>
+                            {fromDocument ? (
+                              bullets.length > 0 ? (
+                                <ul className="list-disc space-y-1.5 border-l-4 border-blue-500 pl-8 text-sm leading-6 text-slate-600">
+                                  {bullets.map((bullet, idx) => (
+                                    <li key={idx}>{bullet}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
+                                  No response available.
+                                </div>
+                              )
                             ) : (
                               <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
-                                No response available.
+                                {row?.answer || "No response available."}
                               </div>
                             )}
                           </div>
