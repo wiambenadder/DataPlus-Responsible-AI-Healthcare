@@ -408,23 +408,29 @@ export default function ReportPage() {
         return;
       }
 
-      // Fresh submission: insert all interview rows.
-      const rows = interviewQuestions.map((q, i) => ({
-        company_id: companyId,
-        reporting_period: reportingPeriod,
-        question: q.question,
-        answer: answers[i],
-        domain: q.domain,
-        Subtopic: q.subtopic,
-      }));
+      // Fresh submission: insert interview rows, if there are any. When
+      // every topic was already covered by uploaded documents,
+      // interviewQuestions is empty and there's nothing to insert here —
+      // but transfer-map + assessment still need to run below for the
+      // evidence that came from the upload.
+      if (interviewQuestions.length > 0) {
+        const rows = interviewQuestions.map((q, i) => ({
+          company_id: companyId,
+          reporting_period: reportingPeriod,
+          question: q.question,
+          answer: answers[i],
+          domain: q.domain,
+          Subtopic: q.subtopic,
+        }));
 
-      const { error } = await supabase
-        .from("qualitative_responses")
-        .insert(rows);
+        const { error } = await supabase
+          .from("qualitative_responses")
+          .insert(rows);
 
-      if (error) {
-        alert(error.message);
-        return;
+        if (error) {
+          alert(error.message);
+          return;
+        }
       }
 
       // Copy mapped evidence into qualitative_responses.
@@ -592,9 +598,37 @@ export default function ReportPage() {
         )}
 
         {uploadComplete && interviewQuestions.length === 0 && (
-          <div className="bg-white border rounded-2xl shadow-sm p-8 text-center text-gray-500">
-            All topics have already been covered. No questions remaining.
-          </div>
+          <>
+            <div className="mb-8">
+              <label className="block text-sm font-medium mb-2">
+                Reporting Period
+              </label>
+
+              <input
+                className="w-full border p-3 rounded-xl"
+                placeholder="Q2 2026"
+                value={reportingPeriod}
+                onChange={(e) => setReportingPeriod(e.target.value)}
+                disabled={editingExisting}
+              />
+            </div>
+
+            <div className="bg-white border rounded-2xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 mb-6">
+                All topics have already been covered by your uploaded
+                documents. There are no interview questions remaining —
+                click below to finish processing your submission.
+              </p>
+
+              <button
+                disabled={saving}
+                onClick={submitInterview}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saving ? "Submitting..." : "Submit Report"}
+              </button>
+            </div>
+          </>
         )}
 
         {uploadComplete && interviewQuestions.length > 0 && (
