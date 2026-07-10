@@ -27,21 +27,42 @@ export default function CompanySetupPage() {
   const [acceptingInvite, setAcceptingInvite] = useState(false);
 
   useEffect(() => {
-    checkForInvite();
+    initSetup();
   }, []);
 
-  async function checkForInvite() {
+  async function initSetup() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setCheckingInvite(false);
+      // No active session — send them to log in instead of leaving them on
+      // a form that can never successfully submit.
+      router.push("/login");
       return;
     }
 
     setUserId(user.id);
 
+    // NEW: if this user already has a company linked, there's nothing to set
+    // up — send them straight to the app instead of showing this form again.
+    // Without this check, a user who already has a company_id could still
+    // land here and create a second, duplicate company.
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (existingProfile?.company_id) {
+      router.push("/report/assessment");
+      return;
+    }
+
+    await checkForInvite(user);
+  }
+
+  async function checkForInvite(user: { id: string; email?: string | null }) {
     if (!user.email) {
       setCheckingInvite(false);
       return;
@@ -122,7 +143,7 @@ export default function CompanySetupPage() {
     // leftover duplicates don't cause the "multiple rows" error again later.
     await supabase.from("company_invites").delete().ilike("email", invite.email);
 
-    router.push("/dashboard");
+    router.push("/report/assessment");
   }
 
   function dismissInvite() {
@@ -135,7 +156,8 @@ export default function CompanySetupPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      alert("Please login first");
+      alert("Your session has expired. Please log in again.");
+      router.push("/login");
       return;
     }
 
@@ -157,13 +179,30 @@ export default function CompanySetupPage() {
       return;
     }
 
-    await supabase.from("company_members").insert({
+    // Uses a plain insert rather than upsert: this company_id was just
+    // created above, so there is no way a company_members row for this
+    // (company_id, user_id) pair could already exist yet. A plain insert
+    // with real error handling is sufficient here — no unique constraint
+    // on (company_id, user_id) required.
+    const { error: memberError } = await supabase.from("company_members").insert({
       company_id: company.id,
       user_id: user.id,
       role: "admin",
     });
 
-    const { error: profileError } = await supabase.from("profiles").insert({
+    if (memberError) {
+      alert(memberError.message);
+      return;
+    }
+
+    // FIXED: was .insert(), which fails with a primary-key conflict if a
+    // profiles row for this user already exists (e.g. created by a DB
+    // trigger on auth.users, or by the signup page upserting a default
+    // full_name). That silent failure meant company_id was NEVER actually
+    // written to the profile — so the user got bounced back here forever,
+    // and every retry created a brand-new orphaned company. Upsert fixes
+    // this the same way acceptInvite() already does it above.
+    const { error: profileError } = await supabase.from("profiles").upsert({
       id: user.id,
       company_id: company.id,
     });
@@ -173,7 +212,7 @@ export default function CompanySetupPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/report/assessment");
   }
 
   return (
