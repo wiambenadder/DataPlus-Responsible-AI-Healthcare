@@ -103,7 +103,7 @@ export default function CompanyPage() {
     }
 
     alert("Company profile updated");
-    router.push("/dashboard");
+    router.push("/report/assessment");
   }
 
   async function inviteMember() {
