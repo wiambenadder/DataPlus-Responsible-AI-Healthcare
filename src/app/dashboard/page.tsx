@@ -594,15 +594,6 @@ export default function DashboardPage() {
                       <div className="border-t border-slate-200 bg-white p-4 sm:p-5">
                         <div className="grid gap-4 lg:grid-cols-2">
                           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="mb-2 text-sm font-semibold text-slate-900">
-                              AI Justification
-                            </div>
-                            <div className="text-sm leading-6 text-slate-600">
-                              {row?.ai_reasoning || "No assessment available yet."}
-                            </div>
-                          </div>
-
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                             {/* Definition sits above the Source subheading —
                                 it describes the subtopic, not the source */}
                             {definition ? (
@@ -622,6 +613,15 @@ export default function DashboardPage() {
                                   ? row.question
                                   : `Evidence from user response to question: ${row.question}`
                                 : "No source available."}
+                            </div>
+                          </div>
+
+                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div className="mb-2 text-sm font-semibold text-slate-900">
+                              AI Justification
+                            </div>
+                            <div className="text-sm leading-6 text-slate-600">
+                              {row?.ai_reasoning || "No assessment available yet."}
                             </div>
                           </div>
 
