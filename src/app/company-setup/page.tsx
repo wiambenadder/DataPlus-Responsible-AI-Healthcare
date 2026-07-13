@@ -55,7 +55,7 @@ export default function CompanySetupPage() {
       .maybeSingle();
 
     if (existingProfile?.company_id) {
-      router.push("/report/assessment");
+      router.push("/dashboard");
       return;
     }
 
