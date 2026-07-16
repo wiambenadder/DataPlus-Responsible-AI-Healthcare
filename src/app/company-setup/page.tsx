@@ -122,7 +122,7 @@ export default function CompanySetupPage() {
     // leftover duplicates don't cause the "multiple rows" error again later.
     await supabase.from("company_invites").delete().ilike("email", invite.email);
 
-    router.push("/dashboard");
+    router.push("/report/assessment");
   }
 
   function dismissInvite() {
@@ -173,7 +173,7 @@ export default function CompanySetupPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/report/assessment");
   }
 
   return (

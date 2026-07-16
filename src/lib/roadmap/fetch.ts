@@ -1,5 +1,10 @@
-import { supabase } from "@/lib/supabase"; // adjust to your existing client export
+import { createClient } from "@supabase/supabase-js";
 import type { DomainMappingRow, QualitativeResponseRow } from "./types";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 /**
  * Fetch both roadmap source tables for one company.

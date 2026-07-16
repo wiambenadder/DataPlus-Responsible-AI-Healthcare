@@ -109,7 +109,8 @@ export default function FeedbackButtons({
 
     if (saveError || !data) {
       setSubmitting(false);
-      setError("Something went wrong submitting your feedback. Please try again.");
+      console.error("Feedback save error:", saveError);
+      setError(saveError?.message || "Something went wrong submitting your feedback. Please try again.");
       return;
     }
 

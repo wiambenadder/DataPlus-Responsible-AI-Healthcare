@@ -187,14 +187,15 @@ export interface StagePlacement {
 
 /**
  * Stage → subdomain mapping, transcribed from the roadmap structure
- * diagram. Edit here if the mapping changes — the UI derives everything
- * from this table.
+ * diagram (Roadmap Structure — Updated July 06). Edit here if the
+ * mapping changes — the UI derives everything from this table.
  */
 export const STAGE_MAPPING: Record<StageId, StagePlacement[]> = {
   1: [
     { domainId: "D1", subdomain: "Governance & Stewardship" },
     { domainId: "D1", subdomain: "Privacy & Security" },
     { domainId: "D1", subdomain: "Data Standards & Metadata" },
+    { domainId: "D3", subdomain: "Mechanism of Change" },
     { domainId: "D4", subdomain: "Equity Effect" },
     { domainId: "D5", subdomain: "Business Model Clarity" },
   ],
@@ -203,27 +204,26 @@ export const STAGE_MAPPING: Record<StageId, StagePlacement[]> = {
     { domainId: "D1", subdomain: "Timeliness" },
     { domainId: "D1", subdomain: "Data Interoperability & Reuse" },
     { domainId: "D2", subdomain: "AI System Design" },
-    { domainId: "D2", subdomain: "Bias & Fairness Assessment" },
   ],
   3: [
+    { domainId: "D2", subdomain: "Bias & Fairness Assessment" },
     { domainId: "D2", subdomain: "Accuracy" },
     { domainId: "D2", subdomain: "Model Validation & Reliability" },
     { domainId: "D2", subdomain: "Cross-Population Performance" },
     { domainId: "D2", subdomain: "Transparency & Explainability" },
-    { domainId: "D2", subdomain: "Robustness" },
-    { domainId: "D3", subdomain: "Mechanism of Change" },
   ],
   4: [
+    { domainId: "D2", subdomain: "Robustness" },
     { domainId: "D3", subdomain: "Deployment Infrastructure & Integration" },
     { domainId: "D3", subdomain: "Protocol & Safety Monitoring" },
     { domainId: "D3", subdomain: "Responsible Use of AI" },
     { domainId: "D3", subdomain: "System Reliability & Capacity" },
+    { domainId: "D3", subdomain: "Implementation Outcomes" },
     { domainId: "D4", subdomain: "Time to Action" },
   ],
   5: [
     { domainId: "D1", subdomain: "Timeliness", revisited: true },
     { domainId: "D1", subdomain: "Data Interoperability & Reuse", revisited: true },
-    { domainId: "D3", subdomain: "Implementation Outcomes" },
     { domainId: "D4", subdomain: "Outcome Improvement" },
     { domainId: "D4", subdomain: "Cost-Effectiveness" },
     { domainId: "D5", subdomain: "Health System Integration" },
