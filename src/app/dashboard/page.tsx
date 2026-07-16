@@ -4,6 +4,7 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { FRAMEWORK } from "@/lib/framework";
+import { DEFINITIONS, getDefinition } from "@/lib/definitions";
 import FeedbackButtons from "@/_components/feedback/FeedbackButtons";
 import jsPDF from "jspdf";
 
@@ -18,6 +19,34 @@ type ResponseRow = {
   bullet_point_summary: string | null;
   reporting_period: string | null;
 };
+
+// Rows created from document extraction store a question that starts with
+// this prefix (e.g. "Evidence extracted from uploaded report..."). Those
+// rows show the bullet-point summary; rows sourced from an actual interview
+// question show the user's raw typed answer instead.
+const EXTRACTED_EVIDENCE_PREFIX = "evidence extracted";
+
+function isExtractedFromDocument(question: string | null | undefined) {
+  if (!question) return false;
+  return question.trim().toLowerCase().startsWith(EXTRACTED_EVIDENCE_PREFIX);
+}
+
+/**
+ * Looks up a subtopic's definition. Tries an exact domain + subtopic match
+ * first, then falls back to matching on subtopic alone (subtopic names are
+ * unique across the framework), so this still works if FRAMEWORK domain
+ * labels differ slightly from those in definitions.ts.
+ */
+function lookupDefinition(
+  domain: string | null | undefined,
+  subtopic: string
+): string | undefined {
+  if (domain) {
+    const exact = getDefinition(domain, subtopic);
+    if (exact) return exact;
+  }
+  return DEFINITIONS.find((d) => d.subtopic === subtopic)?.definition;
+}
 
 function isPracticed(status: string | null) {
   return status === "Practiced";
@@ -77,8 +106,9 @@ function parseBullets(summary: string | null | undefined): string[] {
 
 /**
  * Builds a full PDF report with every domain/subtopic "expanded" —
- * justification, question, bullet-point summary, reporting period, and scores —
- * so it can be shared with someone without them needing the dashboard.
+ * definition, justification, question, response, and reporting period, and
+ * scores — so it can be shared with someone without them needing the
+ * dashboard.
  */
 function generatePDFReport(
   domainEntries: [string, string[]][],
@@ -101,7 +131,7 @@ function generatePDFReport(
   function addText(
     text: string,
     fontSize: number,
-    style: "normal" | "bold" = "normal",
+    style: "normal" | "bold" | "italic" = "normal",
     color: string = "#1e293b"
   ) {
     doc.setFont("helvetica", style);
@@ -205,6 +235,14 @@ function generatePDFReport(
 
       ensureSpace(20);
       addText(subtopic, 12, "bold", "#0f172a");
+
+      // NEW: subtopic definition directly under the heading
+      const definition = lookupDefinition(domain, subtopic);
+      if (definition) {
+        addText(definition, 10, "italic", "#64748b");
+        y += 2;
+      }
+
       addText(`Status: ${status}`, 10, "bold", statusColor);
       y += 4;
 
@@ -217,21 +255,39 @@ function generatePDFReport(
       );
       y += 4;
 
-      addText("Source Question", 10, "bold", "#334155");
+      // Extracted-evidence rows show the bullet-point summary; rows from an
+      // actual interview question show the user's raw typed answer.
+      const fromDocument = isExtractedFromDocument(row?.question);
+
+      addText("Source", 10, "bold", "#334155");
       addText(
-        row?.question || "No source question available.",
+        row?.question
+          ? fromDocument
+            ? row.question
+            : `Evidence from user response to question: ${row.question}`
+          : "No source available.",
         10,
         "normal",
         "#475569"
       );
       y += 4;
 
-      addText("Summary Response", 10, "bold", "#334155");
-      const bullets = parseBullets(row?.bullet_point_summary);
-      if (bullets.length > 0) {
-        addBulletList(bullets, 10);
+      if (fromDocument) {
+        addText("Summary Response", 10, "bold", "#334155");
+        const bullets = parseBullets(row?.bullet_point_summary);
+        if (bullets.length > 0) {
+          addBulletList(bullets, 10);
+        } else {
+          addText("No response available.", 10, "normal", "#475569");
+        }
       } else {
-        addText("No response available.", 10, "normal", "#475569");
+        addText("Original Response", 10, "bold", "#334155");
+        addText(
+          row?.answer || "No response available.",
+          10,
+          "normal",
+          "#475569"
+        );
       }
       y += 4;
 
@@ -496,7 +552,12 @@ export default function DashboardPage() {
                 const displayStatus = getDisplayStatus(
                   row?.ai_assessment ?? null
                 );
-                const bullets = parseBullets(row?.bullet_point_summary);
+                const fromDocument = isExtractedFromDocument(row?.question);
+                const bullets = fromDocument
+                  ? parseBullets(row?.bullet_point_summary)
+                  : [];
+                // NEW: subtopic definition from the definitions library
+                const definition = lookupDefinition(activeDomain, subtopic);
 
                 return (
                   <article
@@ -533,6 +594,29 @@ export default function DashboardPage() {
                       <div className="border-t border-slate-200 bg-white p-4 sm:p-5">
                         <div className="grid gap-4 lg:grid-cols-2">
                           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            {/* Definition sits above the Source subheading —
+                                it describes the subtopic, not the source */}
+                            {definition ? (
+                              <div className="mb-3 rounded-xl bg-blue-50 p-3 text-sm leading-6 text-slate-600">
+                                <span className="font-semibold text-blue-700">
+                                  Definition:{" "}
+                                </span>
+                                {definition}
+                              </div>
+                            ) : null}
+                            <div className="mb-2 text-sm font-semibold text-slate-900">
+                              Source
+                            </div>
+                            <div className="text-sm leading-6 text-slate-600">
+                              {row?.question
+                                ? fromDocument
+                                  ? row.question
+                                  : `Evidence from user response to question: ${row.question}`
+                                : "No source available."}
+                            </div>
+                          </div>
+
+                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                             <div className="mb-2 text-sm font-semibold text-slate-900">
                               AI Justification
                             </div>
@@ -541,28 +625,27 @@ export default function DashboardPage() {
                             </div>
                           </div>
 
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="mb-2 text-sm font-semibold text-slate-900">
-                              Source Question
-                            </div>
-                            <div className="text-sm leading-6 text-slate-600">
-                              {row?.question || "No source question available."}
-                            </div>
-                          </div>
-
                           <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:col-span-2">
                             <div className="mb-2 text-sm font-semibold text-slate-900">
-                              Original Response
+                              {fromDocument
+                                ? "Summary Response"
+                                : "Original Response"}
                             </div>
-                            {bullets.length > 0 ? (
-                              <ul className="list-disc space-y-1.5 border-l-4 border-blue-500 pl-8 text-sm leading-6 text-slate-600">
-                                {bullets.map((bullet, idx) => (
-                                  <li key={idx}>{bullet}</li>
-                                ))}
-                              </ul>
+                            {fromDocument ? (
+                              bullets.length > 0 ? (
+                                <ul className="list-disc space-y-1.5 border-l-4 border-blue-500 pl-8 text-sm leading-6 text-slate-600">
+                                  {bullets.map((bullet, idx) => (
+                                    <li key={idx}>{bullet}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
+                                  No response available.
+                                </div>
+                              )
                             ) : (
                               <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
-                                No response available.
+                                {row?.answer || "No response available."}
                               </div>
                             )}
                           </div>

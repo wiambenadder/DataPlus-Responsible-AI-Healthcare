@@ -21,8 +21,10 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
 
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(),
+    const trimmedEmail = email.trim();
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: trimmedEmail,
       password,
     });
 
@@ -30,6 +32,27 @@ export default function SignupPage() {
       setError(signUpError.message);
       setLoading(false);
       return;
+    }
+
+    // NEW: default the profile's full_name to the user's email right away.
+    // Without this, full_name stays blank in Supabase until the user
+    // visits Settings and manually saves a name — which most people never
+    // do. Upsert so this is safe whether or not a profile row already
+    // exists (e.g. via a DB trigger on auth.users).
+    const newUserId = signUpData.user?.id;
+
+    if (newUserId) {
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: newUserId,
+        email: trimmedEmail,
+        full_name: trimmedEmail,
+      });
+
+      if (profileError) {
+        // Don't block signup on this — log it and continue. The user can
+        // still fix their name later in Settings if this silently fails.
+        console.error("Failed to default profile full_name:", profileError);
+      }
     }
 
     router.push("/company-setup");

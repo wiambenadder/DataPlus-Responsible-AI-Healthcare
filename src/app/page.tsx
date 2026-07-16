@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+
 import { DOMAINS } from "@/lib/roadmap/framework";
 import HomeView from "@/_components/home/HomeView";
 import WelcomeHero from "@/_components/home/WelcomeHero";
@@ -50,7 +51,7 @@ export default function DashboardPage() {
 
     if (!profile.company_id) {
       router.push("/company-setup");
-      return;
+      return; // keep loading=true so WelcomeHero never flashes before the redirect
     }
 
     const { data: companyData } = await supabase
@@ -109,7 +110,8 @@ export default function DashboardPage() {
  * roadmap page. Case/whitespace differences are normalized.
  */
 function computeDomainProgress(reports: any[]): DomainProgress[] {
-  const latest = new Map<string, string>(); // key -> ai_assessment
+  const latest = new Map<string, string>();
+
   for (const r of reports) {
     if (!r?.domain || !r?.Subtopic) continue;
     const key = `${String(r.domain).trim().toLowerCase()}::${String(r.Subtopic)
@@ -121,12 +123,14 @@ function computeDomainProgress(reports: any[]): DomainProgress[] {
   return DOMAINS.map((d) => {
     let practiced = 0;
     let assessed = 0;
+
     for (const sub of d.subdomains) {
       const key = `${d.name.toLowerCase()}::${sub.trim().toLowerCase()}`;
       const status = latest.get(key);
       if (status) assessed += 1;
       if (status === "practiced") practiced += 1;
     }
+
     return {
       domainId: d.id,
       name: d.name,

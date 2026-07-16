@@ -19,6 +19,17 @@ type ExistingResponse = {
   reporting_period: string;
 };
 
+// Rows created from document extraction store a question that starts with
+// this prefix (e.g. "Evidence extracted from uploaded report..."). Those
+// rows should never appear in the interview edit flow — they're edited
+// through a separate evidence-review flow instead.
+const EXTRACTED_EVIDENCE_PREFIX = "evidence extracted";
+
+function isExtractedFromDocument(question: string | null | undefined) {
+  if (!question) return false;
+  return question.trim().toLowerCase().startsWith(EXTRACTED_EVIDENCE_PREFIX);
+}
+
 export default function ReportPage() {
   const router = useRouter();
 
@@ -41,6 +52,9 @@ export default function ReportPage() {
   // Snapshot of answers as they were when edit mode was entered, so we can
   // tell later whether the user actually changed anything.
   const [originalAnswers, setOriginalAnswers] = useState<string[]>([]);
+  // Maps interviewQuestions[i] / answers[i] -> the existing row's id, so we
+  // can target updates precisely instead of deleting/reinserting everything.
+  const [editableResponseIds, setEditableResponseIds] = useState<string[]>([]);
 
   useEffect(() => {
     loadCompany();
@@ -269,15 +283,26 @@ export default function ReportPage() {
 
   // Enter edit mode: reload the previously submitted Q&A into the interview
   // flow so the user can step through and change any answer.
+  //
+  // Rows created from document extraction (question starts with
+  // "Evidence extracted...") are deliberately excluded here — those are
+  // edited through a separate evidence-review flow (see "Edit Extracted
+  // Evidence" below), since changing them requires re-running extraction
+  // and mapping rather than a simple answer edit + re-assessment.
   function startEdit() {
-    const editQuestions = existingResponses.map((r) => ({
+    const editableResponses = existingResponses.filter(
+      (r) => !isExtractedFromDocument(r.question)
+    );
+
+    const editQuestions = editableResponses.map((r) => ({
       question: r.question,
       domain: r.domain,
       subtopic: r.Subtopic,
     })) as typeof QUESTIONS;
 
-    const startingAnswers = existingResponses.map((r) => r.answer);
+    const startingAnswers = editableResponses.map((r) => r.answer);
 
+    setEditableResponseIds(editableResponses.map((r) => r.id));
     setInterviewQuestions(editQuestions);
     setAnswers(startingAnswers);
     setOriginalAnswers(startingAnswers);
@@ -322,87 +347,128 @@ export default function ReportPage() {
     setSaving(true);
 
     try {
-      const rows = interviewQuestions.map((q, i) => ({
-        company_id: companyId,
-        reporting_period: reportingPeriod,
-        question: q.question,
-        answer: answers[i],
-        domain: q.domain,
-        Subtopic: q.subtopic,
-      }));
-
-      // If we're editing an existing submission, replace the old rows
-      // instead of appending duplicates.
       if (editingExisting) {
-        const { error: deleteError } = await supabase
-          .from("qualitative_responses")
-          .delete()
-          .eq("company_id", companyId);
+        // Only touch rows whose answer actually changed. Extracted-evidence
+        // rows and unmodified interview rows are never deleted or
+        // reinserted, so nothing outside the edited answers is affected.
+        const changedIndexes = answers
+          .map((answer, i) => (answer !== originalAnswers[i] ? i : -1))
+          .filter((i) => i !== -1);
 
-        if (deleteError) {
-          alert(deleteError.message);
+        if (changedIndexes.length === 0) {
+          router.push("/dashboard");
           return;
         }
-      }
 
-      const { error } = await supabase
-        .from("qualitative_responses")
-        .insert(rows);
+        for (const i of changedIndexes) {
+          const id = editableResponseIds[i];
+          const { error: updateError } = await supabase
+            .from("qualitative_responses")
+            .update({ answer: answers[i] })
+            .eq("id", id);
 
-      if (error) {
-        alert(error.message);
+          if (updateError) {
+            alert(updateError.message);
+            return;
+          }
+        }
+
+        // Scope re-assessment to only the entries that actually changed.
+        // NOTE: this assumes /api/run-ai-assessment and /api/bullet-points
+        // accept a `subtopics` filter and only reprocess matching rows —
+        // update those handlers accordingly, otherwise they'll still
+        // reprocess everything regardless of what's sent here.
+        const changedTopics = changedIndexes.map((i) => ({
+          domain: interviewQuestions[i].domain,
+          subtopic: interviewQuestions[i].subtopic,
+        }));
+
+        await Promise.all([
+          fetch("/api/run-ai-assessment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              reporting_period: reportingPeriod,
+              company_id: companyId,
+              subtopics: changedTopics,
+            }),
+          }),
+          fetch("/api/bullet-points", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              reporting_period: reportingPeriod,
+              company_id: companyId,
+              subtopics: changedTopics,
+            }),
+          }),
+        ]);
+
+        router.push("/dashboard");
         return;
       }
 
-      if (!editingExisting) {
-        // Fresh submission only: copy mapped evidence into
-        // qualitative_responses. On edits, that transfer already
-        // happened during the original submission, so skip it.
-        const transferResponse = await fetch("/api/transfer-map", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            company_id: companyId,
-            reporting_period: reportingPeriod,
-          }),
-        });
+      // Fresh submission: insert interview rows, if there are any. When
+      // every topic was already covered by uploaded documents,
+      // interviewQuestions is empty and there's nothing to insert here —
+      // but transfer-map + assessment still need to run below for the
+      // evidence that came from the upload.
+      if (interviewQuestions.length > 0) {
+        const rows = interviewQuestions.map((q, i) => ({
+          company_id: companyId,
+          reporting_period: reportingPeriod,
+          question: q.question,
+          answer: answers[i],
+          domain: q.domain,
+          Subtopic: q.subtopic,
+        }));
 
-        const transferResult = await transferResponse.json();
+        const { error } = await supabase
+          .from("qualitative_responses")
+          .insert(rows);
 
-        if (!transferResponse.ok) {
-          alert(transferResult.error || "Transfer failed.");
+        if (error) {
+          alert(error.message);
           return;
         }
       }
 
-      // Run the AI assessment on a fresh submission always, or on an
-      // edit only if the answers actually changed.
-      const answersChanged =
-        editingExisting &&
-        (answers.length !== originalAnswers.length ||
-          answers.some((a, i) => a !== originalAnswers[i]));
+      // Copy mapped evidence into qualitative_responses.
+      const transferResponse = await fetch("/api/transfer-map", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company_id: companyId,
+          reporting_period: reportingPeriod,
+        }),
+      });
 
-      if (!editingExisting || answersChanged) {
-        await Promise.all([
-  fetch("/api/run-ai-assessment", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      reporting_period: reportingPeriod,
-      company_id: companyId,
-    }),
-  }),
+      const transferResult = await transferResponse.json();
 
-  fetch("/api/bullet-points", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      reporting_period: reportingPeriod,
-      company_id: companyId,
-    }),
-  }),
-]);
+      if (!transferResponse.ok) {
+        alert(transferResult.error || "Transfer failed.");
+        return;
       }
+
+      // Fresh submission always gets a full assessment run.
+      await Promise.all([
+        fetch("/api/run-ai-assessment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reporting_period: reportingPeriod,
+            company_id: companyId,
+          }),
+        }),
+        fetch("/api/bullet-points", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reporting_period: reportingPeriod,
+            company_id: companyId,
+          }),
+        }),
+      ]);
 
       router.push("/dashboard");
     } finally {
@@ -437,7 +503,7 @@ export default function ReportPage() {
               interview. You can review or edit your responses below.
             </p>
 
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-wrap gap-4 justify-center">
               <button
                 onClick={startEdit}
                 className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700"
@@ -451,6 +517,21 @@ export default function ReportPage() {
               >
                 View Submission
               </button>
+
+              {/*
+                HIDDEN FOR NOW: entry point for editing document-extracted
+                evidence (routes to /report/evidence). Uncomment when that
+                flow is ready to ship. Left in place rather than deleted so
+                it's easy to re-enable.
+              */}
+              {/*
+              <button
+                onClick={() => router.push("/report/evidence")}
+                className="border px-6 py-3 rounded-xl"
+              >
+                Edit Extracted Evidence
+              </button>
+              */}
             </div>
           </div>
         </div>
@@ -517,9 +598,37 @@ export default function ReportPage() {
         )}
 
         {uploadComplete && interviewQuestions.length === 0 && (
-          <div className="bg-white border rounded-2xl shadow-sm p-8 text-center text-gray-500">
-            All topics have already been covered. No questions remaining.
-          </div>
+          <>
+            <div className="mb-8">
+              <label className="block text-sm font-medium mb-2">
+                Reporting Period
+              </label>
+
+              <input
+                className="w-full border p-3 rounded-xl"
+                placeholder="Q2 2026"
+                value={reportingPeriod}
+                onChange={(e) => setReportingPeriod(e.target.value)}
+                disabled={editingExisting}
+              />
+            </div>
+
+            <div className="bg-white border rounded-2xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 mb-6">
+                All topics have already been covered by your uploaded
+                documents. There are no interview questions remaining —
+                click below to finish processing your submission.
+              </p>
+
+              <button
+                disabled={saving}
+                onClick={submitInterview}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saving ? "Submitting..." : "Submit Report"}
+              </button>
+            </div>
+          </>
         )}
 
         {uploadComplete && interviewQuestions.length > 0 && (
