@@ -432,7 +432,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* NEW: export button */}
+            {/* NEW: export button using tailwind classes */}
             <button
               type="button"
               onClick={handleExport}

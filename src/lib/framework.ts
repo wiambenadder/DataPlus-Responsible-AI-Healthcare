@@ -1,3 +1,5 @@
+// Framework for organizing responsible AI use cases in healthcare, shows each subdomain within the main domains
+
 // src/lib/framework.ts
 import { DOMAINS } from "@/lib/roadmap/framework";
 

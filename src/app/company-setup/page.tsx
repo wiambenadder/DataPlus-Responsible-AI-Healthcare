@@ -3,6 +3,8 @@
 // It also checks for a pending invite matching the user's email — if one exists, it shows a
 // banner letting them join the existing company instead of creating a new one.
 
+// Company invites located in the "company_invites" table, company information in the "companies" table, and company members in the "company_members" table
+
 "use client";
 
 import { useState, useEffect } from "react";

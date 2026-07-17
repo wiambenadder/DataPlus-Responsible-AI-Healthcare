@@ -1,3 +1,5 @@
+// Function to display a country flag based on its name
+
 const COUNTRY_CODES: Record<string, string> = {
   "united states": "US", "usa": "US", "united kingdom": "GB", "uk": "GB",
   "canada": "CA", "france": "FR", "germany": "DE", "spain": "ES",

@@ -1,3 +1,6 @@
+//currently not in use or fully developed
+// intention is for users to edit and view evidence that has been extracted from documents / rerun new documents
+
 "use client";
 
 import { useEffect, useState } from "react";

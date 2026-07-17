@@ -1,3 +1,7 @@
+// The assessment report page for submitting and editing assessment responses
+// first prompts users to upload files which then get parsed, then calls the map-domain function 
+// Any subtopics that are not extracted from documents in map-domain will be asked about in the questions 
+// when the user submits the run-ai-assessment will be triggered alongside the bullet-points 
 "use client";
 
 import { useEffect, useState } from "react";
@@ -519,7 +523,7 @@ export default function ReportPage() {
               </button>
 
               {/*
-                HIDDEN FOR NOW: entry point for editing document-extracted
+                HIDDEN FOR NOW, also : entry point for editing document-extracted
                 evidence (routes to /report/evidence). Uncomment when that
                 flow is ready to ship. Left in place rather than deleted so
                 it's easy to re-enable.

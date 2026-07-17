@@ -1,3 +1,6 @@
+// Page for viewing the history of submitted reports, currently the background reports are hidden
+// Can view past interview reports and uploaded files 
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -196,6 +199,8 @@ export default function HistoryPage() {
             Report History
           </h1>
         </div>
+
+        // the hidden background reports section
 
         {/*
         <div className="mb-10">

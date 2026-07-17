@@ -1,3 +1,5 @@
+// Assessment questions for evaluating the responsible use of AI in healthcare
+
 export const QUESTIONS = [
   {
     question:
