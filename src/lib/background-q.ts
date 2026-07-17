@@ -1,3 +1,5 @@
+// Background questions for gathering information about the organization and its AI initiatives
+
 export const QUESTIONS = [
   {
     section: "Organization Overview",

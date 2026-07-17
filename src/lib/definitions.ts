@@ -1,3 +1,5 @@
+// Definitions for each domain of responsible AI use in healthcare, displayed on dashboard
+
 export const DEFINITIONS = [
   // D1 — Model Source
   {

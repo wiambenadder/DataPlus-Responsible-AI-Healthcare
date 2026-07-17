@@ -1,3 +1,6 @@
+// currently hidden, saved for future use to possibly form company background reports
+// similar to the assessment report page, questions drawn from grantee application 
+
 "use client";
 
 import { useEffect, useState } from "react";

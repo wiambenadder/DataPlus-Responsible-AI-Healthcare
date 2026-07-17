@@ -1,3 +1,6 @@
+// basic user settings page, users set name password etc. default name is set to email
+// links to profiles table on supabase
+
 "use client";
 
 import { useEffect, useState } from "react";

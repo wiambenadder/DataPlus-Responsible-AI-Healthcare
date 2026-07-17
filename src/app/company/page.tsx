@@ -1,3 +1,6 @@
+// The company profile page for editing existing company information and managing members
+// comapny information located in the "companies" table on sql, company invites managed on the "company_invites" table, and company members managed on the "company_members" table
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -38,6 +41,7 @@ export default function CompanyPage() {
       .eq("id", user.id)
       .single();
 
+      // if the users have not yet created or joined a company, then redirect to company setup page as there is no company information available
     if (!profile || !profile.company_id) {
   router.push("/company-setup");
   return;

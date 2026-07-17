@@ -1,3 +1,5 @@
+// Signup page for creating a new user account
+
 "use client";
 
 import { useState } from "react";

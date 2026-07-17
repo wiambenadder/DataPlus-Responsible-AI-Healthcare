@@ -1,3 +1,4 @@
+// Page not currently in use at all, only save if needed for future work 
 // page for entering metrics, only accessible if user is signed in and has a company profile set up
 
 "use client";

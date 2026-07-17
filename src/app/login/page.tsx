@@ -1,3 +1,5 @@
+// The login page for authenticating existing users
+
 "use client";
 
 import { useState } from "react";
@@ -43,6 +45,8 @@ export default function LoginPage() {
       .select("company_id")
       .eq("id", user.id)
       .single();
+
+      // If the user has not yet created or joined a company, redirect to the company setup page
 
     if (!profile) {
       router.push("/company-setup");
