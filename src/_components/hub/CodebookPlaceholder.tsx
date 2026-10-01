@@ -27,16 +27,17 @@ export default function CodebookPlaceholder({
           >
             <Icon className="h-7 w-7" />
           </span>
-          <p
-            className={`mt-5 text-sm font-semibold uppercase tracking-widest ${accent.eyebrow}`}
-          >
-            {stream.eyebrow} · Coming soon
+          <p className={`mt-5 text-sm font-semibold ${accent.question}`}>
+            {stream.question}
           </p>
-          <h1 className="mx-auto mt-3 max-w-2xl text-4xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="mx-auto mt-2 max-w-2xl text-4xl font-extrabold tracking-tight text-slate-900">
             {stream.title}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-slate-500">
-            {stream.description} This workstream is in development.
+          <p className="mx-auto mt-4 max-w-xl leading-relaxed text-slate-500">
+            {stream.description}
+          </p>
+          <p className="mx-auto mt-2 max-w-xl leading-relaxed text-slate-500">
+            We&apos;re still building this one. Check back soon.
           </p>
           <div className="mt-8 flex justify-center">
             <Link
@@ -44,7 +45,7 @@ export default function CodebookPlaceholder({
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to all workstreams
+              Back to all tools
             </Link>
           </div>
         </div>

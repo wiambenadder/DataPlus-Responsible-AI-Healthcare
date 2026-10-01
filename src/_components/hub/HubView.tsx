@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  BrainCircuit,
+  ClipboardCheck,
   Landmark,
   Scale,
   type LucideIcon,
@@ -14,7 +14,7 @@ import {
 } from "@/lib/workstreams";
 
 const ICONS: Record<Workstream["id"], LucideIcon> = {
-  "ai-readiness": BrainCircuit,
+  "ai-readiness": ClipboardCheck,
   financing: Landmark,
   policy: Scale,
 };
@@ -43,11 +43,12 @@ export default function HubView() {
             id="hub-title"
             className="mx-auto mt-3 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl"
           >
-            Tools for responsible AI in healthcare
+            Three questions every AI health tool has to answer
           </h1>
           <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-slate-500">
-            Assess how ready your AI solution is for real-world use, then find
-            the financing and policy resources that help you get there.
+            Does it work? Can it last? Is it allowed? We&apos;re building a
+            tool for each one, so you can see where you stand and what to do
+            next.
           </p>
         </section>
 
@@ -55,7 +56,7 @@ export default function HubView() {
         <section aria-labelledby="workstreams">
           <div className="mb-4">
             <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
-              Workstreams
+              Explore
             </p>
             <h2
               id="workstreams"
@@ -81,7 +82,7 @@ export default function HubView() {
 function WorkstreamCard({ stream }: { stream: Workstream }) {
   const Icon = ICONS[stream.id];
   const accent = ACCENT_STYLES[stream.accent];
-  const live = stream.status === "live";
+  const comingSoon = stream.status === "coming-soon";
 
   return (
     <Link
@@ -95,21 +96,15 @@ function WorkstreamCard({ stream }: { stream: Workstream }) {
         >
           <Icon className="h-5 w-5" />
         </span>
-        {live ? (
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-            Live
-          </span>
-        ) : (
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+        {comingSoon && (
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
             Coming soon
           </span>
         )}
       </div>
 
-      <p
-        className={`mt-5 text-xs font-semibold uppercase tracking-wider ${accent.eyebrow}`}
-      >
-        {stream.eyebrow}
+      <p className={`mt-5 text-sm font-semibold ${accent.question}`}>
+        {stream.question}
       </p>
       <h3 className="mt-1 text-lg font-bold text-slate-900">{stream.title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-500">
@@ -132,7 +127,7 @@ function WorkstreamCard({ stream }: { stream: Workstream }) {
       </ul>
 
       <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600">
-        {live ? stream.cta : "Preview"}
+        {stream.cta}
         <ArrowRight
           className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
           aria-hidden
