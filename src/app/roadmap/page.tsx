@@ -91,20 +91,17 @@ export default function RoadmapPage() {
     <div className="min-h-screen bg-slate-50">
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="border-b border-slate-300 pb-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
-                Readiness Roadmap
-              </p>
-              <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                AI Readiness Roadmap
+              <h1 className="text-3xl font-semibold text-slate-900 sm:text-[2.1rem]">
+                Roadmap
               </h1>
-              <p className="mt-3 max-w-2xl text-slate-500">
+              <p className="mt-2 max-w-2xl text-[15px] text-slate-600">
                 Follow your progress through the six stages of responsible AI
                 adoption. Each stage groups the framework subdomains that matter
-                at that point in the journey — expand any subdomain to see the
-                assessment reasoning and supporting evidence.
+                at that point — open any subdomain to see the reasoning and the
+                evidence behind it.
               </p>
             </div>
 

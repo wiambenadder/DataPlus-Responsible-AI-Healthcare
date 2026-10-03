@@ -111,9 +111,7 @@ export default function UserPage() {
   return (
     <div className="
       min-h-screen
-      bg-gradient-to-b
-      from-white
-      to-slate-50
+      bg-slate-50
     ">
 
       <div className="
@@ -124,7 +122,7 @@ export default function UserPage() {
 
         <h1 className="
           text-4xl
-          font-bold
+          font-semibold
           mb-2
         ">
           User Settings

@@ -217,7 +217,7 @@ export default function CompanySetupPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">Organization Setup</h1>
+      <h1 className="text-3xl font-semibold mb-6">Organization Setup</h1>
 
       {!checkingInvite && invite ? (
         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-blue-200 bg-blue-50 p-6 sm:flex-row sm:items-center sm:justify-between">

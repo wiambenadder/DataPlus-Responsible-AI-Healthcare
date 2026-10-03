@@ -121,9 +121,7 @@ if (
   return (
     <div className="
       min-h-screen
-      bg-gradient-to-b
-      from-white
-      to-slate-50
+      bg-slate-50
     ">
 
       <div className="
@@ -143,7 +141,7 @@ if (
 
           <h1 className="
             text-3xl
-            font-bold
+            font-semibold
             mb-4
           ">
             Company Background
@@ -185,9 +183,9 @@ if (
   );
 }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-2">
+        <h1 className="text-4xl font-semibold mb-2">
           Company Background
         </h1>
 

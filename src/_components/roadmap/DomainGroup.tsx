@@ -12,10 +12,10 @@ export default function DomainGroup({ group }: { group: RoadmapDomainGroup }) {
   const accent = domainById(group.domainId).accent;
 
   return (
-    <div className={`rounded-xl border ${accent.border} ${accent.bg} p-4`}>
+    <div className="border border-slate-200 bg-slate-50/60 p-4">
       <div className="mb-3 flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${accent.dot}`} aria-hidden />
-        <p className={`text-xs font-semibold uppercase tracking-wider ${accent.text}`}>
+        <p className="text-sm font-semibold text-slate-800">
           {group.domainId} · {group.domainName}
         </p>
       </div>

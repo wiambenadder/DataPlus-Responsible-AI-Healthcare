@@ -174,7 +174,7 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100">
+      <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex items-center gap-3 text-slate-500">
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
           Loading history...
@@ -186,13 +186,13 @@ export default function HistoryPage() {
   const periods = Object.keys(interviewReports).sort().reverse();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 py-12 sm:px-6">
         <div className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-600 mb-2">
+          <p className="text-sm text-slate-500 mb-2">
             Assessment
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             Report History
           </h1>
         </div>
@@ -354,7 +354,7 @@ export default function HistoryPage() {
                   >
                     <div>
                       <div className="text-lg font-semibold text-slate-900">
-                        📄 {file.file_name}
+                        {file.file_name}
                       </div>
 
                       <div className="mt-2 text-sm text-slate-500">
@@ -364,7 +364,7 @@ export default function HistoryPage() {
                       <div className="mt-1 text-xs text-slate-400">
                         Uploaded{" "}
                         {file.created_at &&
-                          new Date(file.created_at).toLocaleDateString()}
+                          new Date(file.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
                       </div>
                     </div>
 

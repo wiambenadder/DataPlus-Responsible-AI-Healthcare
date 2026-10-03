@@ -1,138 +1,79 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  ClipboardCheck,
-  Landmark,
-  Scale,
-  type LucideIcon,
-} from "lucide-react";
-
-import {
-  ACCENT_STYLES,
-  WORKSTREAMS,
-  type Workstream,
-} from "@/lib/workstreams";
-
-const ICONS: Record<Workstream["id"], LucideIcon> = {
-  "ai-readiness": ClipboardCheck,
-  financing: Landmark,
-  policy: Scale,
-};
+import { WORKSTREAMS, type Workstream } from "@/lib/workstreams";
 
 /**
- * Hub page: the top-level entry point that links to the three
- * workstreams — the AI Readiness Assessment, the Financing Codebook
- * and the Policy Codebook. Card content lives in src/lib/workstreams.ts.
- *
- * Note: the navbar is rendered by layout.tsx, so it is intentionally
- * NOT rendered here.
+ * Hub page: the entry point to the three workstreams — the AI Readiness
+ * Assessment, the Financing Codebook and the Policy Codebook. Content
+ * lives in src/lib/workstreams.ts. (The navbar comes from layout.tsx.)
  */
 export default function HubView() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        {/* Hero */}
-        <section
-          aria-labelledby="hub-title"
-          className="rounded-2xl border border-slate-200 bg-white p-8 text-center sm:p-12"
-        >
-          <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
-            Innovator Insights
-          </p>
-          <h1
-            id="hub-title"
-            className="mx-auto mt-3 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl"
-          >
+    <div>
+      <section className="border-t border-white/10 bg-blue-600 text-white">
+        <div className="mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+          <p className="text-[15px] text-white/75">Innovator Insights</p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.12] sm:text-5xl">
             Three questions every AI health tool has to answer
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-slate-500">
-            Does it work? Can it last? Is it allowed? We&apos;re building a
-            tool for each one, so you can see where you stand and what to do
-            next.
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/80">
+            Does it work? Can it last? Is it allowed? Each tool below takes on
+            one of them, so you can see where you stand and what to do next.
           </p>
-        </section>
+        </div>
+      </section>
 
-        {/* Workstreams */}
-        <section aria-labelledby="workstreams">
-          <div className="mb-4">
-            <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
-              Explore
-            </p>
-            <h2
-              id="workstreams"
-              className="mt-1 text-2xl font-bold tracking-tight text-slate-900"
-            >
-              Where would you like to start?
-            </h2>
-          </div>
-
-          <ul className="grid gap-4 md:grid-cols-3">
-            {WORKSTREAMS.map((w) => (
-              <li key={w.id}>
-                <WorkstreamCard stream={w} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      </main>
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <h2 className="sr-only">Tools</h2>
+        <ul className="grid gap-10 md:grid-cols-3">
+          {WORKSTREAMS.map((w) => (
+            <li key={w.id}>
+              <WorkstreamColumn stream={w} />
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
 
-function WorkstreamCard({ stream }: { stream: Workstream }) {
-  const Icon = ICONS[stream.id];
-  const accent = ACCENT_STYLES[stream.accent];
+function WorkstreamColumn({ stream }: { stream: Workstream }) {
   const comingSoon = stream.status === "coming-soon";
 
   return (
-    <Link
-      href={stream.href}
-      className={`group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${accent.ring}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <span
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ${accent.icon}`}
-          aria-hidden
-        >
-          <Icon className="h-5 w-5" />
-        </span>
+    <article className="flex h-full flex-col border-t-2 border-blue-600 pt-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="font-serif text-lg italic text-slate-600">{stream.question}</p>
         {comingSoon && (
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-            Coming soon
-          </span>
+          <span className="text-xs font-semibold text-slate-500">In development</span>
         )}
       </div>
-
-      <p className={`mt-5 text-sm font-semibold ${accent.question}`}>
-        {stream.question}
-      </p>
-      <h3 className="mt-1 text-lg font-bold text-slate-900">{stream.title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-500">
+      <h3 className="mt-1 font-serif text-2xl font-semibold text-slate-900">
+        <Link href={stream.href} className="hover:text-blue-600 hover:underline">
+          {stream.title}
+        </Link>
+      </h3>
+      <p className="mt-2 text-[15px] leading-relaxed text-slate-700">
         {stream.description}
       </p>
 
-      <ul className="mt-4 flex-1 space-y-2 border-t border-slate-100 pt-4">
+      <ul className="mt-4 flex-1 list-disc space-y-1.5 pl-5 text-[15px] text-slate-600 marker:text-slate-400">
         {stream.highlights.map((h) => (
-          <li
-            key={h}
-            className="flex items-start gap-2.5 text-sm text-slate-600"
-          >
-            <span
-              className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${accent.dot}`}
-              aria-hidden
-            />
-            {h}
-          </li>
+          <li key={h}>{h}</li>
         ))}
       </ul>
 
-      <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600">
-        {stream.cta}
-        <ArrowRight
-          className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-          aria-hidden
-        />
-      </span>
-    </Link>
+      <p className="mt-5">
+        <Link
+          href={stream.href}
+          className={
+            comingSoon
+              ? "text-[15px] font-semibold text-blue-600 hover:underline"
+              : "inline-block rounded bg-blue-600 px-4 py-2 text-[15px] font-semibold text-white hover:bg-blue-700"
+          }
+        >
+          {stream.cta}
+        </Link>
+      </p>
+    </article>
   );
 }

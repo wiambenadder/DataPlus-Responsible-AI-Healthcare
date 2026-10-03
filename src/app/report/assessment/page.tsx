@@ -491,10 +491,10 @@ export default function ReportPage() {
   // Gate: already submitted and not currently editing -> show summary screen
   if (alreadySubmitted && !editingExisting) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+      <div className="min-h-screen bg-slate-50">
         <div className="max-w-3xl mx-auto p-8">
           <div className="bg-white border rounded-3xl p-10 shadow-sm text-center">
-            <h1 className="text-3xl font-bold mb-4">
+            <h1 className="text-3xl font-semibold mb-4">
               Assessment Already Submitted
             </h1>
 
@@ -540,9 +540,9 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-2">Assessment Questionnaire</h1>
+        <h1 className="text-4xl font-semibold mb-2">Assessment Questionnaire</h1>
 
         <p className="text-gray-500 mb-8">
           Help us understand your organization's progress and challenges.
@@ -663,7 +663,7 @@ export default function ReportPage() {
 
             <div className="bg-white rounded-2xl border shadow-sm p-8">
               <div className="text-xl font-medium mb-6">
-                🤖 {interviewQuestions[currentQuestion].question}
+                {interviewQuestions[currentQuestion].question}
               </div>
 
               <textarea

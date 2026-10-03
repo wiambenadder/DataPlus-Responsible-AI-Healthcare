@@ -16,26 +16,18 @@ export default function AuthCard({
   footer,
 }: AuthCardProps) {
   return (
-    <main className="flex min-h-[calc(100vh-80px)] items-start justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-10 sm:items-center sm:py-16">
+    <div className="flex min-h-[calc(100vh-56px)] items-start justify-center bg-slate-50 px-4 py-10 sm:items-center sm:py-16">
       <section
         aria-labelledby="auth-title"
-        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_20px_40px_-20px_rgba(15,23,42,0.25)] sm:p-9"
+        className="w-full max-w-md border border-t-4 border-slate-200 border-t-blue-600 bg-white p-7 sm:p-9"
       >
-        <div className="mb-7 flex items-center gap-3">
-          <span
-            aria-hidden="true"
-            className="grid h-10 w-10 place-items-center rounded-xl bg-blue-600 text-[13px] font-bold tracking-wide text-white shadow-md shadow-blue-600/25"
-          >
-            IiH
-          </span>
-          <span className="text-[15px] font-semibold text-slate-900">
-            Innovator Insights
-          </span>
-        </div>
+        <p className="font-serif text-lg font-semibold text-blue-600">
+          Innovator Insights
+        </p>
 
         <h1
           id="auth-title"
-          className="text-2xl font-bold tracking-tight text-slate-900"
+          className="mt-5 text-2xl font-semibold text-slate-900"
         >
           {title}
         </h1>
@@ -54,6 +46,6 @@ export default function AuthCard({
           </div>
         ) : null}
       </section>
-    </main>
+    </div>
   );
 }
