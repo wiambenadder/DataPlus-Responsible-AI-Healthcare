@@ -1,385 +1,344 @@
 "use client";
 
-import React from "react";
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChevronDown, Download, Link2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { FRAMEWORK } from "@/lib/framework";
-import { DEFINITIONS, getDefinition } from "@/lib/definitions";
-import FeedbackButtons from "@/_components/feedback/FeedbackButtons";
-import jsPDF from "jspdf";
+import {
+  STATUS_META,
+  STATUS_ORDER,
+  buildResults,
+  slugify,
+  type Confidence,
+  type EvidenceItem,
+  type MappingRow,
+  type ResponseRow,
+  type Status,
+  type SubdomainResult,
+  type UploadRow,
+} from "@/lib/assessment";
+import { normalizeName } from "@/lib/feedback-format";
+import { useFeedback } from "@/_components/feedback/useFeedback";
+import FeedbackSection from "@/_components/feedback/FeedbackSection";
+import SubdomainItem from "@/_components/assessment/SubdomainItem";
+import SourceDrawer from "@/_components/assessment/SourceDrawer";
+import BackToTop from "@/_components/assessment/BackToTop";
 
-type ResponseRow = {
-  id: string;
-  domain: string | null;
-  Subtopic: string;
-  ai_assessment: string | null;
-  ai_reasoning: string | null;
-  question: string | null;
-  answer: string | null;
-  bullet_point_summary: string | null;
-  reporting_period: string | null;
-};
-
-// Rows created from document extraction store a question that starts with
-// this prefix (e.g. "Evidence extracted from uploaded report..."). Those
-// rows show the bullet-point summary; rows sourced from an actual interview
-// question show the user's raw typed answer instead.
-const EXTRACTED_EVIDENCE_PREFIX = "evidence extracted";
-
-function isExtractedFromDocument(question: string | null | undefined) {
-  if (!question) return false;
-  return question.trim().toLowerCase().startsWith(EXTRACTED_EVIDENCE_PREFIX);
-}
+const DOMAIN_ENTRIES = Object.entries(FRAMEWORK) as [string, string[]][];
+const DOMAIN_SLUGS = DOMAIN_ENTRIES.map(([d]) => slugify(d));
 
 /**
- * Looks up a subtopic's definition. Tries an exact domain + subtopic match
- * first, then falls back to matching on subtopic alone (subtopic names are
- * unique across the framework), so this still works if FRAMEWORK domain
- * labels differ slightly from those in definitions.ts.
+ * Assessment results.
+ *
+ * All five domains sit on one page so they can be scanned, searched
+ * (Ctrl+F) and linked to. Desktop gets a sticky "On this page" sidebar,
+ * mobile a sticky domain picker; both highlight the domain in view.
+ * Every domain and criterion has its own URL fragment, e.g.
+ *   /dashboard#model-source              → the Model Source domain
+ *   /dashboard#model-source--timeliness  → that criterion, opened
  */
-function lookupDefinition(
-  domain: string | null | undefined,
-  subtopic: string
-): string | undefined {
-  if (domain) {
-    const exact = getDefinition(domain, subtopic);
-    if (exact) return exact;
-  }
-  return DEFINITIONS.find((d) => d.subtopic === subtopic)?.definition;
-}
-
-function isPracticed(status: string | null) {
-  return status === "Practiced";
-}
-
-function getDisplayStatus(status: string | null) {
-  switch (status) {
-    case "Practiced":
-      return "Practiced";
-
-    case "Not Practiced":
-      return "Not Practiced";
-
-    default:
-      return "Not Yet Assessed";
-  }
-}
-
-function getPercentage(practiced: number, total: number) {
-  if (total === 0) return 0;
-  return Math.round((practiced / total) * 100);
-}
-
-function getBadgeColor(status: string | null) {
-  switch (status) {
-    case "Practiced":
-      return "bg-green-100 text-green-700 ring-1 ring-green-200";
-
-    case "Not Practiced":
-      return "bg-red-100 text-red-700 ring-1 ring-red-200";
-
-    default:
-      return "bg-slate-100 text-slate-700 ring-1 ring-slate-200";
-  }
-}
-
-function getPercentageColor(percentage: number) {
-  if (percentage >= 75) return "text-green-600";
-  if (percentage >= 40) return "text-yellow-600";
-  return "text-red-600";
-}
-
-/**
- * Parses a bullet_point_summary string into an array of clean bullet lines.
- * Handles newline-separated bullets and strips any leading bullet markers
- * (-, •, *, or "1.") that may already be present in the stored text.
- */
-function parseBullets(summary: string | null | undefined): string[] {
-  if (!summary) return [];
-  return summary
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.replace(/^[-•*]\s*|^\d+[.)]\s*/, "").trim())
-    .filter(Boolean);
-}
-
-/**
- * Builds a full PDF report with every domain/subtopic "expanded" —
- * definition, justification, question, response, and reporting period, and
- * scores — so it can be shared with someone without them needing the
- * dashboard.
- */
-function generatePDFReport(
-  domainEntries: [string, string[]][],
-  responses: ResponseRow[]
-) {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 40;
-  const maxWidth = pageWidth - margin * 2;
-  let y = margin;
-
-  function ensureSpace(lineHeight: number) {
-    if (y + lineHeight > pageHeight - margin) {
-      doc.addPage();
-      y = margin;
-    }
-  }
-
-  function addText(
-    text: string,
-    fontSize: number,
-    style: "normal" | "bold" | "italic" = "normal",
-    color: string = "#1e293b"
-  ) {
-    doc.setFont("helvetica", style);
-    doc.setFontSize(fontSize);
-    doc.setTextColor(color);
-    const lines = doc.splitTextToSize(text, maxWidth) as string[];
-    for (const line of lines) {
-      ensureSpace(fontSize * 1.4);
-      doc.text(line, margin, y);
-      y += fontSize * 1.4;
-    }
-  }
-
-  function addBulletList(
-    bullets: string[],
-    fontSize: number,
-    color: string = "#475569"
-  ) {
-    const bulletIndent = 12;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(fontSize);
-    doc.setTextColor(color);
-    for (const bullet of bullets) {
-      const lines = doc.splitTextToSize(
-        bullet,
-        maxWidth - bulletIndent
-      ) as string[];
-      lines.forEach((line, idx) => {
-        ensureSpace(fontSize * 1.4);
-        const prefix = idx === 0 ? "•  " : "   ";
-        doc.text(prefix + line, margin, y);
-        y += fontSize * 1.4;
-      });
-    }
-  }
-
-  function addDivider() {
-    ensureSpace(10);
-    doc.setDrawColor("#e2e8f0");
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 14;
-  }
-
-  const allSubtopics = domainEntries.flatMap(([, subtopics]) => subtopics);
-  const overallPracticedCount = allSubtopics.filter((subtopic) => {
-    const row = responses.find((r) => r.Subtopic === subtopic);
-    return isPracticed(row?.ai_assessment ?? null);
-  }).length;
-  const overallPercentage = getPercentage(
-    overallPracticedCount,
-    allSubtopics.length
-  );
-
-  // --- Title block ---
-  addText("AI Readiness Assessment Report", 20, "bold");
-  y += 4;
-  addText(
-    `Generated: ${new Date().toLocaleDateString()}`,
-    10,
-    "normal",
-    "#64748b"
-  );
-  y += 12;
-  addText(
-    `Overall Score: ${overallPercentage}% (${overallPracticedCount} of ${allSubtopics.length} topics practiced)`,
-    12,
-    "bold"
-  );
-  y += 18;
-
-  // --- Each domain ---
-  for (const [domain, subtopics] of domainEntries) {
-    const practiced = subtopics.filter((subtopic) => {
-      const row = responses.find((r) => r.Subtopic === subtopic);
-      return isPracticed(row?.ai_assessment ?? null);
-    }).length;
-    const percent = getPercentage(practiced, subtopics.length);
-
-    ensureSpace(34);
-    doc.setFillColor("#eff6ff");
-    doc.rect(margin, y - 4, maxWidth, 26, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor("#1d4ed8");
-    doc.text(
-      `${domain}  —  ${percent}% (${practiced}/${subtopics.length})`,
-      margin + 6,
-      y + 13
-    );
-    y += 32;
-
-    for (const subtopic of subtopics) {
-      const row = responses.find((r) => r.Subtopic === subtopic);
-      const status = getDisplayStatus(row?.ai_assessment ?? null);
-      const statusColor =
-        status === "Practiced"
-          ? "#15803d"
-          : status === "Not Practiced"
-          ? "#b91c1c"
-          : "#475569";
-
-      ensureSpace(20);
-      addText(subtopic, 12, "bold", "#0f172a");
-
-      // NEW: subtopic definition directly under the heading
-      const definition = lookupDefinition(domain, subtopic);
-      if (definition) {
-        addText(definition, 10, "italic", "#64748b");
-        y += 2;
-      }
-
-      addText(`Status: ${status}`, 10, "bold", statusColor);
-      y += 4;
-
-      addText("AI Justification", 10, "bold", "#334155");
-      addText(
-        row?.ai_reasoning || "No assessment available yet.",
-        10,
-        "normal",
-        "#475569"
-      );
-      y += 4;
-
-      // Extracted-evidence rows show the bullet-point summary; rows from an
-      // actual interview question show the user's raw typed answer.
-      const fromDocument = isExtractedFromDocument(row?.question);
-
-      addText("Source", 10, "bold", "#334155");
-      addText(
-        row?.question
-          ? fromDocument
-            ? row.question
-            : `Evidence from user response to question: ${row.question}`
-          : "No source available.",
-        10,
-        "normal",
-        "#475569"
-      );
-      y += 4;
-
-      if (fromDocument) {
-        addText("Summary Response", 10, "bold", "#334155");
-        const bullets = parseBullets(row?.bullet_point_summary);
-        if (bullets.length > 0) {
-          addBulletList(bullets, 10);
-        } else {
-          addText("No response available.", 10, "normal", "#475569");
-        }
-      } else {
-        addText("Original Response", 10, "bold", "#334155");
-        addText(
-          row?.answer || "No response available.",
-          10,
-          "normal",
-          "#475569"
-        );
-      }
-      y += 4;
-
-      addText(
-        `Reporting Period: ${row?.reporting_period || "N/A"}`,
-        10,
-        "normal",
-        "#64748b"
-      );
-      y += 10;
-
-      addDivider();
-    }
-
-    y += 8;
-  }
-
-  doc.save(`AI-Readiness-Assessment-${new Date().toISOString().slice(0, 10)}.pdf`);
-}
-
 export default function DashboardPage() {
-  const [responses, setResponses] = useState<ResponseRow[]>([]);
-  const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>(
-    {}
-  );
-  const [activeDomain, setActiveDomain] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [companyId, setCompanyId] = useState<string | null>(null); // NEW
-  const [exporting, setExporting] = useState(false); // NEW
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState(true);
+  const [user, setUser] = useState<{ id: string | null; email: string | null }>({
+    id: null,
+    email: null,
+  });
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [responses, setResponses] = useState<ResponseRow[]>([]);
+  const [mappings, setMappings] = useState<MappingRow[]>([]);
+  const [uploads, setUploads] = useState<UploadRow[]>([]);
 
-  const domainEntries = useMemo(
-    () => Object.entries(FRAMEWORK) as [string, string[]][],
-    []
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [collapsedDomains, setCollapsedDomains] = useState<Set<string>>(new Set());
+  const [activeDomain, setActiveDomain] = useState(DOMAIN_SLUGS[0]);
+  const [drawer, setDrawer] = useState<{ item: EvidenceItem; subdomain: string } | null>(
+    null
   );
+  const [copied, setCopied] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  const feedback = useFeedback({ companyId, companyName });
 
-  async function loadDashboard() {
-    setLoading(true);
+  /* ---------------- data ---------------- */
 
+  /** Loads everything the page needs. Returns data; sets no state. */
+  const fetchAll = useCallback(async () => {
     const {
-      data: { user },
+      data: { user: authUser },
     } = await supabase.auth.getUser();
-
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!authUser) return { kind: "signed_out" as const };
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("company_id")
-      .eq("id", user.id)
+      .eq("id", authUser.id)
       .single();
+    const viewer = { id: authUser.id, email: authUser.email ?? null };
+    if (!profile?.company_id) return { kind: "no_company" as const, viewer };
 
-    if (!profile) {
-      setLoading(false);
-      return;
+    const cid: string = profile.company_id;
+    const [companyRes, responsesRes, mappingsRes, uploadsRes] = await Promise.all([
+      supabase.from("companies").select("company_name").eq("id", cid).single(),
+      supabase.from("qualitative_responses").select("*").eq("company_id", cid),
+      supabase
+        .from("domain_mapping")
+        .select("id, domain, subtopic, source_quotes, source_pdf, confidence, upload_id")
+        .eq("company_id", cid),
+      supabase
+        .from("uploads")
+        .select("id, file_name, file_url, created_at")
+        .eq("company_id", cid),
+    ]);
+    if (responsesRes.error) throw new Error(responsesRes.error.message);
+
+    return {
+      kind: "ok" as const,
+      viewer,
+      companyId: cid,
+      companyName: (companyRes.data?.company_name as string | undefined) ?? null,
+      responses: (responsesRes.data ?? []) as ResponseRow[],
+      // Sources are a nice-to-have: show results even if these fail.
+      mappings: (mappingsRes.data ?? []) as MappingRow[],
+      uploads: (uploadsRes.data ?? []) as UploadRow[],
+    };
+  }, []);
+
+  const apply = useCallback((p: Promise<Awaited<ReturnType<typeof fetchAll>>>) => {
+    p.then(
+      (res) => {
+        if (res.kind === "signed_out") setSignedIn(false);
+        if (res.kind !== "signed_out") setUser(res.viewer);
+        if (res.kind === "ok") {
+          setCompanyId(res.companyId);
+          setCompanyName(res.companyName);
+          setResponses(res.responses);
+          setMappings(res.mappings);
+          setUploads(res.uploads);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setLoadError(err instanceof Error ? err.message : String(err));
+        setLoading(false);
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    apply(fetchAll());
+  }, [apply, fetchAll]);
+
+  const load = () => {
+    setLoading(true);
+    setLoadError(null);
+    apply(fetchAll());
+  };
+
+  const results = useMemo(
+    () =>
+      buildResults({
+        framework: DOMAIN_ENTRIES,
+        responses,
+        mappings,
+        uploads,
+        sourceUrl: (u) =>
+          u.file_url
+            ? supabase.storage.from("reports").getPublicUrl(u.file_url).data.publicUrl
+            : null,
+      }),
+    [responses, mappings, uploads]
+  );
+
+  const domains = useMemo(
+    () =>
+      DOMAIN_ENTRIES.map(([name, subs], i) => ({
+        name,
+        slug: DOMAIN_SLUGS[i],
+        number: i + 1,
+        items: subs.map((s) => results.get(normalizeName(s))!),
+      })),
+    [results]
+  );
+
+  /* ---------------- status with feedback taken into account ---------------- */
+
+  // An open "Wrong source or company" report puts the result in doubt.
+  const disputedOf = useCallback(
+    (r: SubdomainResult) =>
+      feedback
+        .forSubdomain(r.subdomain)
+        .some(
+          (e) =>
+            e.kind === "wrong_source" &&
+            e.reviewStatus === "open" &&
+            e.id !== null &&
+            e.sync !== "deleting"
+        ),
+    [feedback]
+  );
+  const statusOf = useCallback(
+    (r: SubdomainResult): Status =>
+      disputedOf(r) && r.baseStatus !== "not_reported" ? "needs_verification" : r.baseStatus,
+    [disputedOf]
+  );
+  const confidenceOf = useCallback(
+    (r: SubdomainResult): Confidence | null =>
+      disputedOf(r) ? "needs_verification" : r.baseConfidence,
+    [disputedOf]
+  );
+
+  const allItems = domains.flatMap((d) => d.items);
+  const counts = new Map<Status, number>();
+  allItems.forEach((r) => counts.set(statusOf(r), (counts.get(statusOf(r)) ?? 0) + 1));
+  const latestPeriod =
+    [...responses].reverse().find((r) => r.reporting_period)?.reporting_period ?? null;
+
+  /* ---------------- deep links ---------------- */
+
+  const applyHash = useCallback(() => {
+    const target = decodeURIComponent(window.location.hash.slice(1));
+    if (!target) return;
+    const [domainSlug, subSlug] = target.split("--");
+    if (!DOMAIN_SLUGS.includes(domainSlug)) return;
+
+    setCollapsedDomains((prev) => {
+      if (!prev.has(domainSlug)) return prev;
+      const next = new Set(prev);
+      next.delete(domainSlug);
+      return next;
+    });
+    if (subSlug) setExpanded((prev) => new Set(prev).add(target));
+
+    // Wait for the section to render open before scrolling to it.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        document.getElementById(target)?.scrollIntoView({ block: "start" })
+      )
+    );
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const first = requestAnimationFrame(applyHash);
+    window.addEventListener("hashchange", applyHash);
+    return () => {
+      cancelAnimationFrame(first);
+      window.removeEventListener("hashchange", applyHash);
+    };
+  }, [loading, applyHash]);
+
+  /* ---------------- which domain is in view ---------------- */
+
+  useEffect(() => {
+    if (loading) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      let current = DOMAIN_SLUGS[0];
+      for (const slug of DOMAIN_SLUGS) {
+        const el = document.getElementById(slug);
+        if (el && el.getBoundingClientRect().top <= 160) current = slug;
+      }
+      const atBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      if (atBottom && window.scrollY > 0) current = DOMAIN_SLUGS[DOMAIN_SLUGS.length - 1];
+      setActiveDomain(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [loading]);
+
+  /* ---------------- expand / collapse ---------------- */
+
+  const toggleItem = (anchor: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(anchor)) next.delete(anchor);
+      else next.add(anchor);
+      return next;
+    });
+
+  const setDomainItems = (slug: string, open: boolean) => {
+    const anchors = domains.find((d) => d.slug === slug)?.items.map((r) => r.anchor) ?? [];
+    setCollapsedDomains((prev) => {
+      const next = new Set(prev);
+      next.delete(slug);
+      return next;
+    });
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      anchors.forEach((a) => (open ? next.add(a) : next.delete(a)));
+      return next;
+    });
+  };
+
+  const setEverything = (open: boolean) => {
+    setCollapsedDomains(new Set());
+    setExpanded(open ? new Set(allItems.map((r) => r.anchor)) : new Set());
+  };
+
+  const toggleDomain = (slug: string) =>
+    setCollapsedDomains((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+
+  /* ---------------- actions ---------------- */
+
+  async function copyLink(anchor: string) {
+    const url = `${window.location.origin}${window.location.pathname}#${anchor}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      /* clipboard can be blocked; the address bar still gets the link */
     }
-
-    setCompanyId(profile.company_id); // NEW
-
-    const { data } = await supabase
-      .from("qualitative_responses")
-      .select("*")
-      .eq("company_id", profile.company_id);
-
-    const rows = (data || []) as ResponseRow[];
-    setResponses(rows);
-
-    if (!activeDomain && domainEntries.length > 0) {
-      setActiveDomain(domainEntries[0][0]);
-    }
-
-    setLoading(false);
+    history.replaceState(null, "", `#${anchor}`);
+    setCopied(anchor);
+    setTimeout(() => setCopied((c) => (c === anchor ? null : c)), 2000);
   }
 
-  function toggleTopic(id: string) {
-    setExpandedTopics((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  function reportSource(r: SubdomainResult, item: EvidenceItem) {
+    setExpanded((prev) => new Set(prev).add(r.anchor));
+    const current = feedback.getDraft(r.subdomain);
+    feedback.setDraft(r.subdomain, {
+      kind: "wrong_source",
+      comment: current.comment || `About the source “${item.sourceTitle}”: `,
+    });
+    setTimeout(() => {
+      const box = document.getElementById(`fb-${r.anchor}-comment`) as HTMLTextAreaElement | null;
+      if (!box) return;
+      box.scrollIntoView({ block: "center" });
+      box.focus();
+      box.setSelectionRange(box.value.length, box.value.length);
+    }, 60);
   }
 
-  // NEW: export handler
-  async function handleExport() {
-    if (exporting || responses.length === 0) return;
+  async function exportPdf() {
     setExporting(true);
     try {
-      generatePDFReport(domainEntries, responses);
+      const { generateAssessmentPdf } = await import("@/lib/assessment-pdf");
+      generateAssessmentPdf({
+        companyName,
+        domains,
+        statusOf,
+        confidenceOf,
+        disputedOf,
+      });
     } catch (err) {
       console.error("Failed to generate PDF:", err);
     } finally {
@@ -387,303 +346,309 @@ export default function DashboardPage() {
     }
   }
 
-  const allSubtopics = domainEntries.flatMap(([, subtopics]) => subtopics);
-
-  const overallPracticedCount = allSubtopics.filter((subtopic) => {
-    const row = responses.find((response) => response.Subtopic === subtopic);
-    return isPracticed(row?.ai_assessment ?? null);
-  }).length;
-
-  const overallPercentage = getPercentage(
-    overallPracticedCount,
-    allSubtopics.length
-  );
-
-  const selectedDomainSubtopics =
-    domainEntries.find(([domain]) => domain === activeDomain)?.[1] || [];
+  /* ---------------- render ---------------- */
 
   if (loading) {
     return (
-      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100">
-        <div className="flex items-center gap-3 text-slate-500">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
-          Loading dashboard...
-        </div>
-      </main>
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-500" role="status">
+        Loading your results…
+      </div>
     );
   }
 
-  return (
-    <main className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-slate-50 to-slate-100">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-                Assessment dashboard
-              </p>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                AI Readiness Dashboard
-              </h1>
+  if (!signedIn || !companyId || loadError) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <h1 className="text-3xl font-semibold text-slate-900">Assessment results</h1>
+        {loadError ? (
+          <p className="mt-3 text-slate-700">
+            We couldn&apos;t load your results ({loadError}).{" "}
+            <button onClick={load} className="font-semibold text-blue-600 underline">
+              Try again
+            </button>
+          </p>
+        ) : !signedIn ? (
+          <p className="mt-3 text-slate-700">
+            <Link href="/login" className="font-semibold text-blue-600 underline">
+              Log in
+            </Link>{" "}
+            to see your results.
+          </p>
+        ) : (
+          <p className="mt-3 text-slate-700">
+            Your account isn&apos;t linked to a company yet.{" "}
+            <Link href="/company-setup" className="font-semibold text-blue-600 underline">
+              Set up your company
+            </Link>
+            .
+          </p>
+        )}
+      </div>
+    );
+  }
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-                Review progress across domains, inspect subtopics, and explore
-                the source reasoning behind each assessment.
-              </p>
+  const met = counts.get("meets") ?? 0;
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" className="text-sm text-slate-500">
+        <Link href="/" className="hover:text-slate-900 hover:underline">
+          Home
+        </Link>
+        <span className="mx-2" aria-hidden>/</span>
+        <span className="text-slate-700">Assessment results</span>
+      </nav>
+
+      {/* Header */}
+      <header className="mt-3 flex flex-wrap items-end justify-between gap-4 border-b border-slate-300 pb-5">
+        <div>
+          <h1 className="text-3xl font-semibold text-slate-900 sm:text-[2.1rem]">
+            Assessment results
+          </h1>
+          <p className="mt-1.5 text-[15px] text-slate-600">
+            {companyName ?? "Your company"}
+            {latestPeriod && <> · Latest reporting period: {latestPeriod}</>}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={exportPdf}
+          disabled={exporting}
+          className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 hover:border-blue-600 hover:text-blue-600 disabled:opacity-60"
+        >
+          <Download className="h-4 w-4" aria-hidden />
+          {exporting ? "Preparing PDF…" : "Download PDF"}
+        </button>
+      </header>
+
+      {/* Where you stand */}
+      <section aria-label="Summary" className="mt-5">
+        <p className="text-[15px] text-slate-800">
+          <strong className="font-semibold">
+            {met} of {allItems.length}
+          </strong>{" "}
+          criteria met across five domains. Open any criterion to see the evidence
+          behind its result, and tell us if something is wrong.
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
+          {STATUS_ORDER.map((s) => (
+            <li key={s} className="inline-flex items-center gap-2">
+              <span className={`h-2 w-2 rounded-full ${STATUS_META[s].dot}`} aria-hidden />
+              {STATUS_META[s].label}
+              <span className="font-semibold tabular-nums text-slate-900">
+                {counts.get(s) ?? 0}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Mobile: sticky domain picker */}
+      <div className="sticky top-14 z-30 -mx-4 mt-5 border-y border-slate-200 bg-slate-50/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+        <label className="flex items-center gap-3 text-sm">
+          <span className="shrink-0 text-slate-500">Domain</span>
+          <select
+            value={activeDomain}
+            onChange={(e) => {
+              window.location.hash = e.target.value;
+            }}
+            className="min-w-0 flex-1 rounded border border-slate-300 bg-white px-2 py-1.5 text-[15px] font-semibold text-slate-900"
+          >
+            {domains.map((d) => (
+              <option key={d.slug} value={d.slug}>
+                {d.number}. {d.name} ({d.items.filter((r) => statusOf(r) === "meets").length}/
+                {d.items.length})
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="mt-6 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:gap-10">
+        {/* Desktop: sticky side navigation */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-20">
+            <p className="text-xs font-semibold text-slate-500">On this page</p>
+            <ol className="mt-2 border-l border-slate-300">
+              {domains.map((d) => {
+                const active = activeDomain === d.slug;
+                const dMet = d.items.filter((r) => statusOf(r) === "meets").length;
+                return (
+                  <li key={d.slug}>
+                    <a
+                      href={`#${d.slug}`}
+                      aria-current={active ? "location" : undefined}
+                      className={`-ml-px flex items-baseline justify-between gap-2 border-l-[3px] py-1.5 pl-3 pr-1 text-sm ${
+                        active
+                          ? "border-blue-600 font-semibold text-blue-600"
+                          : "border-transparent text-slate-700 hover:border-slate-400 hover:text-slate-900"
+                      }`}
+                    >
+                      <span>
+                        <span className="tabular-nums text-slate-400">{d.number}.</span>{" "}
+                        {d.name}
+                      </span>
+                      <span className="text-xs font-normal tabular-nums text-slate-500">
+                        {dMet}/{d.items.length}
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <div className="mt-5 flex gap-4 text-sm">
+              <button
+                type="button"
+                onClick={() => setEverything(true)}
+                className="font-semibold text-blue-600 hover:underline"
+              >
+                Expand all
+              </button>
+              <button
+                type="button"
+                onClick={() => setEverything(false)}
+                className="font-semibold text-blue-600 hover:underline"
+              >
+                Collapse all
+              </button>
             </div>
 
-            {/* NEW: export button */}
-            <button
-              type="button"
-              onClick={handleExport}
-              disabled={exporting || responses.length === 0}
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-            >
-              {exporting ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Generating PDF...
-                </>
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4"
-                  >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  Export Assessment
-                </>
-              )}
-            </button>
+            <p className="mt-6 text-xs leading-relaxed text-slate-500">
+              <span className="font-semibold text-slate-600">Not reported</span> means
+              nothing submitted covers the criterion.{" "}
+              <span className="font-semibold text-slate-600">Does not currently meet</span>{" "}
+              means the evidence doesn&apos;t yet show the practice in place.
+            </p>
           </div>
-        </section>
+        </aside>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-medium text-slate-500">
-            Overall Topics Practiced
-          </p>
-          <div className="mt-3 flex items-end gap-3">
-            <span
-              className={`text-5xl font-bold tracking-tight sm:text-6xl ${getPercentageColor(
-                overallPercentage
-              )}`}
-            >
-              {overallPercentage}%
-            </span>
-            <span className="pb-2 text-sm text-slate-500">
-              {overallPracticedCount} of {allSubtopics.length} topics
-            </span>
-          </div>
-        </section>
-
-       <div className="grid grid-cols-5 gap-3">
-          {domainEntries.map(([domain, subtopics]) => {
-            const practiced = subtopics.filter((subtopic) => {
-              const row = responses.find(
-                (response) => response.Subtopic === subtopic
-              );
-              return isPracticed(row?.ai_assessment ?? null);
-            }).length;
-
-            const percent = getPercentage(practiced, subtopics.length);
-            const isActive = activeDomain === domain;
-
+        {/* Domains */}
+        <div className="space-y-6">
+          {domains.map((d) => {
+            const collapsed = collapsedDomains.has(d.slug);
+            const dMet = d.items.filter((r) => statusOf(r) === "meets").length;
+            const allOpen = d.items.every((r) => expanded.has(r.anchor));
             return (
-              <button
-                key={domain}
-                type="button"
-                onClick={() => setActiveDomain(domain)}
-                className={`rounded-2xl border bg-white p-5 text-left shadow-sm transition ${
-                  isActive
-                    ? "border-blue-600 ring-4 ring-blue-600/10"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                }`}
+              <section
+                key={d.slug}
+                id={d.slug}
+                aria-labelledby={`${d.slug}-title`}
+                className="scroll-mt-32 border border-slate-200 bg-white lg:scroll-mt-20"
               >
-                <div className="text-sm font-medium text-slate-500">
-                  {domain}
-                </div>
-                <div
-                  className={`mt-2 text-4xl font-bold tracking-tight ${getPercentageColor(
-                    percent
-                  )}`}
-                >
-                  {percent}%
-                </div>
-                <div className="mt-2 text-sm text-slate-500">
-                  {practiced} of {subtopics.length} practiced
-                </div>
-              </button>
+                <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 border-b border-slate-200 px-4 py-4 sm:px-6">
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-500">Domain {d.number}</p>
+                    <h2 id={`${d.slug}-title`} className="mt-0.5">
+                      <button
+                        type="button"
+                        aria-expanded={!collapsed}
+                        onClick={() => toggleDomain(d.slug)}
+                        className="inline-flex items-center gap-2 text-left text-2xl font-semibold text-slate-900 hover:text-blue-600"
+                      >
+                        {d.name}
+                        <ChevronDown
+                          className={`h-5 w-5 text-slate-400 transition-transform ${
+                            collapsed ? "-rotate-90" : ""
+                          }`}
+                          aria-hidden
+                        />
+                      </button>
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {dMet} of {d.items.length} criteria met
+                    </p>
+                    <DomainBar items={d.items} statusOf={statusOf} />
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-5 text-sm">
+                    {!collapsed && (
+                      <button
+                        type="button"
+                        onClick={() => setDomainItems(d.slug, !allOpen)}
+                        className="font-semibold text-blue-600 hover:underline"
+                      >
+                        {allOpen ? "Collapse all" : "Expand all"}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => copyLink(d.slug)}
+                      className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-900"
+                      title="Copy a link to this domain"
+                    >
+                      <Link2 className="h-4 w-4" aria-hidden />
+                      {copied === d.slug ? "Copied" : "Link"}
+                    </button>
+                  </div>
+                </header>
+
+                {!collapsed && (
+                  <ul className="divide-y divide-slate-200 px-3 sm:px-5">
+                    {d.items.map((r) => (
+                      <SubdomainItem
+                        key={r.anchor}
+                        result={r}
+                        status={statusOf(r)}
+                        confidence={confidenceOf(r)}
+                        disputed={disputedOf(r)}
+                        expanded={expanded.has(r.anchor)}
+                        onToggle={() => toggleItem(r.anchor)}
+                        feedbackCount={
+                          feedback
+                            .forSubdomain(r.subdomain)
+                            .filter((e) => e.sync !== "save_failed").length
+                        }
+                        onOpenSource={(item) => setDrawer({ item, subdomain: r.subdomain })}
+                        onReportSource={(item) => reportSource(r, item)}
+                        onCopyLink={() => copyLink(r.anchor)}
+                        copied={copied === r.anchor}
+                      >
+                        <FeedbackSection
+                          api={feedback}
+                          domain={d.name}
+                          subdomain={r.subdomain}
+                          question={r.primary?.question ?? null}
+                          answer={r.primary?.answer ?? null}
+                          currentUser={user}
+                          formId={`fb-${r.anchor}`}
+                        />
+                      </SubdomainItem>
+                    ))}
+                  </ul>
+                )}
+              </section>
             );
           })}
         </div>
-
-        {activeDomain ? (
-          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="mb-5 flex flex-col gap-2 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold text-slate-900">
-                  {activeDomain}
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Expand each subtopic to review justification, question,
-                  response, and reporting period.
-                </p>
-              </div>
-              <div className="text-sm text-slate-500">
-                {selectedDomainSubtopics.length} subtopics
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {selectedDomainSubtopics.map((subtopic) => {
-                const row = responses.find(
-                  (response) => response.Subtopic === subtopic
-                );
-                const isOpen = !!expandedTopics[subtopic];
-                const displayStatus = getDisplayStatus(
-                  row?.ai_assessment ?? null
-                );
-                const fromDocument = isExtractedFromDocument(row?.question);
-                const bullets = fromDocument
-                  ? parseBullets(row?.bullet_point_summary)
-                  : [];
-                // NEW: subtopic definition from the definitions library
-                const definition = lookupDefinition(activeDomain, subtopic);
-
-                return (
-                  <article
-                    key={subtopic}
-                    className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/40"
-                  >
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      onClick={() => toggleTopic(subtopic)}
-                      className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left sm:px-5"
-                    >
-                      <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-slate-900">
-                          {subtopic}
-                        </h3>
-                      </div>
-
-                      <div className="flex shrink-0 items-center gap-3">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getBadgeColor(
-                            row?.ai_assessment ?? null
-                          )}`}
-                        >
-                          {displayStatus}
-                        </span>
-                        <span className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-600">
-                          {isOpen ? "−" : "+"}
-                        </span>
-                      </div>
-                    </button>
-
-                    {isOpen ? (
-                      <div className="border-t border-slate-200 bg-white p-4 sm:p-5">
-                        <div className="grid gap-4 lg:grid-cols-2">
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            {/* Definition sits above the Source subheading —
-                                it describes the subtopic, not the source */}
-                            {definition ? (
-                              <div className="mb-3 rounded-xl bg-blue-50 p-3 text-sm leading-6 text-slate-600">
-                                <span className="font-semibold text-blue-700">
-                                  Definition:{" "}
-                                </span>
-                                {definition}
-                              </div>
-                            ) : null}
-                            <div className="mb-2 text-sm font-semibold text-slate-900">
-                              Source
-                            </div>
-                            <div className="text-sm leading-6 text-slate-600">
-                              {row?.question
-                                ? fromDocument
-                                  ? row.question
-                                  : `Evidence from user response to question: ${row.question}`
-                                : "No source available."}
-                            </div>
-                          </div>
-
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="mb-2 text-sm font-semibold text-slate-900">
-                              AI Justification
-                            </div>
-                            <div className="text-sm leading-6 text-slate-600">
-                              {row?.ai_reasoning || "No assessment available yet."}
-                            </div>
-                          </div>
-
-                          <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:col-span-2">
-                            <div className="mb-2 text-sm font-semibold text-slate-900">
-                              {fromDocument
-                                ? "Summary Response"
-                                : "Original Response"}
-                            </div>
-                            {fromDocument ? (
-                              bullets.length > 0 ? (
-                                <ul className="list-disc space-y-1.5 border-l-4 border-blue-500 pl-8 text-sm leading-6 text-slate-600">
-                                  {bullets.map((bullet, idx) => (
-                                    <li key={idx}>{bullet}</li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
-                                  No response available.
-                                </div>
-                              )
-                            ) : (
-                              <div className="border-l-4 border-blue-500 pl-4 text-sm leading-6 text-slate-600">
-                                {row?.answer || "No response available."}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:col-span-2">
-                            <div className="mb-2 text-sm font-semibold text-slate-900">
-                              Reporting Period
-                            </div>
-                            <div className="text-sm leading-6 text-slate-600">
-                              {row?.reporting_period || "N/A"}
-                            </div>
-                          </div>
-
-                          {/* NEW: feedback */}
-                          {companyId && activeDomain ? (
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:col-span-2">
-                              <div className="mb-1 text-sm font-semibold text-slate-900">
-                                Was this assessment accurate?
-                              </div>
-                              <FeedbackButtons
-                                companyId={companyId}
-                                question={row?.question ?? null}
-                                domain={activeDomain}
-                                subdomain={subtopic}
-                                answer={row?.answer ?? null}
-                              />
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        ) : null}
       </div>
-    </main>
+
+      <BackToTop />
+      <SourceDrawer
+        item={drawer?.item ?? null}
+        subdomain={drawer?.subdomain ?? ""}
+        onClose={() => setDrawer(null)}
+      />
+    </div>
+  );
+}
+
+/** Thin bar showing how the domain's criteria split across statuses. */
+function DomainBar({
+  items,
+  statusOf,
+}: {
+  items: SubdomainResult[];
+  statusOf: (r: SubdomainResult) => Status;
+}) {
+  const sorted = [...items].sort(
+    (a, b) => STATUS_META[statusOf(a)].order - STATUS_META[statusOf(b)].order
+  );
+  return (
+    <div className="mt-2 flex h-1.5 w-56 max-w-full gap-px overflow-hidden rounded-sm bg-slate-100" aria-hidden>
+      {sorted.map((r) => (
+        <span key={r.anchor} className={`flex-1 ${STATUS_META[statusOf(r)].dot}`} />
+      ))}
+    </div>
   );
 }

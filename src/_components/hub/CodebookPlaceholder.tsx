@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Landmark, Scale } from "lucide-react";
-
-import { ACCENT_STYLES, WORKSTREAMS } from "@/lib/workstreams";
+import { WORKSTREAMS } from "@/lib/workstreams";
 
 /**
  * Temporary page for a codebook that hasn't been built yet. Replace the
@@ -14,42 +12,36 @@ export default function CodebookPlaceholder({
   id: "financing" | "policy";
 }) {
   const stream = WORKSTREAMS.find((w) => w.id === id)!;
-  const accent = ACCENT_STYLES[stream.accent];
-  const Icon = id === "financing" ? Landmark : Scale;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center sm:p-12">
-          <span
-            className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${accent.icon}`}
-            aria-hidden
-          >
-            <Icon className="h-7 w-7" />
-          </span>
-          <p className={`mt-5 text-sm font-semibold ${accent.question}`}>
-            {stream.question}
-          </p>
-          <h1 className="mx-auto mt-2 max-w-2xl text-4xl font-extrabold tracking-tight text-slate-900">
-            {stream.title}
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl leading-relaxed text-slate-500">
-            {stream.description}
-          </p>
-          <p className="mx-auto mt-2 max-w-xl leading-relaxed text-slate-500">
-            We&apos;re still building this one. Check back soon.
-          </p>
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/hub"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to all tools
-            </Link>
-          </div>
-        </div>
-      </main>
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+      <nav aria-label="Breadcrumb" className="text-sm text-slate-500">
+        <Link href="/hub" className="hover:text-slate-900 hover:underline">
+          All tools
+        </Link>
+        <span className="mx-2" aria-hidden>/</span>
+        <span className="text-slate-700">{stream.title}</span>
+      </nav>
+
+      <p className="mt-8 font-serif text-lg italic text-slate-600">{stream.question}</p>
+      <h1 className="mt-1 text-4xl font-semibold text-slate-900">{stream.title}</h1>
+      <p className="mt-4 text-lg leading-relaxed text-slate-700">{stream.description}</p>
+
+      <div className="mt-8 border-l-4 border-blue-600 bg-white px-5 py-4">
+        <p className="font-semibold text-slate-900">This tool is still being built.</p>
+        <p className="mt-1 text-[15px] text-slate-600">What it will let you do:</p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] text-slate-700 marker:text-slate-400">
+          {stream.highlights.map((h) => (
+            <li key={h}>{h}</li>
+          ))}
+        </ul>
+      </div>
+
+      <p className="mt-8">
+        <Link href="/hub" className="text-[15px] font-semibold text-blue-600 hover:underline">
+          Back to all tools
+        </Link>
+      </p>
     </div>
   );
 }

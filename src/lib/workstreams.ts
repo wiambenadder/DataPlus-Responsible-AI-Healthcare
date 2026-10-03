@@ -12,8 +12,6 @@
 
 export type WorkstreamStatus = "live" | "coming-soon";
 
-export type WorkstreamAccent = "blue" | "emerald" | "violet";
-
 export type Workstream = {
   id: "ai-readiness" | "financing" | "policy";
   /** The question this workstream answers, shown above the title. */
@@ -24,7 +22,6 @@ export type Workstream = {
   href: string;
   cta: string;
   status: WorkstreamStatus;
-  accent: WorkstreamAccent;
 };
 
 export const WORKSTREAMS: Workstream[] = [
@@ -42,7 +39,6 @@ export const WORKSTREAMS: Workstream[] = [
     href: "/",
     cta: "Start your assessment",
     status: "live",
-    accent: "blue",
   },
   {
     id: "financing",
@@ -58,7 +54,6 @@ export const WORKSTREAMS: Workstream[] = [
     href: "/financing-codebook",
     cta: "See what's coming",
     status: "coming-soon",
-    accent: "emerald",
   },
   {
     id: "policy",
@@ -74,31 +69,5 @@ export const WORKSTREAMS: Workstream[] = [
     href: "/policy-codebook",
     cta: "See what's coming",
     status: "coming-soon",
-    accent: "violet",
   },
 ];
-
-/** Tailwind classes per accent, matching the domain colors on the home page. */
-export const ACCENT_STYLES: Record<
-  WorkstreamAccent,
-  { icon: string; question: string; dot: string; ring: string }
-> = {
-  blue: {
-    icon: "bg-blue-600 text-white",
-    question: "text-blue-600",
-    dot: "bg-blue-500",
-    ring: "hover:border-blue-300",
-  },
-  emerald: {
-    icon: "bg-emerald-600 text-white",
-    question: "text-emerald-600",
-    dot: "bg-emerald-500",
-    ring: "hover:border-emerald-300",
-  },
-  violet: {
-    icon: "bg-violet-600 text-white",
-    question: "text-violet-600",
-    dot: "bg-violet-500",
-    ring: "hover:border-violet-300",
-  },
-};

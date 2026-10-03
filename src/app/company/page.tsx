@@ -164,9 +164,9 @@ export default function CompanyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-2">Company Profile</h1>
+        <h1 className="text-4xl font-semibold mb-2">Company Profile</h1>
         <p className="text-gray-500 mb-8">Update your organization's information.</p>
 
         <div className="bg-white border rounded-2xl p-8 shadow-sm">

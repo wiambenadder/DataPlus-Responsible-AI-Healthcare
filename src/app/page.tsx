@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { DOMAINS } from "@/lib/roadmap/framework";
 import HomeView from "@/_components/home/HomeView";
 import WelcomeHero from "@/_components/home/WelcomeHero";
-import type { DomainProgress } from "@/_components/home/FrameworkOverview";
+import type { DomainProgress } from "@/_components/home/HomeView";
 
 /**
  * Homepage / dashboard landing.
@@ -112,7 +112,15 @@ export default function DashboardPage() {
 function computeDomainProgress(reports: any[]): DomainProgress[] {
   const latest = new Map<string, string>();
 
-  for (const r of reports) {
+  // Oldest first, so the newest row for each subdomain wins (same rule
+  // as the results page).
+  const ordered = [...reports].sort(
+    (a, b) =>
+      (a?.created_at ? new Date(a.created_at).getTime() : 0) -
+      (b?.created_at ? new Date(b.created_at).getTime() : 0)
+  );
+
+  for (const r of ordered) {
     if (!r?.domain || !r?.Subtopic) continue;
     const key = `${String(r.domain).trim().toLowerCase()}::${String(r.Subtopic)
       .trim()

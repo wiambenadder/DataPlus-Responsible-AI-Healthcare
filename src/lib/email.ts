@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { KIND_LABEL, parseReason } from "@/lib/feedback-format";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
@@ -27,9 +28,22 @@ type FeedbackRecord = {
   admin_notes: string | null;
 };
 
+/** Escapes user-written text before it goes into the email HTML. */
+function esc(value: string | null | undefined): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export async function sendNewFeedbackEmail(feedback: FeedbackRecord) {
-  const emoji = feedback.feedback_type === "like" ? "\u{1F44D}" : "\u{1F44E}";
-  const subject = `New ${emoji} feedback: ${feedback.domain} / ${feedback.subdomain}`;
+  const { kind, reasons, comment } = parseReason(
+    feedback.reason,
+    feedback.feedback_type
+  );
+  const label = KIND_LABEL[kind];
+  const subject = `New feedback (${label}): ${feedback.domain} / ${feedback.subdomain}`;
   const reviewUrl = `${process.env.NEXT_PUBLIC_APP_URL || ""}/admin/feedback`;
 
   await resend.emails.send({
@@ -37,16 +51,17 @@ export async function sendNewFeedbackEmail(feedback: FeedbackRecord) {
     to: ADMIN_EMAIL!,
     subject,
     html: `
-      <div style="font-family: sans-serif; font-size: 14px; color: #1e293b; line-height: 1.5;">
-        <p><strong>Type:</strong> ${feedback.feedback_type}</p>
-        <p><strong>Company:</strong> ${feedback.company_name || feedback.company_id}</p>
-        <p><strong>Domain:</strong> ${feedback.domain}</p>
-        <p><strong>Subdomain:</strong> ${feedback.subdomain}</p>
-        <p><strong>Question:</strong> ${feedback.question || "\u2014"}</p>
-        <p><strong>Answer:</strong> ${feedback.answer || "\u2014"}</p>
-        <p><strong>Reason given:</strong> ${feedback.reason}</p>
+      <div style="font-family: sans-serif; font-size: 14px; color: #1c1b19; line-height: 1.5;">
+        <p><strong>Feedback:</strong> ${esc(label)}</p>
+        ${reasons.length ? `<p><strong>What needs revising:</strong> ${esc(reasons.join(", "))}</p>` : ""}
+        <p><strong>Comment:</strong> ${esc(comment) || "\u2014"}</p>
+        <p><strong>Company:</strong> ${esc(feedback.company_name || feedback.company_id)}</p>
+        <p><strong>Domain:</strong> ${esc(feedback.domain)}</p>
+        <p><strong>Subdomain:</strong> ${esc(feedback.subdomain)}</p>
+        <p><strong>Question:</strong> ${esc(feedback.question) || "\u2014"}</p>
+        <p><strong>Answer:</strong> ${esc(feedback.answer) || "\u2014"}</p>
         <p style="margin-top: 16px;">
-          <a href="${reviewUrl}" style="color: #2563eb;">Review in the admin dashboard</a>
+          <a href="${reviewUrl}" style="color: #012169;">Review in the admin dashboard</a>
         </p>
       </div>
     `,
@@ -61,9 +76,9 @@ export async function sendFeedbackDecisionEmail(feedback: FeedbackRecord) {
     to: ADMIN_EMAIL!,
     subject,
     html: `
-      <div style="font-family: sans-serif; font-size: 14px; color: #1e293b; line-height: 1.5;">
+      <div style="font-family: sans-serif; font-size: 14px; color: #1c1b19; line-height: 1.5;">
         <p>Feedback <strong>#${feedback.id}</strong> was marked as <strong>${feedback.status}</strong>.</p>
-        <p><strong>Admin notes:</strong> ${feedback.admin_notes || "\u2014"}</p>
+        <p><strong>Admin notes:</strong> ${esc(feedback.admin_notes) || "\u2014"}</p>
       </div>
     `,
   });

@@ -17,7 +17,7 @@ export default function EvidencePanel({ evidence }: { evidence: EvidenceItem[] }
 
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
         <FileSearch className="h-3.5 w-3.5" aria-hidden />
         Supporting evidence ({evidence.length})
       </p>
@@ -26,7 +26,7 @@ export default function EvidencePanel({ evidence }: { evidence: EvidenceItem[] }
         {visible.map((item) => (
           <li
             key={item.mappingId}
-            className="rounded-lg border border-slate-200 bg-white p-3"
+            className="border-l-2 border-slate-300 bg-white py-1 pl-3"
           >
             {item.quote && (
               <p className="text-sm leading-relaxed text-slate-600">{item.quote}</p>

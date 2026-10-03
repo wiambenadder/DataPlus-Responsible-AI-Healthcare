@@ -1,37 +1,111 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #111827;
+/*
+ * Design tokens.
+ *
+ * The look is deliberately quiet and institutional: Duke navy as the one
+ * brand colour, warm neutral greys instead of Tailwind's blue-tinted
+ * slate, small corner radii, hairline borders instead of shadows, and a
+ * serif for headings.
+ *
+ * Instead of rewriting every page, the existing Tailwind colour names are
+ * re-pointed here: `blue-*` is now a Duke navy scale and `slate-*` a warm
+ * grey scale, so `bg-blue-600` renders Duke navy (#012169) everywhere.
+ */
+@theme {
+  --font-sans: var(--font-source-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, Cambria, "Times New Roman",
+    serif;
+
+  /* Duke navy scale (600 = Duke Navy #012169, 500 = Duke Royal Blue) */
+  --color-blue-50: #eef2f8;
+  --color-blue-100: #dce3ef;
+  --color-blue-200: #b8c6df;
+  --color-blue-300: #8ca2c9;
+  --color-blue-400: #4f6fa6;
+  --color-blue-500: #00539b;
+  --color-blue-600: #012169;
+  --color-blue-700: #001a54;
+  --color-blue-800: #00133f;
+  --color-blue-900: #000d2b;
+  --color-blue-950: #00081c;
+
+  /* Warm neutral greys (in place of slate) */
+  --color-slate-50: #f7f6f4;
+  --color-slate-100: #efedea;
+  --color-slate-200: #e2dfda;
+  --color-slate-300: #cbc7c0;
+  --color-slate-400: #8a857d;
+  --color-slate-500: #66625b;
+  --color-slate-600: #4f4b45;
+  --color-slate-700: #3b3833;
+  --color-slate-800: #292724;
+  --color-slate-900: #1c1b19;
+  --color-slate-950: #11100f;
+
+  /* Smaller, consistent corners */
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.375rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.5rem;
+
+  /* Borders do the work; shadows are barely there */
+  --shadow-sm: 0 1px 0 0 rgb(28 27 25 / 0.04);
+  --shadow-md: 0 1px 2px 0 rgb(28 27 25 / 0.08);
+  --shadow-lg: 0 6px 20px -6px rgb(28 27 25 / 0.18);
 }
 
-body {
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f8fafc 100%
-  );
+@layer base {
+  /* Tailwind v4 draws a bare `border` in the text colour; use a light
+     neutral instead, as Tailwind v3 did. */
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    border-color: var(--color-slate-200);
+  }
 
-  color: var(--foreground);
+  html {
+    scroll-behavior: smooth;
+  }
 
-  min-height: 100vh;
+  body {
+    background: var(--color-slate-50);
+    color: var(--color-slate-900);
+    min-height: 100vh;
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.005em;
+  }
+
+  ::selection {
+    background: var(--color-blue-100);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-blue-500);
+    outline-offset: 2px;
+  }
+
+  textarea,
+  input {
+    border-radius: 0.375rem;
+  }
+
+  button {
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
 }
 
-textarea,
-input {
-  border-radius: 12px;
-}
-
-button {
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  transform: translateY(-1px);
-}
-
-input:focus,
-textarea:focus {
-  outline: none;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
