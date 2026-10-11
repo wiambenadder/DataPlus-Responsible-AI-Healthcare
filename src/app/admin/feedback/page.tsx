@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { KIND_LABEL, parseReason } from "@/lib/feedback-format";
 
 type FeedbackRow = {
   id: string;
@@ -33,10 +34,15 @@ function getStatusBadge(status: string) {
   }
 }
 
-function getTypeBadge(type: string) {
-  return type === "like"
-    ? "bg-green-100 text-green-700 ring-1 ring-green-200"
-    : "bg-red-100 text-red-700 ring-1 ring-red-200";
+function getTypeBadge(kind: string) {
+  switch (kind) {
+    case "accurate":
+      return "border border-emerald-700/30 bg-emerald-50 text-emerald-900";
+    case "wrong_source":
+      return "border border-rose-700/30 bg-rose-50 text-rose-900";
+    default:
+      return "border border-amber-700/30 bg-amber-50 text-amber-900";
+  }
 }
 
 export default function AdminFeedbackPage() {
@@ -108,7 +114,7 @@ export default function AdminFeedbackPage() {
 
   if (unauthorized) {
     return (
-      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100">
+      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-slate-50">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <p className="text-lg font-semibold text-slate-900">Admins only</p>
           <p className="mt-2 text-sm text-slate-500">
@@ -120,17 +126,15 @@ export default function AdminFeedbackPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-slate-50 to-slate-100">
+    <main className="min-h-[calc(100vh-80px)] bg-slate-50">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-            Admin
-          </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+          <p className="text-sm text-slate-500">Admin</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
             Feedback review
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-            Review like/dislike feedback submitted on assessments and mark
+            Review feedback submitted on assessment results and mark
             items as reviewed or resolved.
           </p>
 
@@ -164,6 +168,7 @@ export default function AdminFeedbackPage() {
           <div className="space-y-3">
             {rows.map((row) => {
               const isOpen = expandedId === row.id;
+              const parsed = parseReason(row.reason, row.feedback_type);
               return (
                 <article
                   key={row.id}
@@ -186,10 +191,10 @@ export default function AdminFeedbackPage() {
                     <div className="flex shrink-0 items-center gap-2">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getTypeBadge(
-                          row.feedback_type
+                          parsed.kind
                         )}`}
                       >
-                        {row.feedback_type}
+                        {KIND_LABEL[parsed.kind]}
                       </span>
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusBadge(
@@ -222,10 +227,18 @@ export default function AdminFeedbackPage() {
                         </div>
                         <div className="sm:col-span-2">
                           <p className="mb-1 text-xs font-semibold text-slate-500">
-                            User&apos;s reason
+                            What needs revising
                           </p>
-                          <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                            {row.reason}
+                          <p className="text-sm text-slate-700">
+                            {parsed.reasons.length
+                              ? parsed.reasons.join(" · ")
+                              : "—"}
+                          </p>
+                          <p className="mb-1 mt-3 text-xs font-semibold text-slate-500">
+                            Comment
+                          </p>
+                          <p className="whitespace-pre-line rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                            {parsed.comment || "No comment added."}
                           </p>
                         </div>
                       </div>

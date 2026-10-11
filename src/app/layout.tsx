@@ -1,15 +1,39 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import SiteHeader from "@/components/Navbar";
+import SiteFooter from "@/components/SiteFooter";
 
-const inter = Inter({
-  subsets: ["latin"],
+/*
+ * Duke University brand typefaces (brand.duke.edu/typography), self-hosted
+ * from ./fonts under the SIL Open Font License:
+ *   Open Sans   — text, navigation, buttons and forms
+ *   EB Garamond — page and section headings
+ */
+const openSans = localFont({
+  src: [
+    { path: "./fonts/open-sans-latin-wght-normal.woff2", style: "normal" },
+    { path: "./fonts/open-sans-latin-wght-italic.woff2", style: "italic" },
+  ],
+  weight: "300 800",
+  display: "swap",
+  variable: "--font-open-sans",
+});
+
+const ebGaramond = localFont({
+  src: [
+    { path: "./fonts/eb-garamond-latin-wght-normal.woff2", style: "normal" },
+    { path: "./fonts/eb-garamond-latin-wght-italic.woff2", style: "italic" },
+  ],
+  weight: "400 800",
+  display: "swap",
+  variable: "--font-eb-garamond",
 });
 
 export const metadata: Metadata = {
-  title: "Data Intelligence Platform",
-  description: "AI-enabled reporting and impact tracking platform",
+  title: "Innovator Insights",
+  description:
+    "Tools for responsible AI in global health, from Innovations in Healthcare.",
 };
 
 export default function RootLayout({
@@ -20,17 +44,25 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.className} h-full antialiased`}
+      className={`${openSans.variable} ${ebGaramond.variable} h-full font-sans antialiased`}
     >
       <body
         suppressHydrationWarning
-        className="min-h-screen flex flex-col bg-slate-50 text-slate-900"
+        className="flex min-h-screen flex-col bg-white text-ink"
       >
-        <Navbar />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:bg-white focus:px-3 focus:py-2"
+        >
+          Skip to main content
+        </a>
+        <SiteHeader />
 
-        <main className="flex-1">
+        <main id="main-content" className="flex-1">
           {children}
         </main>
+
+        <SiteFooter />
       </body>
     </html>
   );

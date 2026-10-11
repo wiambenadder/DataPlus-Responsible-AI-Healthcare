@@ -1,36 +1,17 @@
-import { CheckCircle2, CircleDashed, XCircle } from "lucide-react";
 import type { SubdomainStatus } from "@/lib/roadmap/types";
 
-const STYLES: Record<
-  SubdomainStatus,
-  { label: string; className: string; Icon: typeof CheckCircle2 }
-> = {
-  practiced: {
-    label: "Practiced",
-    className: "bg-green-100 text-green-800 ring-green-200",
-    Icon: CheckCircle2,
-  },
-  not_practiced: {
-    label: "Not Practiced",
-    className: "bg-red-100 text-red-800 ring-red-200",
-    Icon: XCircle,
-  },
-  no_data: {
-    label: "No Data Yet",
-    className: "bg-slate-100 text-slate-600 ring-slate-200",
-    Icon: CircleDashed,
-  },
+/**
+ * Roadmap status tag. Same colours as the results page, with roadmap
+ * wording ("Met", "Not met yet").
+ */
+const META: Record<SubdomainStatus, { label: string; cls: string }> = {
+  practiced: { label: "Met", cls: "bg-[#d9ece9] text-[#174f4f]" },
+  not_practiced: { label: "Not met yet", cls: "bg-[#f8ddd0] text-[#8f3800]" },
+  no_data: { label: "No evidence yet", cls: "bg-slate-100 text-slate-700" },
+  under_review: { label: "Under review", cls: "bg-[#dbeaf6] text-[#04477a]" },
 };
 
 export default function StatusBadge({ status }: { status: SubdomainStatus }) {
-  const { label, className, Icon } = STYLES[status];
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${className}`}
-    >
-      <Icon className="h-3.5 w-3.5" aria-hidden />
-      {label}
-    </span>
-  );
+  const m = META[status];
+  return <span className={`tag ${m.cls}`}>{m.label}</span>;
 }

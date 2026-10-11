@@ -162,7 +162,7 @@ export default function EditEvidencePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex items-center gap-3 text-slate-500">
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
           Loading evidence...
@@ -172,9 +172,9 @@ export default function EditEvidencePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-2">Edit Extracted Evidence</h1>
+        <h1 className="text-4xl font-semibold mb-2">Edit Extracted Evidence</h1>
 
         <p className="text-gray-500 mb-8">
           Review and correct the evidence pulled from your uploaded documents.

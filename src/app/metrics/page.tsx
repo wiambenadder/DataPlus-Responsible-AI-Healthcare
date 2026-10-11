@@ -88,7 +88,7 @@ export default function MetricsPage() {
   return (
     
     <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">
+      <h1 className="text-xl font-semibold mb-4">
         Metrics Entry
       </h1>
 

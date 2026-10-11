@@ -1,37 +1,240 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #111827;
+/*
+ * Design tokens follow the Duke University brand (brand.duke.edu):
+ * EB Garamond for headings, Open Sans for text, Duke Navy and Royal Blue,
+ * the Duke secondary palette for the five assessment domains, flat colour
+ * (no gradients) and small, squared corners.
+ *
+ * The Tailwind names already used across the code are re-pointed here:
+ * `blue-*` is a Duke Navy → Royal Blue scale (blue-600 is Duke Navy) and
+ * `slate-*` is a neutral grey scale. `brand-*` names give direct access to
+ * Duke colours.
+ */
+@theme {
+  --font-sans: var(--font-open-sans), "Open Sans", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-serif: var(--font-eb-garamond), "EB Garamond", Georgia, "Times New Roman",
+    serif;
+
+  /* Duke primary */
+  --color-brand-navy: #012169; /* Duke Navy Blue */
+  --color-brand-dukeblue: #00539b; /* Duke Royal Blue */
+  --color-brand-darkblue: #00163f;
+  --color-ink: #262626; /* Duke body text */
+
+  /* Duke secondary (used sparingly: domain accents and status) */
+  --color-brand-shale: #0577b1;
+  --color-brand-eno: #339898;
+  --color-brand-teal: #1d6363; /* Magnolia — passes contrast on white */
+  --color-brand-darkteal: #154a4a;
+  --color-brand-persimmon: #e89923;
+  --color-brand-copper: #c84e00;
+  --color-brand-bronze: #a03f00;
+  --color-brand-ironweed: #993399;
+  --color-brand-dandelion: #ffd960;
+  --color-brand-graphite: #4f5660;
+
+  /* Duke neutrals */
+  --color-whisper: #f3f2f1;
+  --color-hatteras: #e2e6ed;
+
+  /* Duke Navy → Royal Blue scale (600 = Navy, 500 = Royal) */
+  --color-blue-50: #eef3fa;
+  --color-blue-100: #dbe6f3;
+  --color-blue-200: #b4c9e4;
+  --color-blue-300: #7f9fcf;
+  --color-blue-400: #3c6bb0;
+  --color-blue-500: #00539b;
+  --color-blue-600: #012169;
+  --color-blue-700: #011a54;
+  --color-blue-800: #00163f;
+  --color-blue-900: #000f2c;
+  --color-blue-950: #000a1e;
+
+  /* Neutral greys */
+  --color-slate-50: #f8f9fa;
+  --color-slate-100: #f1f3f5;
+  --color-slate-200: #dcdfe3;
+  --color-slate-300: #c3c8cf;
+  --color-slate-400: #8e959e;
+  --color-slate-500: #666d76;
+  --color-slate-600: #4f5660;
+  --color-slate-700: #3d434b;
+  --color-slate-800: #2b3036;
+  --color-slate-900: #262626;
+  --color-slate-950: #181818;
+
+  /* Small, squared corners */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.1875rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.25rem;
+  --radius-2xl: 0.375rem;
+  --radius-3xl: 0.5rem;
+
+  --shadow-sm: none;
+  --shadow-md: 0 1px 3px 0 rgb(1 33 105 / 0.08);
+  --shadow-lg: 0 10px 28px -12px rgb(1 33 105 / 0.3);
 }
 
-body {
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f8fafc 100%
-  );
+@layer base {
+  /* Tailwind v4 draws a bare `border` in the text colour; use light grey. */
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    border-color: var(--color-slate-200);
+  }
 
-  color: var(--foreground);
+  html {
+    scroll-behavior: smooth;
+  }
 
-  min-height: 100vh;
+  body {
+    background: #ffffff;
+    color: var(--color-ink);
+    min-height: 100vh;
+    line-height: 1.65;
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    color: var(--color-brand-navy);
+    letter-spacing: -0.005em;
+    line-height: 1.12;
+  }
+
+  ::selection {
+    background: var(--color-blue-100);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-dukeblue);
+    outline-offset: 2px;
+  }
+
+  textarea,
+  input,
+  select {
+    border-radius: 0.1875rem;
+  }
+
+  button {
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
 }
 
-textarea,
-input {
-  border-radius: 12px;
+@layer components {
+  /* Small spaced-capitals label, as used across Duke sites. */
+  .label-caps {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-brand-dukeblue);
+  }
+
+  /* Buttons: Open Sans bold, title case, squared corners. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    border: 2px solid transparent;
+    border-radius: 0.1875rem;
+    line-height: 1.25;
+  }
+  .btn-primary {
+    background: var(--color-brand-navy);
+    border-color: var(--color-brand-navy);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: var(--color-brand-dukeblue);
+    border-color: var(--color-brand-dukeblue);
+  }
+  .btn-secondary {
+    background: #fff;
+    border-color: var(--color-brand-navy);
+    color: var(--color-brand-navy);
+  }
+  .btn-secondary:hover {
+    background: var(--color-brand-navy);
+    color: #fff;
+  }
+  .btn-light {
+    background: #fff;
+    border-color: #fff;
+    color: var(--color-brand-navy);
+  }
+  .btn-light:hover {
+    background: var(--color-blue-50);
+    border-color: var(--color-blue-50);
+  }
+  .btn-outline-light {
+    background: transparent;
+    border-color: #fff;
+    color: #fff;
+  }
+  .btn-outline-light:hover {
+    background: #fff;
+    color: var(--color-brand-navy);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* "Learn More ›" text link. */
+  .link-more {
+    font-weight: 700;
+    color: var(--color-brand-dukeblue);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+  .link-more:hover {
+    color: var(--color-brand-navy);
+    border-bottom-width: 2px;
+  }
+
+  /* Section heading row with a thin rule underneath. */
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.25rem;
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid var(--color-slate-200);
+  }
+  .section-head > h2 {
+    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+  }
+
+  /* Flat status tag. */
+  .tag {
+    display: inline-block;
+    border-radius: 0.125rem;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
 }
 
-button {
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  transform: translateY(-1px);
-}
-
-input:focus,
-textarea:focus {
-  outline: none;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

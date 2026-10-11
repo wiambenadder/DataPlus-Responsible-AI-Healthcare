@@ -34,7 +34,7 @@ export const DEFINITIONS = [
     domain: "Model Source",
     subtopic: "Data Standards & Metadata",
     definition:
-      "Evidence relating to recognised standards (FHIR, HL7 etc.) and documented metadata.",
+      "Evidence relating to recognized standards (FHIR, HL7 etc.) and documented metadata.",
   },
 
   // D2 — Model Development

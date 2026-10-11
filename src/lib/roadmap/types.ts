@@ -34,7 +34,11 @@ export interface DomainMappingRow {
 /* UI view model                                                       */
 /* ------------------------------------------------------------------ */
 
-export type SubdomainStatus = "practiced" | "not_practiced" | "no_data";
+/**
+ * `under_review`: rated as practiced, but someone on the team reported the
+ * rating rests on the wrong source or company; not counted until reviewed.
+ */
+export type SubdomainStatus = "practiced" | "not_practiced" | "no_data" | "under_review";
 
 /** One assessment record shown inside the detail panel. */
 export interface AssessmentDetail {

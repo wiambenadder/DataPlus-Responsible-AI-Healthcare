@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import AuthCard from "@/_components/auth/AuthCard";
 
@@ -64,29 +63,19 @@ export default function SignupPage() {
   }
 
   const inputClass =
-    "h-12 w-full rounded-lg border border-slate-300 bg-white px-3.5 text-base text-slate-900 placeholder:text-slate-400 transition hover:border-slate-400 focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-600/20";
+    "h-12 w-full rounded-md border border-slate-300 bg-white px-3.5 text-base text-slate-900 placeholder:text-slate-400 transition hover:border-slate-400 focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-600/20";
 
   return (
     <AuthCard
-      title="Create your account"
-      subtitle="Set up access to assess readiness, submit structured reports, and generate insights."
-      footer={
-        <>
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-blue-600 hover:underline"
-          >
-            Sign in
-          </Link>
-        </>
-      }
+      title="Create an Account"
+      subtitle="Any email address works. You'll set up or join your organization next."
+      secondary={{ href: "/login", label: "Log In Instead", lead: "Already have an account?" }}
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         {error ? (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+            className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
           >
             <svg
               className="mt-0.5 shrink-0"
@@ -151,7 +140,7 @@ export default function SignupPage() {
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
-              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-dukeblue"
             >
               {showPassword ? (
                 <svg
@@ -193,7 +182,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-lg bg-blue-600 text-[15px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-600/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-sm bg-brand-navy text-[15px] font-bold text-white transition hover:bg-brand-dukeblue focus:outline-none focus:ring-4 focus:ring-brand-navy/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <>

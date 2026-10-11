@@ -215,105 +215,90 @@ export default function CompanySetupPage() {
     router.push("/report/assessment");
   }
 
+  const field = "mt-1 w-full border border-slate-300 bg-white px-3 py-2.5 text-[15px] focus:border-brand-dukeblue";
+  const label = "block text-sm font-semibold text-slate-800";
+
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">Organization Setup</h1>
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <p className="label-caps">Getting Started</p>
+      <h1 className="mt-2 text-4xl">Set Up Your Organization</h1>
+      <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
+        Your assessment belongs to your organization, so everyone on your team
+        sees the same results.
+      </p>
 
       {!checkingInvite && invite ? (
-        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-blue-200 bg-blue-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 border-l-4 border-brand-teal bg-slate-50 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p className="font-semibold text-blue-900">
-              You've been invited to join {inviteCompanyName}
+            <p className="text-lg font-semibold text-brand-navy">
+              You&apos;ve been invited to join {inviteCompanyName}
             </p>
-            <p className="mt-1 text-sm text-blue-700">
-              Accept the invite to join this organization, or dismiss it to
-              create a new one instead.
+            <p className="mt-1 text-[15px] text-slate-700">
+              Join to see and work on their assessment, or dismiss the invitation
+              to create a new organization.
             </p>
           </div>
-          <div className="flex shrink-0 gap-3">
-            <button
-              onClick={dismissInvite}
-              disabled={acceptingInvite}
-              className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
+          <div className="mt-4 flex shrink-0 gap-3 sm:mt-0">
+            <button onClick={dismissInvite} disabled={acceptingInvite} className="btn btn-secondary">
               Dismiss
             </button>
-            <button
-              onClick={acceptInvite}
-              disabled={acceptingInvite}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-            >
-              {acceptingInvite ? "Joining…" : "Accept Invite"}
+            <button onClick={acceptInvite} disabled={acceptingInvite} className="btn btn-primary">
+              {acceptingInvite ? "Joining…" : "Join"}
             </button>
           </div>
+        </div>
+      ) : !checkingInvite ? (
+        <div className="mt-8 border-l-4 border-slate-300 bg-slate-50 p-5 text-[15px] text-slate-700">
+          <p className="font-semibold text-slate-900">Is your organization already on the platform?</p>
+          <p className="mt-1">
+            Don&apos;t create it again. Ask a colleague who has an account to invite
+            you from <strong>Account → Company and team</strong>, using exactly the
+            email address you signed up with. The invitation will then appear on
+            this page.
+          </p>
         </div>
       ) : null}
 
-      <div className="bg-white border rounded-2xl p-6">
-        <div className="space-y-5">
-          <input
-            className="w-full border rounded-xl p-3"
-            placeholder="Organization Name"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-          />
+      <h2 className="mt-10 text-2xl">Create a New Organization</h2>
+      <div className="mt-4 space-y-5 border-t border-slate-200 pt-6">
+        <label className={label}>
+          Organization name
+          <input className={field} value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+        </label>
 
-          <input
-            className="w-full border rounded-xl p-3"
-            placeholder="Country"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-          />
+        <label className={label}>
+          Country where you mainly work
+          <input className={field} value={country} onChange={(e) => setCountry(e.target.value)} />
+        </label>
 
-          <input
-            type="number"
-            className="w-full border rounded-xl p-3"
-            placeholder="Year Established"
-            value={yearEstablished}
-            onChange={(e) => setYearEstablished(e.target.value)}
-          />
+        <label className={label}>
+          Year established
+          <input type="number" className={field} value={yearEstablished} onChange={(e) => setYearEstablished(e.target.value)} />
+        </label>
 
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="number"
-              className="border rounded-xl p-3"
-              placeholder="Full-Time Staff"
-              value={fullTimeStaff}
-              onChange={(e) => setFullTimeStaff(e.target.value)}
-            />
+        <div className="grid grid-cols-2 gap-4">
+          <label className={label}>
+            Full-time staff
+            <input type="number" className={field} value={fullTimeStaff} onChange={(e) => setFullTimeStaff(e.target.value)} />
+          </label>
+          <label className={label}>
+            Part-time staff
+            <input type="number" className={field} value={partTimeStaff} onChange={(e) => setPartTimeStaff(e.target.value)} />
+          </label>
+        </div>
 
-            <input
-              type="number"
-              className="border rounded-xl p-3"
-              placeholder="Part-Time Staff"
-              value={partTimeStaff}
-              onChange={(e) => setPartTimeStaff(e.target.value)}
-            />
-          </div>
-
-          <select
-            className="w-full border rounded-xl p-3"
-            value={organizationType}
-            onChange={(e) => setOrganizationType(e.target.value)}
-          >
-            <option value="">Organization Type</option>
-            <option value="For-Profit">For-Profit</option>
+        <label className={label}>
+          Organization type
+          <select className={field} value={organizationType} onChange={(e) => setOrganizationType(e.target.value)}>
+            <option value="">Choose one</option>
+            <option value="For-Profit">For-profit</option>
             <option value="Nonprofit">Nonprofit</option>
           </select>
+        </label>
 
-          <button
-            onClick={createCompany}
-            className="
-              bg-blue-600
-              text-white
-              px-6
-              py-3
-              rounded-xl
-            "
-          >
-            Create Company
-          </button>
-        </div>
+        <button onClick={createCompany} className="btn btn-primary">
+          Create Organization
+        </button>
       </div>
     </div>
   );

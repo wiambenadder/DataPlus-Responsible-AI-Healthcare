@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -17,6 +19,11 @@ export default function CompanyPage() {
   const [organizationType, setOrganizationType] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [members, setMembers] = useState<any[]>([]);
+  const [invites, setInvites] = useState<
+    { id: string; email: string; created_at?: string | null }[] | null
+  >(null);
+  const [inviteMsg, setInviteMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [inviting, setInviting] = useState(false);
 
   useEffect(() => {
     loadCompany();
@@ -81,7 +88,18 @@ export default function CompanyPage() {
       })) || [];
 
     setMembers(mergedMembers);
+    await loadInvites(company.id);
     setLoading(false);
+  }
+
+  // Pending invitations. If the database doesn't let this user read them,
+  // the list is simply hidden.
+  async function loadInvites(id: string) {
+    const { data, error } = await supabase
+      .from("company_invites")
+      .select("*")
+      .eq("company_id", id);
+    setInvites(error ? null : ((data ?? []) as { id: string; email: string; created_at?: string | null }[]));
   }
 
   async function updateCompany() {
@@ -102,30 +120,61 @@ export default function CompanyPage() {
       return;
     }
 
-    alert("Company profile updated");
-    router.push("/dashboard");
+    alert("Company details saved.");
   }
 
   async function inviteMember() {
-    if (!inviteEmail.trim()) {
+    const email = inviteEmail.trim().toLowerCase();
+    setInviteMsg(null);
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      setInviteMsg({ ok: false, text: "That doesn't look like a complete email address." });
+      return;
+    }
+    if (members.some((m) => m.profile?.email?.toLowerCase() === email)) {
+      setInviteMsg({ ok: false, text: `${email} is already on your team.` });
+      return;
+    }
+    if (invites?.some((i) => i.email?.toLowerCase() === email)) {
+      setInviteMsg({ ok: false, text: `${email} already has a pending invitation.` });
       return;
     }
 
+    setInviting(true);
     const { error } = await supabase
       .from("company_invites")
-      .insert({
-        company_id: companyId,
-        email: inviteEmail,
-        role: "member",
-      });
+      .insert({ company_id: companyId, email, role: "member" });
+    setInviting(false);
 
     if (error) {
-      alert(error.message);
+      setInviteMsg({ ok: false, text: `The invitation wasn't created: ${error.message}` });
       return;
     }
 
     setInviteEmail("");
-    alert("Invitation created");
+    setInviteMsg({
+      ok: true,
+      text: `Invitation created for ${email}. Let them know: it appears when they log in or sign up with exactly this address.`,
+    });
+    await loadInvites(companyId);
+  }
+
+  async function cancelInvite(id: string, email: string) {
+    if (!window.confirm(`Cancel the invitation for ${email}?`)) return;
+    const { data, error } = await supabase
+      .from("company_invites")
+      .delete()
+      .eq("id", id)
+      .select("id");
+    if (error || !data?.length) {
+      setInviteMsg({
+        ok: false,
+        text: "The invitation couldn't be cancelled. Ask the platform team to remove it.",
+      });
+      return;
+    }
+    setInvites((prev) => prev?.filter((i) => i.id !== id) ?? null);
+    setInviteMsg({ ok: true, text: `Invitation for ${email} cancelled.` });
   }
 
   async function removeMember(member: any) {
@@ -160,165 +209,138 @@ export default function CompanyPage() {
 }
 
   if (loading) {
-    return <div className="p-8">Loading company profile...</div>;
+    return <div className="mx-auto max-w-3xl px-4 py-16 text-slate-600 sm:px-6">Loading company profile…</div>;
   }
 
+  const field = "mt-1 w-full border border-slate-300 bg-white px-3 py-2.5 text-[15px] font-normal focus:border-brand-dukeblue";
+  const label = "block text-sm font-semibold text-slate-800";
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-2">Company Profile</h1>
-        <p className="text-gray-500 mb-8">Update your organization's information.</p>
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
+        <Link href="/" className="hover:underline">Home</Link>
+        <span className="mx-2" aria-hidden>›</span>
+        <span>Company and Team</span>
+      </nav>
+      <h1 className="mt-3 text-4xl">Company and Team</h1>
+      <p className="mt-2 text-[16px] text-slate-700">
+        Your organization&apos;s details and who can see your assessment.
+      </p>
 
-        <div className="bg-white border rounded-2xl p-8 shadow-sm">
-          <div className="space-y-6">
-
-            <div>
-              <label className="block mb-2 font-medium">Organization Name</label>
-              <input
-                className="w-full border rounded-xl p-3"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Country</label>
-              <input
-                className="w-full border rounded-xl p-3"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Year Established</label>
-              <input
-                type="number"
-                className="w-full border rounded-xl p-3"
-                value={yearEstablished}
-                onChange={(e) => setYearEstablished(e.target.value)}
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-2 font-medium">Full-Time Staff</label>
-                <input
-                  type="number"
-                  className="w-full border rounded-xl p-3"
-                  value={fullTimeStaff}
-                  onChange={(e) => setFullTimeStaff(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block mb-2 font-medium">Part-Time Staff</label>
-                <input
-                  type="number"
-                  className="w-full border rounded-xl p-3"
-                  value={partTimeStaff}
-                  onChange={(e) => setPartTimeStaff(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Organization Type</label>
-              <select
-                className="w-full border rounded-xl p-3"
-                value={organizationType}
-                onChange={(e) => setOrganizationType(e.target.value)}
-              >
-                <option value="">Select Type</option>
-                <option value="For-Profit">For-Profit</option>
-                <option value="Nonprofit">Nonprofit</option>
-              </select>
-            </div>
-
-            <button
-              onClick={updateCompany}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl"
-            >
-              Save Changes
-            </button>
-
-          </div>
+      <h2 className="mt-10 text-2xl">Organization Details</h2>
+      <div className="mt-4 space-y-5 border-t border-slate-200 pt-6">
+        <label className={label}>
+          Organization name
+          <input className={field} value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+        </label>
+        <label className={label}>
+          Country
+          <input className={field} value={country} onChange={(e) => setCountry(e.target.value)} />
+        </label>
+        <label className={label}>
+          Year established
+          <input type="number" className={field} value={yearEstablished} onChange={(e) => setYearEstablished(e.target.value)} />
+        </label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className={label}>
+            Full-time staff
+            <input type="number" className={field} value={fullTimeStaff} onChange={(e) => setFullTimeStaff(e.target.value)} />
+          </label>
+          <label className={label}>
+            Part-time staff
+            <input type="number" className={field} value={partTimeStaff} onChange={(e) => setPartTimeStaff(e.target.value)} />
+          </label>
         </div>
-
-        <div className="mt-10 border-t pt-8">
-          <h2 className="text-2xl font-semibold mb-4">Team Members</h2>
-
-          {members.length === 0 ? (
-            <div className="text-gray-500 mb-6">No team members yet.</div>
-          ) : (
-            <div className="space-y-2 mb-6">
-              {members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex justify-between items-center border rounded-xl p-3"
-                >
-                  <div>
-                    <div className="font-medium">
-                      {member.profile?.full_name || "Unnamed User"}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {member.profile?.email || "No email"}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-
-  <div
-    className={`text-sm px-3 py-1 rounded-full ${
-      member.role === "admin"
-        ? "bg-blue-100 text-blue-700"
-        : "bg-slate-100 text-slate-700"
-    }`}
-  >
-    {member.role === "admin"
-      ? "Owner"
-      : "Member"}
-  </div>
-
-  {member.role !== "admin" && (
-
-    <button
-      onClick={() =>
-        removeMember(member)
-      }
-      className="
-        text-red-600
-        hover:text-red-700
-        text-sm
-      "
-    >
-      Remove
-    </button>
-
-  )}
-
-</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <h3 className="text-lg font-medium mb-3">Invite User</h3>
-          <div className="flex gap-3">
-            <input
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="email@example.com"
-              className="flex-1 border rounded-xl p-3"
-            />
-            <button
-              onClick={inviteMember}
-              className="bg-blue-600 text-white px-5 rounded-xl"
-            >
-              Invite
-            </button>
-          </div>
-        </div>
-
+        <label className={label}>
+          Organization type
+          <select className={field} value={organizationType} onChange={(e) => setOrganizationType(e.target.value)}>
+            <option value="">Choose one</option>
+            <option value="For-Profit">For-profit</option>
+            <option value="Nonprofit">Nonprofit</option>
+          </select>
+        </label>
+        <button onClick={updateCompany} className="btn btn-primary">
+          Save Changes
+        </button>
       </div>
+
+      <h2 className="mt-14 text-2xl">Team Members</h2>
+      <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
+        {members.length === 0 ? (
+          <li className="py-3 text-slate-600">No team members yet.</li>
+        ) : (
+          members.map((member) => (
+            <li key={member.id} className="flex items-center justify-between gap-4 py-3">
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900">{member.profile?.full_name || "Name not set"}</p>
+                <p className="truncate text-sm text-slate-600">{member.profile?.email || "No email"}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-4 text-sm">
+                <span className="text-slate-600">{member.role === "admin" ? "Owner" : "Member"}</span>
+                {member.role !== "admin" && (
+                  <button onClick={() => removeMember(member)} className="font-semibold text-red-700 hover:underline">
+                    Remove
+                  </button>
+                )}
+              </div>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <h3 className="mt-10 text-lg font-semibold text-brand-navy">Invite a Colleague</h3>
+      <p className="mt-1 text-[15px] text-slate-700">
+        No email is sent. The invitation appears when your colleague logs in or
+        signs up with <strong>exactly</strong> the address you enter here, so
+        double-check it.
+      </p>
+      <form
+        className="mt-3 flex flex-col gap-3 sm:flex-row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          inviteMember();
+        }}
+      >
+        <label className="sr-only" htmlFor="invite-email">Colleague&apos;s email address</label>
+        <input
+          id="invite-email"
+          type="email"
+          value={inviteEmail}
+          onChange={(e) => setInviteEmail(e.target.value)}
+          placeholder="name@organization.org"
+          className="flex-1 border border-slate-300 px-3 py-2.5 text-[15px] focus:border-brand-dukeblue"
+        />
+        <button type="submit" disabled={inviting} className="btn btn-primary">
+          {inviting ? "Inviting…" : "Invite"}
+        </button>
+      </form>
+      {inviteMsg && (
+        <p role="status" className={`mt-2 text-sm ${inviteMsg.ok ? "text-brand-darkteal" : "text-red-700"}`}>
+          {inviteMsg.text}
+        </p>
+      )}
+
+      {invites && invites.length > 0 && (
+        <>
+          <h3 className="mt-8 text-sm font-semibold text-slate-800">Pending Invitations</h3>
+          <ul className="mt-2 divide-y divide-slate-200 border-y border-slate-200">
+            {invites.map((inv) => (
+              <li key={inv.id} className="flex items-center justify-between gap-4 py-2.5 text-[15px]">
+                <span className="truncate">{inv.email}</span>
+                <button
+                  onClick={() => cancelInvite(inv.id, inv.email)}
+                  className="shrink-0 text-sm font-semibold text-red-700 hover:underline"
+                >
+                  Cancel invitation
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm text-slate-600">
+            Wrong address? Cancel the invitation and send a new one.
+          </p>
+        </>
+      )}
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import AuthCard from "@/_components/auth/AuthCard";
 
@@ -58,29 +57,19 @@ export default function LoginPage() {
   }
 
   const inputClass =
-    "h-12 w-full rounded-lg border border-slate-300 bg-white px-3.5 text-base text-slate-900 placeholder:text-slate-400 transition hover:border-slate-400 focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-600/20";
+    "h-12 w-full rounded-md border border-slate-300 bg-white px-3.5 text-base text-slate-900 placeholder:text-slate-400 transition hover:border-slate-400 focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-600/20";
 
   return (
     <AuthCard
-      title="Welcome back"
-      subtitle="Sign in to access your organization's assessments, reports, and insights."
-      footer={
-        <>
-          Don't have an account?{" "}
-          <Link
-            href="/signup"
-            className="font-semibold text-blue-600 hover:underline"
-          >
-            Create one
-          </Link>
-        </>
-      }
+      title="Log In"
+      subtitle="Use the email address and password you registered with."
+      secondary={{ href: "/signup", label: "Create an Account", lead: "New to Innovator Insights?" }}
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         {error ? (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+            className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
           >
             <svg
               className="mt-0.5 shrink-0"
@@ -145,7 +134,7 @@ export default function LoginPage() {
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
-              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-dukeblue"
             >
               {showPassword ? (
                 <svg
@@ -187,15 +176,15 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-lg bg-blue-600 text-[15px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-600/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-sm bg-brand-navy text-[15px] font-bold text-white transition hover:bg-brand-dukeblue focus:outline-none focus:ring-4 focus:ring-brand-navy/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <>
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              Signing in…
+              Logging in…
             </>
           ) : (
-            "Sign In"
+            "Log In"
           )}
         </button>
       </form>
