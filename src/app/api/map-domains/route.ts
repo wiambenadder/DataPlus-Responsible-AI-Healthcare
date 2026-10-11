@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 ## System Role
 
 You are an expert qualitative researcher analysing interviews, reports,
-PDFs and organisational documentation about AI health tools.
+PDFs and organizational documentation about AI health tools.
 
 Your task is to extract evidence into a **fixed assessment framework**.
 The framework consists of predefined Domains and Subpoints. Do **not**
@@ -217,10 +217,10 @@ exists and is reviewed.
 
 ### D1.6 Data Standards & Metadata
 
-Definition: Evidence relating to recognised standards (FHIR, HL7 etc.)
+Definition: Evidence relating to recognized standards (FHIR, HL7 etc.)
 and documented metadata.
 
-Measured if: A recognised standard is documented and in use.
+Measured if: A recognized standard is documented and in use.
 
 ## D2 --- Model Development
 

@@ -5,36 +5,35 @@ import SiteHeader from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
 
 /*
- * Fonts match the Duke Global Health Institute website and are
- * self-hosted (files in ./fonts, SIL Open Font License):
- *   Work Sans — text, navigation, buttons and forms
- *   Spectral  — page and section headings
+ * Duke University brand typefaces (brand.duke.edu/typography), self-hosted
+ * from ./fonts under the SIL Open Font License:
+ *   Open Sans   — text, navigation, buttons and forms
+ *   EB Garamond — page and section headings
  */
-const workSans = localFont({
+const openSans = localFont({
   src: [
-    { path: "./fonts/work-sans-latin-wght-normal.woff2", style: "normal" },
-    { path: "./fonts/work-sans-latin-wght-italic.woff2", style: "italic" },
+    { path: "./fonts/open-sans-latin-wght-normal.woff2", style: "normal" },
+    { path: "./fonts/open-sans-latin-wght-italic.woff2", style: "italic" },
   ],
-  weight: "100 900",
+  weight: "300 800",
   display: "swap",
-  variable: "--font-work-sans",
+  variable: "--font-open-sans",
 });
 
-const spectral = localFont({
+const ebGaramond = localFont({
   src: [
-    { path: "./fonts/spectral-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/spectral-latin-400-italic.woff2", weight: "400", style: "italic" },
-    { path: "./fonts/spectral-latin-600-normal.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/spectral-latin-600-italic.woff2", weight: "600", style: "italic" },
+    { path: "./fonts/eb-garamond-latin-wght-normal.woff2", style: "normal" },
+    { path: "./fonts/eb-garamond-latin-wght-italic.woff2", style: "italic" },
   ],
+  weight: "400 800",
   display: "swap",
-  variable: "--font-spectral",
+  variable: "--font-eb-garamond",
 });
 
 export const metadata: Metadata = {
   title: "Innovator Insights",
   description:
-    "Evidence-based assessment of AI readiness for health innovators.",
+    "Tools for responsible AI in global health, from Innovations in Healthcare.",
 };
 
 export default function RootLayout({
@@ -45,11 +44,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${workSans.variable} ${spectral.variable} h-full font-sans antialiased`}
+      className={`${openSans.variable} ${ebGaramond.variable} h-full font-sans antialiased`}
     >
       <body
         suppressHydrationWarning
-        className="flex min-h-screen flex-col bg-white text-slate-900"
+        className="flex min-h-screen flex-col bg-white text-ink"
       >
         <a
           href="#main-content"

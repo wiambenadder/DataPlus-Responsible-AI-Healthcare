@@ -13,9 +13,9 @@ const supabase = createClient(
  *  - `qualitative_responses.Subtopic` is capitalized in the schema, so it
  *    must be quoted in the select string.
  *  - `domain_mapping.subtopic` is lowercase.
- * If a `created_at` column exists on `qualitative_responses`, add
- * `.order("created_at", { ascending: true })` so the transform's
- * "last row wins" rule means "latest wins".
+ * Responses are sorted oldest first by `created_at` (when present) so the
+ * transform's "last row wins" rule means "latest wins" — the same rule as
+ * the home and results pages.
  */
 export async function fetchRoadmapData(companyId: string): Promise<{
   responses: QualitativeResponseRow[];
@@ -24,9 +24,7 @@ export async function fetchRoadmapData(companyId: string): Promise<{
   const [responsesRes, mappingsRes] = await Promise.all([
     supabase
       .from("qualitative_responses")
-      .select(
-        'id, company_id, question, answer, domain, "Subtopic", ai_assessment, ai_reasoning, reporting_period, bullet_point_summary',
-      )
+      .select("*")
       .eq("company_id", companyId),
     supabase
       .from("domain_mapping")
@@ -40,7 +38,11 @@ export async function fetchRoadmapData(companyId: string): Promise<{
   if (mappingsRes.error) throw mappingsRes.error;
 
   return {
-    responses: (responsesRes.data ?? []) as QualitativeResponseRow[],
+    responses: [...((responsesRes.data ?? []) as (QualitativeResponseRow & { created_at?: string | null })[])].sort(
+      (a, b) =>
+        (a.created_at ? new Date(a.created_at).getTime() : 0) -
+        (b.created_at ? new Date(b.created_at).getTime() : 0),
+    ),
     mappings: (mappingsRes.data ?? []) as DomainMappingRow[],
   };
 }

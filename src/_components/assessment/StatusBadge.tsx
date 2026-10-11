@@ -1,5 +1,6 @@
 import { STATUS_META, type Status } from "@/lib/assessment";
 
+/** Flat status tag, shared by the results and roadmap pages. */
 export default function StatusBadge({
   status,
   size = "md",
@@ -10,11 +11,10 @@ export default function StatusBadge({
   const meta = STATUS_META[status];
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded border font-semibold ${
-        size === "sm" ? "px-1.5 py-0.5 text-[11px]" : "px-2 py-0.5 text-xs"
+      className={`inline-block shrink-0 whitespace-nowrap rounded-sm font-bold ${
+        size === "sm" ? "px-1.5 py-0.5 text-[11px]" : "px-2.5 py-0.5 text-[13px]"
       } ${meta.badge}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} aria-hidden />
       {meta.label}
     </span>
   );

@@ -196,17 +196,17 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <div className="border-b border-slate-200 bg-slate-50">
+      <div className="border-b border-slate-200 bg-whisper">
         <div className="mx-auto max-w-5xl px-4 pb-8 pt-6 sm:px-6">
           <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
             <Link href="/" className="hover:underline">Home</Link>
             <span className="mx-2" aria-hidden>›</span>
-            <span>Your submissions</span>
+            <span>Your Submissions</span>
           </nav>
-          <p className="label-caps mt-6">Submit evidence</p>
-          <h1 className="mt-2 text-4xl">Your submissions</h1>
+          <p className="label-caps mt-6">Submit Evidence</p>
+          <h1 className="mt-2 text-4xl">Your Submissions</h1>
           <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
-            Everything your organisation has sent so far: your answers by
+            Everything your organization has sent so far: your answers by
             reporting period, and the documents you uploaded.{" "}
             <Link href="/report/assessment" className="font-semibold text-brand-dukeblue underline underline-offset-2">
               Edit your answers
@@ -219,7 +219,7 @@ export default function HistoryPage() {
         {/* The company background report section is switched off; see git history to restore it. */}
 
         <section aria-labelledby="answers-title">
-          <h2 id="answers-title" className="text-3xl">Your answers</h2>
+          <h2 id="answers-title" className="text-3xl">Your Answers</h2>
 
           {periods.length === 0 ? (
             <p className="mt-4 text-slate-600">No answers submitted yet.</p>
@@ -275,7 +275,7 @@ export default function HistoryPage() {
         </section>
 
         <section aria-labelledby="docs-title">
-          <h2 id="docs-title" className="text-3xl">Uploaded documents</h2>
+          <h2 id="docs-title" className="text-3xl">Uploaded Documents</h2>
 
           {uploads.length === 0 ? (
             <p className="mt-4 text-slate-600">No documents uploaded yet.</p>

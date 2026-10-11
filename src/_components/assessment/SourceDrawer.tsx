@@ -85,7 +85,7 @@ export default function SourceDrawer({
                 What the platform extracted from this document
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                Summarised by the platform, not a direct quote. Check it against
+                Summarized by the platform, not a direct quote. Check it against
                 the original document.
               </p>
               <p className="mt-3 whitespace-pre-line border-l-2 border-slate-300 pl-4 text-[15px] leading-relaxed text-slate-800">

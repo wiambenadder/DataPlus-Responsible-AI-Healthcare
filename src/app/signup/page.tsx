@@ -67,9 +67,9 @@ export default function SignupPage() {
 
   return (
     <AuthCard
-      title="Create your account"
-      subtitle="Any email address works. You'll set up or join your organisation next."
-      secondary={{ href: "/login", label: "Log in instead", lead: "Already have an account?" }}
+      title="Create an Account"
+      subtitle="Any email address works. You'll set up or join your organization next."
+      secondary={{ href: "/login", label: "Log In Instead", lead: "Already have an account?" }}
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         {error ? (
@@ -140,7 +140,7 @@ export default function SignupPage() {
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
-              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-dukeblue"
             >
               {showPassword ? (
                 <svg
@@ -182,7 +182,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-md bg-blue-600 text-[15px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-600/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-sm bg-brand-navy text-[15px] font-bold text-white transition hover:bg-brand-dukeblue focus:outline-none focus:ring-4 focus:ring-brand-navy/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <>
@@ -190,7 +190,7 @@ export default function SignupPage() {
               Creating account…
             </>
           ) : (
-            "Create account"
+            "Create Account"
           )}
         </button>
       </form>

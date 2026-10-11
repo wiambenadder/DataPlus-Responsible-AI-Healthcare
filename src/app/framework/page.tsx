@@ -7,16 +7,16 @@ import { DOMAIN_INFO, MEETS_RULE } from "@/lib/domain-info";
 import { STATUS_META, STATUS_ORDER, CONFIDENCE_META, slugify } from "@/lib/assessment";
 
 export const metadata: Metadata = {
-  title: "The framework explained · Innovator Insights",
+  title: "The Framework · Innovator Insights",
 };
 
 const SECTIONS = [
-  { id: "overview", title: "What the assessment is" },
-  { id: "domains", title: "The five domains" },
-  { id: "rating", title: "How a criterion is rated" },
-  { id: "results", title: "What each result means" },
-  { id: "roadmap", title: "Roadmap stages and thresholds" },
-  { id: "process", title: "How your evidence is processed" },
+  { id: "overview", title: "What the Assessment Is" },
+  { id: "domains", title: "The Five Domains" },
+  { id: "rating", title: "How a Practice Is Rated" },
+  { id: "results", title: "What Each Result Means" },
+  { id: "roadmap", title: "Roadmap Stages and Thresholds" },
+  { id: "process", title: "How Your Evidence Is Processed" },
 ];
 
 function definitionOf(domain: string, subtopic: string) {
@@ -34,21 +34,21 @@ export default function FrameworkPage() {
   return (
     <InfoLayout
       label="Help"
-      title="The framework explained"
+      title="The Framework"
       lede={
         <p>
           Innovator Insights uses Innovations in Healthcare&apos;s AI readiness
-          framework: {total} criteria in five domains that follow an AI tool from
+          framework: {total} practices in five domains that follow an AI tool from
           the data it learns from to its long-term future. This page explains what
           each part means and how results are worked out.
         </p>
       }
       sections={SECTIONS}
     >
-      <InfoSection id="overview" title="What the assessment is">
+      <InfoSection id="overview" title="What the Assessment Is">
         <p>
           You share documents about your tool and answer questions about how you
-          build and run it. Each of the {total} criteria is then rated against what
+          build and run it. Each of the {total} practices is then rated against what
           you shared, and every result shows the evidence and source it is based
           on.
         </p>
@@ -56,14 +56,14 @@ export default function FrameworkPage() {
           The assessment is a <strong>decision aid</strong>: it shows which
           practices your material already evidences and what to work on next. It
           is not a certification, an approval or a ranking against other
-          organisations.
+          organizations.
         </p>
       </InfoSection>
 
-      <InfoSection id="domains" title="The five domains">
+      <InfoSection id="domains" title="The Five Domains">
         <p>
-          Each domain groups related criteria (sometimes called subdomains). Open a
-          domain to see what each of its criteria looks for.
+          Each domain groups related practices (sometimes called subdomains). Open a
+          domain to see what each of its practices looks for.
         </p>
         <div className="mt-6 space-y-4">
           {DOMAINS.map((d, i) => (
@@ -75,12 +75,12 @@ export default function FrameworkPage() {
               <summary className="flex cursor-pointer list-none items-start justify-between gap-4 bg-slate-50 px-5 py-4 hover:bg-slate-100">
                 <span>
                   <span className="label-caps">Domain {i + 1}</span>
-                  <span className="mt-1 block font-serif text-2xl font-semibold text-brand-navy">{d.name}</span>
+                  <span className="mt-1 block font-serif text-2xl font-medium text-brand-navy">{d.name}</span>
                   <span className="mt-1 block text-[15px] text-slate-700">{DOMAIN_INFO[d.name]?.short}</span>
                 </span>
                 <span className="mt-6 shrink-0 text-sm font-semibold text-brand-dukeblue">
-                  <span className="group-open:hidden">Show {d.subdomains.length} criteria</span>
-                  <span className="hidden group-open:inline">Hide criteria</span>
+                  <span className="group-open:hidden">Show {d.subdomains.length} practices</span>
+                  <span className="hidden group-open:inline">Hide practices</span>
                 </span>
               </summary>
               <div className="px-5 pb-5 pt-4">
@@ -99,7 +99,7 @@ export default function FrameworkPage() {
         </div>
       </InfoSection>
 
-      <InfoSection id="rating" title="How a criterion is rated">
+      <InfoSection id="rating" title="How a Practice Is Rated">
         <p>{MEETS_RULE.summary}</p>
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="border-t-4 border-brand-darkteal bg-slate-50 p-5">
@@ -122,28 +122,28 @@ export default function FrameworkPage() {
         <p>
           The rating checks whether a practice <em>exists</em>, not how mature or
           effective it is. If a result looks wrong — for example you answered a
-          question but it shows as not met — tell us under that criterion on your{" "}
-          <Link href="/dashboard" className="link-more">dashboard</Link>. Feedback goes
+          question but it shows as not met — tell us under that practice on your{" "}
+          <Link href="/dashboard" className="link-more">Results page</Link>. Feedback goes
           to the platform team.
         </p>
       </InfoSection>
 
-      <InfoSection id="results" title="What each result means">
+      <InfoSection id="results" title="What Each Result Means">
         <dl className="divide-y divide-slate-200 border-y border-slate-200">
           {STATUS_ORDER.map((s) => (
             <div key={s} className="grid gap-1 py-3 sm:grid-cols-[14rem_1fr] sm:gap-6">
               <dt className="flex items-center gap-2 font-semibold text-slate-900">
-                <span className={`h-2.5 w-2.5 rounded-full ${STATUS_META[s].dot}`} aria-hidden />
+                <span className={`h-2.5 w-2.5 ${STATUS_META[s].dot}`} aria-hidden />
                 {STATUS_META[s].label}
               </dt>
               <dd className="text-[15px] text-slate-700">
                 {
                   {
-                    meets: "Your material describes a practice that is in place for this criterion.",
-                    partial: "Your material covers part of the criterion but not all of it. (The rating step doesn't produce this result yet.)",
-                    not_met: "There is material on this criterion, but it doesn't show a practice in place — including when you told us you don't do this yet.",
-                    not_reported: "Nothing you've submitted covers this criterion, so it hasn't been assessed.",
-                    needs_verification: "There is evidence that hasn't been rated yet, or someone reported that the result rests on the wrong source or organisation.",
+                    meets: "Your material describes something already in place for this practice.",
+                    partial: "Your material covers part of the practice but not all of it. (The rating step doesn't produce this result yet.)",
+                    not_met: "There is material on this practice, but it doesn't show it in place, including when you told us you don't do this yet.",
+                    not_reported: "Nothing you've submitted covers this practice, so it hasn't been assessed.",
+                    needs_verification: "There is evidence that hasn't been rated yet, or someone reported that the result rests on the wrong source or organization.",
                   }[s]
                 }
               </dd>
@@ -160,20 +160,20 @@ export default function FrameworkPage() {
         </ul>
       </InfoSection>
 
-      <InfoSection id="roadmap" title="Roadmap stages and thresholds">
+      <InfoSection id="roadmap" title="Roadmap Stages and Thresholds">
         <p>
-          The roadmap groups the criteria into six stages, roughly in the order an
-          AI tool matures. Some criteria appear in more than one stage because they
+          The roadmap groups the practices into six stages, roughly in the order an
+          AI tool matures. Some practices appear in more than one stage because they
           matter again later.
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            A stage is <strong>complete</strong> when every criterion in it is met.
+            A stage is <strong>complete</strong> when every practice in it is met.
           </li>
           <li>
             You are <strong>ready to move on</strong> from a stage once at least{" "}
-            {threshold}% of its criteria are met, while you close the remaining gaps.
-            This threshold is provisional and may change as scoring is finalised.
+            {threshold}% of its practices are met, while you close the remaining gaps.
+            This threshold is provisional and may change as scoring is finalized.
           </li>
           <li>
             Your <strong>current stage</strong> is the first stage that isn&apos;t complete.
@@ -186,10 +186,10 @@ export default function FrameworkPage() {
             return (
               <li key={stage.id} className="border-l-4 border-brand-navy pl-5">
                 <p className="label-caps">Stage {stage.id}</p>
-                <p className="mt-1 font-serif text-2xl font-semibold text-brand-navy">{stage.name}</p>
+                <p className="mt-1 font-serif text-2xl font-medium text-brand-navy">{stage.name}</p>
                 <p className="mt-1 text-[15px] text-slate-700">{stage.description}</p>
                 <p className="mt-2 text-[15px] text-slate-800">
-                  <strong>{items.length} criteria.</strong> Ready to move on at {needed} met;
+                  <strong>{items.length} practices.</strong> Ready to move on at {needed} met;
                   complete at {items.length} met.
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
@@ -201,24 +201,24 @@ export default function FrameworkPage() {
         </ol>
       </InfoSection>
 
-      <InfoSection id="process" title="How your evidence is processed">
+      <InfoSection id="process" title="How Your Evidence Is Processed">
         <ol className="list-decimal space-y-3 pl-5">
           <li>
             <strong>Text is read from your documents.</strong> Each PDF you upload
             is converted to text.
           </li>
           <li>
-            <strong>Evidence is sorted into criteria.</strong> An AI model finds what
-            the text says about each criterion and writes a short summary of it, with
+            <strong>Evidence is sorted into practices.</strong> An AI model finds what
+            the text says about each practice and writes a short summary of it, with
             a confidence score. Evidence below 50% confidence is left out.
           </li>
           <li>
             <strong>You&apos;re only asked about the gaps.</strong> Questions are shown
-            only for criteria your documents didn&apos;t cover.
+            only for practices your documents didn&apos;t cover.
           </li>
           <li>
-            <strong>Each criterion is rated.</strong> An AI model applies the rules
-            above to the evidence for that criterion and explains its decision in a
+            <strong>Each practice is rated.</strong> An AI model applies the rules
+            above to the evidence for that practice and explains its decision in a
             sentence or two.
           </li>
           <li>

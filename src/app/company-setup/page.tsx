@@ -220,10 +220,10 @@ export default function CompanySetupPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <p className="label-caps">Getting started</p>
-      <h1 className="mt-2 text-4xl">Set up your organisation</h1>
+      <p className="label-caps">Getting Started</p>
+      <h1 className="mt-2 text-4xl">Set Up Your Organization</h1>
       <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
-        Your assessment belongs to your organisation, so everyone on your team
+        Your assessment belongs to your organization, so everyone on your team
         sees the same results.
       </p>
 
@@ -235,7 +235,7 @@ export default function CompanySetupPage() {
             </p>
             <p className="mt-1 text-[15px] text-slate-700">
               Join to see and work on their assessment, or dismiss the invitation
-              to create a new organisation.
+              to create a new organization.
             </p>
           </div>
           <div className="mt-4 flex shrink-0 gap-3 sm:mt-0">
@@ -249,7 +249,7 @@ export default function CompanySetupPage() {
         </div>
       ) : !checkingInvite ? (
         <div className="mt-8 border-l-4 border-slate-300 bg-slate-50 p-5 text-[15px] text-slate-700">
-          <p className="font-semibold text-slate-900">Is your organisation already on the platform?</p>
+          <p className="font-semibold text-slate-900">Is your organization already on the platform?</p>
           <p className="mt-1">
             Don&apos;t create it again. Ask a colleague who has an account to invite
             you from <strong>Account → Company and team</strong>, using exactly the
@@ -259,10 +259,10 @@ export default function CompanySetupPage() {
         </div>
       ) : null}
 
-      <h2 className="mt-10 text-2xl">Create a new organisation</h2>
+      <h2 className="mt-10 text-2xl">Create a New Organization</h2>
       <div className="mt-4 space-y-5 border-t border-slate-200 pt-6">
         <label className={label}>
-          Organisation name
+          Organization name
           <input className={field} value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
         </label>
 
@@ -288,7 +288,7 @@ export default function CompanySetupPage() {
         </div>
 
         <label className={label}>
-          Organisation type
+          Organization type
           <select className={field} value={organizationType} onChange={(e) => setOrganizationType(e.target.value)}>
             <option value="">Choose one</option>
             <option value="For-Profit">For-profit</option>
@@ -297,7 +297,7 @@ export default function CompanySetupPage() {
         </label>
 
         <button onClick={createCompany} className="btn btn-primary">
-          Create organisation
+          Create Organization
         </button>
       </div>
     </div>

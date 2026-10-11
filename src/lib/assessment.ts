@@ -64,38 +64,42 @@ export type Status =
   | "not_reported"
   | "needs_verification";
 
+/**
+ * Flat status tags. `badge` is the tag's colours; `dot` is the solid
+ * colour used for the at-a-glance squares on the results page.
+ */
 export const STATUS_META: Record<
   Status,
   { label: string; badge: string; dot: string; order: number }
 > = {
   meets: {
     label: "Meets criterion",
-    badge: "border-brand-darkteal/30 bg-[#e7f2f2] text-brand-darkteal",
-    dot: "bg-brand-darkteal",
+    badge: "bg-[#d9ece9] text-[#174f4f]",
+    dot: "bg-brand-teal",
     order: 0,
   },
   partial: {
     label: "Partially meets",
-    badge: "border-brand-bronze/35 bg-[#fbf1e4] text-[#7d4708]",
-    dot: "bg-brand-bronze",
+    badge: "bg-[#fbefc9] text-[#6e5200]",
+    dot: "bg-[#F2C14E]",
     order: 1,
   },
   not_met: {
     label: "Does not currently meet",
-    badge: "border-[#a63a1b]/30 bg-[#f9ebe6] text-[#8c2d12]",
-    dot: "bg-[#a63a1b]",
+    badge: "bg-[#f8ddd0] text-[#8f3800]",
+    dot: "bg-brand-copper",
     order: 2,
   },
   not_reported: {
     label: "Not reported",
-    badge: "border-slate-300 bg-slate-100 text-slate-700",
-    dot: "bg-slate-400",
+    badge: "bg-slate-100 text-slate-700",
+    dot: "bg-slate-300",
     order: 3,
   },
   needs_verification: {
     label: "Needs verification",
-    badge: "border-brand-dukeblue/30 bg-blue-50 text-brand-dukeblue",
-    dot: "bg-brand-dukeblue",
+    badge: "bg-[#dbeaf6] text-[#04477a]",
+    dot: "bg-brand-shale",
     order: 4,
   },
 };
@@ -110,7 +114,7 @@ export const STATUS_ORDER: Status[] = [
 
 /**
  * The assessment step currently writes "Practiced" / "Not Practiced".
- * "Partial…" is recognised so a three-level rating shows up correctly as
+ * "Partial…" is recognized so a three-level rating shows up correctly as
  * soon as the assessment prompt starts producing it.
  */
 export function statusFromRating(rating: string | null | undefined): Status | null {
@@ -427,7 +431,7 @@ export function buildResults(args: {
 /* Explanations                                                        */
 /* ------------------------------------------------------------------ */
 
-/** One or two sentences on how the evidence maps to the criterion. */
+/** One or two sentences on how the evidence maps to the practice. */
 export function whyThisResult(
   status: Status,
   opts: { disputed: boolean; hasEvidence: boolean }
@@ -437,14 +441,14 @@ export function whyThisResult(
   }
   switch (status) {
     case "meets":
-      return "The evidence describes a practice or process that is already in place for this criterion, so the criterion is counted as met. The framework checks that a practice exists, not how mature it is.";
+      return "The evidence describes a process, policy or activity that is already in place, so the practice is counted as met. The framework checks that a practice exists, not how mature it is.";
     case "partial":
-      return "The evidence covers part of this criterion but leaves parts of it unaddressed.";
+      return "The evidence covers part of this practice but leaves parts of it unaddressed.";
     case "not_met":
-      return "The evidence does not describe a practice that is already in place for this criterion. This can also mean the relevant work wasn't covered in the material provided — when the evidence is unclear, the platform does not count the criterion as met.";
+      return "The evidence does not describe anything already in place for this practice. This can also mean the relevant work wasn't covered in the material provided; when the evidence is unclear, the platform does not count the practice as met.";
     case "needs_verification":
       return opts.hasEvidence
-        ? "Evidence for this criterion is on file but has not been rated yet."
+        ? "Evidence for this practice is on file but has not been rated yet."
         : "This result needs to be checked before it is relied on.";
     case "not_reported":
     default:

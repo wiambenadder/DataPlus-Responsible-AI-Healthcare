@@ -1,7 +1,9 @@
 import Link from "next/link";
+import Photo from "@/components/Photo";
 import { slugify } from "@/lib/assessment";
-import { DOMAIN_INFO } from "@/lib/domain-info";
-import type { DomainId } from "@/lib/roadmap/framework";
+import { domainStyle } from "@/lib/domain-info";
+import { ADVANCE_THRESHOLD, type DomainId } from "@/lib/roadmap/framework";
+import type { RoadmapModel } from "@/lib/roadmap/types";
 
 export interface DomainProgress {
   domainId: DomainId;
@@ -11,198 +13,275 @@ export interface DomainProgress {
   total: number;
 }
 
+export interface HomeSummary {
+  firstName: string | null;
+  domainProgress: DomainProgress[];
+  documents: string[];
+  answers: number;
+  lastUpdated: Date | null;
+  team: string[];
+  commentsThisWeek: number;
+  roadmap: RoadmapModel;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Signed-in home page, laid out like a DGHI page: a title band, a row of
- * large figures with links (as on the DGHI home page), results by
- * domain, and next steps as labelled cards.
+ * Signed-in home page: a grey title band with the company and the overall
+ * figure, the five domains, next steps and the team.
  */
-export default function HomeView({
-  company,
-  reportCount,
-  domainProgress,
-}: {
-  company: any;
-  reportCount: number;
-  domainProgress: DomainProgress[];
-}) {
-  const name = company?.company_name ?? company?.name ?? "Your organisation";
+export default function HomeView({ company, summary }: { company: any; summary: HomeSummary }) {
+  const name = company?.company_name ?? company?.name ?? "Your organization";
   const orgType = company?.organization_type ?? company?.org_type;
   const established = company?.year_established ?? company?.established;
+  const staff = staffCount(company?.full_time_staff, company?.part_time_staff);
 
   const facts = [
     orgType,
     company?.country,
-    established ? `Established ${established}` : null,
-    staffLine(company?.full_time_staff, company?.part_time_staff),
+    established ? `Founded ${established}` : null,
+    staff,
   ].filter(Boolean);
 
+  const { domainProgress } = summary;
   const met = domainProgress.reduce((n, d) => n + d.practiced, 0);
   const assessed = domainProgress.reduce((n, d) => n + d.assessed, 0);
   const total = domainProgress.reduce((n, d) => n + d.total, 0);
-  const hasReports = reportCount > 0;
+  const pct = total ? Math.round((met / total) * 100) : 0;
+  const noEvidence = total - assessed;
+  const hasData = assessed > 0 || summary.documents.length > 0;
 
-  const stats = [
-    {
-      figure: `${met}`,
-      label: `of ${total} criteria met`,
-      href: "/dashboard",
-      cta: "See your results",
-    },
-    {
-      figure: `${total - assessed}`,
-      label: total - assessed === 1 ? "criterion with no evidence yet" : "criteria with no evidence yet",
-      href: "/report/assessment",
-      cta: hasReports ? "Add or update answers" : "Start your assessment",
-    },
-    {
-      figure: "6",
-      label: "roadmap stages to work through",
-      href: "/roadmap",
-      cta: "Open your roadmap",
-    },
-  ];
-
-  const nextSteps = [
-    {
-      label: "Submit evidence",
-      href: "/report/assessment",
-      title: hasReports ? "Update your assessment" : "Start your assessment",
-      body: hasReports
-        ? "Change an answer or fill in criteria that have no evidence yet."
-        : "Upload documents about your tool, then answer questions on anything they don't cover.",
-      cta: hasReports ? "Update answers" : "Get started",
-    },
-    {
-      label: "Check your results",
-      href: "/dashboard",
-      title: "See the evidence behind every result",
-      body: "Each criterion shows what it was based on and where that came from. Tell us when something is wrong.",
-      cta: "Open dashboard",
-    },
-    {
-      label: "Learn the framework",
-      href: "/framework",
-      title: "What each domain and criterion means",
-      body: "Plain-language explanations, what counts as met, and the thresholds for each roadmap stage.",
-      cta: "Read the explainer",
-    },
-  ];
+  const stage = summary.roadmap.stages.find((s) => s.id === summary.roadmap.currentStageId)!;
+  const needed = Math.ceil(stage.totalCount * ADVANCE_THRESHOLD);
+  const toGo = Math.max(0, needed - stage.practicedCount);
+  const open = stage.domainGroups
+    .flatMap((g) => g.subdomains)
+    .filter((s) => s.status === "no_data" || s.status === "not_practiced")
+    .map((s) => s.name);
 
   return (
     <div>
       {/* Title band */}
-      <div className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 lg:px-8">
-          <p className="label-caps">Welcome back</p>
-          <h1 className="mt-2 text-4xl sm:text-5xl">{name}</h1>
-          {facts.length > 0 && (
-            <p className="mt-3 text-[16px] text-slate-700">{facts.join(" · ")}</p>
-          )}
+      <div className="border-b border-slate-200 bg-whisper">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1fr_auto] md:items-end lg:px-8">
+          <div>
+            <p className="label-caps">
+              {summary.firstName ? `Welcome back, ${summary.firstName}` : "Welcome back"}
+            </p>
+            <h1 className="mt-2 text-4xl sm:text-5xl">{name}</h1>
+            {facts.length > 0 && (
+              <p className="mt-3 text-[15px] text-slate-700">{facts.join("  ·  ")}</p>
+            )}
+            <p className="mt-1 text-[14.5px] text-slate-600">{sourceLine(summary)}</p>
+          </div>
+
+          <div className="md:text-right">
+            <p className="font-serif leading-none text-brand-navy">
+              <span className="text-7xl">{met}</span>
+              <span className="ml-2 text-4xl text-slate-500">of {total}</span>
+            </p>
+            <p className="mt-2 text-[15px] text-slate-700">
+              practices met <span className="text-slate-500">({pct} percent)</span>
+            </p>
+            <Link href="/dashboard" className="link-more mt-2 inline-block text-[15px]">
+              See all results ›
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Figures */}
-      <section aria-label="At a glance" className="bg-brand-navy text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:px-8">
-          {stats.map((s) => (
-            <div key={s.cta} className="border-l-4 border-brand-teal pl-5">
-              <p className="font-serif text-5xl font-semibold leading-none">{s.figure}</p>
-              <p className="mt-2 text-[16px] text-white/85">{s.label}</p>
-              <Link
-                href={s.href}
-                className="mt-3 inline-block text-sm font-semibold uppercase tracking-[0.08em] text-white underline decoration-white/40 underline-offset-4 hover:decoration-white"
-              >
-                {s.cta} ›
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        {/* Results by domain */}
-        <section aria-labelledby="results-heading">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="label-caps">Your results</p>
-              <h2 id="results-heading" className="mt-1 text-3xl">
-                Results by domain
-              </h2>
-            </div>
-            <Link href="/dashboard" className="link-more">
-              Open full results
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Domains */}
+        <section className="mt-12" aria-labelledby="domains-heading">
+          <div className="section-head">
+            <h2 id="domains-heading">Your Five Domains</h2>
+            <Link href="/framework#domains" className="link-more">
+              What the domains mean ›
             </Link>
           </div>
-
-          <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
-            {domainProgress.map((d, i) => (
-              <li key={d.domainId}>
-                <Link
-                  href={`/dashboard#${slugify(d.name)}`}
-                  className="group grid gap-2 py-5 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center sm:gap-10"
-                >
-                  <span>
-                    <span className="text-sm font-semibold text-slate-500">Domain {i + 1}</span>
-                    <span className="block font-serif text-2xl font-semibold text-brand-navy group-hover:underline">
+          <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
+            {domainProgress.map((d, i) => {
+              const st = domainStyle(d.name);
+              return (
+                <li key={d.domainId}>
+                  <Link
+                    href={`/dashboard#${slugify(d.name)}`}
+                    className="group block border-t-4 pt-3"
+                    style={{ borderTopColor: st.accent }}
+                  >
+                    <span
+                      className="block text-[0.75rem] font-bold uppercase tracking-[0.1em]"
+                      style={{ color: st.text }}
+                    >
+                      Domain {i + 1}
+                    </span>
+                    <span className="block text-lg font-bold text-ink group-hover:underline">
                       {d.name}
                     </span>
-                    <span className="mt-0.5 block text-[15px] text-slate-700">{DOMAIN_INFO[d.name]?.short}</span>
-                  </span>
-                  <span>
-                    <span className="block text-[15px] font-semibold text-slate-900">
-                      {d.practiced} of {d.total} met
-                    </span>
+                    <span className="block min-h-[3rem] text-[14.5px] text-slate-600">{st.tagline}</span>
                     <span
-                      className="mt-2 block h-2 w-full bg-slate-200"
+                      className="mt-3 block h-1.5 bg-slate-200"
                       role="img"
-                      aria-label={`${d.practiced} of ${d.total} criteria met`}
+                      aria-label={`${d.practiced} of ${d.total} practices met`}
                     >
                       <span
-                        className="block h-full bg-brand-teal"
-                        style={{ width: `${d.total ? (d.practiced / d.total) * 100 : 0}%` }}
+                        className="block h-full"
+                        style={{
+                          width: `${d.total ? (d.practiced / d.total) * 100 : 0}%`,
+                          background: st.accent,
+                        }}
                       />
                     </span>
-                    <span className="mt-1 block text-xs text-slate-600">
-                      {d.assessed} of {d.total} have evidence
+                    <span className="mt-2 block text-[14.5px] text-ink">
+                      <strong>
+                        {d.practiced} of {d.total}
+                      </strong>{" "}
+                      met
+                      {d.total - d.assessed > 0 && (
+                        <span className="text-slate-500"> · {d.total - d.assessed} no evidence</span>
+                      )}
                     </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </section>
 
         {/* Next steps */}
-        <section aria-labelledby="next-heading" className="mt-16">
-          <p className="label-caps">Next steps</p>
-          <h2 id="next-heading" className="mt-1 text-3xl">
-            Where to go from here
-          </h2>
-          <ul className="mt-6 grid gap-6 md:grid-cols-3">
-            {nextSteps.map((s) => (
-              <li key={s.href} className="flex flex-col border-t-4 border-brand-navy bg-slate-50 p-6">
-                <p className="label-caps">{s.label}</p>
-                <h3 className="mt-2 font-serif text-2xl font-semibold leading-snug text-brand-navy">{s.title}</h3>
-                <p className="mt-2 flex-1 text-[15px] text-slate-700">{s.body}</p>
-                <Link href={s.href} className="btn btn-primary mt-5 self-start">
-                  {s.cta}
+        <section className="mt-16" aria-labelledby="next-heading">
+          <div className="section-head">
+            <h2 id="next-heading">Next Steps</h2>
+          </div>
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1.8fr_1fr_1fr]">
+            <div className="grid bg-brand-navy text-white sm:grid-cols-[1fr_190px]">
+              <div className="p-6 sm:p-7">
+                <p className="text-[0.75rem] font-bold uppercase tracking-[0.1em] text-blue-200">
+                  Roadmap · Stage {stage.id} of 6
+                </p>
+                <h3 className="mt-2 font-serif text-[1.75rem] font-medium leading-tight">
+                  {!hasData
+                    ? "Start your assessment"
+                    : stage.state === "complete"
+                      ? "All stages complete"
+                      : toGo === 0
+                        ? `Ready to move on from Stage ${stage.id}`
+                        : `${toGo === 1 ? "One practice" : `${spell(toGo)} practices`} from Stage ${Math.min(6, stage.id + 1)}`}
+                </h3>
+                <p className="mb-5 mt-2 text-[15px] leading-relaxed text-blue-50">
+                  {!hasData
+                    ? "Upload what you have. Your roadmap fills in as soon as your first results are ready."
+                    : toGo > 0 && open.length
+                      ? `Meet ${listOr(open.slice(0, 2))}${open.length > 2 ? " or another open practice" : ""} to move on.`
+                      : `${stage.name}: ${stage.practicedCount} of ${stage.totalCount} practices met.`}
+                </p>
+                <Link
+                  href={hasData ? "/roadmap" : "/report/assessment"}
+                  className="font-bold text-white underline decoration-white/60 underline-offset-4 hover:decoration-white"
+                >
+                  {hasData ? "Open your roadmap ›" : "Start the assessment ›"}
                 </Link>
-              </li>
-            ))}
-          </ul>
+              </div>
+              <div className="hidden h-full min-h-[200px] sm:block">
+                <Photo name="aiReadinessAlt" width={500} />
+              </div>
+            </div>
+
+            <NextCard
+              title="Add Evidence"
+              text={
+                noEvidence > 0
+                  ? `${capital(spell(noEvidence))} ${noEvidence === 1 ? "practice has" : "practices have"} no evidence yet. A short written answer can be enough.`
+                  : "Upload new documents or update an answer when something changes."
+              }
+              href="/report/assessment"
+              cta="Submit evidence"
+            />
+            <NextCard
+              title="Check Your Ratings"
+              text="Tell us if a rating is wrong or cites the wrong source or company."
+              href="/dashboard"
+              cta="Open results"
+            />
+          </div>
         </section>
+
+        {/* Team */}
+        <section
+          aria-label="Your team"
+          className="mt-12 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-slate-200 py-4 text-[15px]"
+        >
+          <strong className="text-ink">Your team</strong>
+          <span className="text-slate-600">
+            {summary.team.length ? summary.team.join(", ") : "Only you so far"}
+          </span>
+          {summary.commentsThisWeek > 0 && (
+            <span className="text-slate-600">
+              · {summary.commentsThisWeek} {summary.commentsThisWeek === 1 ? "comment" : "comments"} on
+              your results this week
+            </span>
+          )}
+          <Link href="/company" className="link-more ml-auto">
+            Invite a colleague ›
+          </Link>
+        </section>
+
+        <p className="mt-6 text-[15px] text-slate-600">
+          We&apos;ve made changes based on feedback from innovators who tested the platform.{" "}
+          <Link href="/whats-new" className="link-more">
+            See what&apos;s new ›
+          </Link>
+        </p>
       </div>
     </div>
   );
 }
 
-function staffLine(fullTime: unknown, partTime: unknown): string | null {
-  const ft = fullTime ?? null;
-  const pt = partTime ?? null;
-  if (ft === null && pt === null) return null;
-  if (ft !== null && pt !== null) return `${ft} full-time and ${pt} part-time staff`;
-  if (ft !== null) return `${ft} full-time staff`;
-  return `${pt} part-time staff`;
+function NextCard({ title, text, href, cta }: { title: string; text: string; href: string; cta: string }) {
+  return (
+    <div className="flex flex-col border-t border-slate-200 pt-5">
+      <h3 className="font-serif text-[1.65rem] font-medium leading-tight text-brand-navy">{title}</h3>
+      <p className="mb-5 mt-2 text-[15px] leading-relaxed text-slate-600">{text}</p>
+      <p className="mt-auto">
+        <Link href={href} className="link-more">
+          {cta} ›
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+function sourceLine(s: HomeSummary): string {
+  if (!s.documents.length && !s.answers) return "No documents or answers yet.";
+  const docs =
+    s.documents.length === 1
+      ? s.documents[0]
+      : s.documents.length > 1
+        ? `${s.documents.length} documents`
+        : null;
+  const from = docs ? `${docs} and your answers` : "your answers";
+  const when = s.lastUpdated
+    ? ` · updated ${s.lastUpdated.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+    : "";
+  return `Evidence from ${from}${when}`;
+}
+
+function staffCount(fullTime: unknown, partTime: unknown): string | null {
+  const ft = Number(fullTime ?? 0) || 0;
+  const pt = Number(partTime ?? 0) || 0;
+  if (!ft && !pt) return null;
+  return `${ft + pt} staff`;
+}
+
+/** AP style: spell out one through nine. */
+function spell(n: number): string {
+  return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"][n] ?? String(n);
+}
+
+function capital(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function listOr(items: string[]): string {
+  return items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} or ${items[items.length - 1]}`;
 }
