@@ -220,17 +220,17 @@ export default function CompanyPage() {
       <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
         <Link href="/" className="hover:underline">Home</Link>
         <span className="mx-2" aria-hidden>›</span>
-        <span>Company and team</span>
+        <span>Company and Team</span>
       </nav>
-      <h1 className="mt-3 text-4xl">Company and team</h1>
+      <h1 className="mt-3 text-4xl">Company and Team</h1>
       <p className="mt-2 text-[16px] text-slate-700">
-        Your organisation&apos;s details and who can see your assessment.
+        Your organization&apos;s details and who can see your assessment.
       </p>
 
-      <h2 className="mt-10 text-2xl">Organisation details</h2>
+      <h2 className="mt-10 text-2xl">Organization Details</h2>
       <div className="mt-4 space-y-5 border-t border-slate-200 pt-6">
         <label className={label}>
-          Organisation name
+          Organization name
           <input className={field} value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
         </label>
         <label className={label}>
@@ -252,7 +252,7 @@ export default function CompanyPage() {
           </label>
         </div>
         <label className={label}>
-          Organisation type
+          Organization type
           <select className={field} value={organizationType} onChange={(e) => setOrganizationType(e.target.value)}>
             <option value="">Choose one</option>
             <option value="For-Profit">For-profit</option>
@@ -260,11 +260,11 @@ export default function CompanyPage() {
           </select>
         </label>
         <button onClick={updateCompany} className="btn btn-primary">
-          Save changes
+          Save Changes
         </button>
       </div>
 
-      <h2 className="mt-14 text-2xl">Team members</h2>
+      <h2 className="mt-14 text-2xl">Team Members</h2>
       <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
         {members.length === 0 ? (
           <li className="py-3 text-slate-600">No team members yet.</li>
@@ -288,7 +288,7 @@ export default function CompanyPage() {
         )}
       </ul>
 
-      <h3 className="mt-10 text-lg font-semibold text-brand-navy">Invite a colleague</h3>
+      <h3 className="mt-10 text-lg font-semibold text-brand-navy">Invite a Colleague</h3>
       <p className="mt-1 text-[15px] text-slate-700">
         No email is sent. The invitation appears when your colleague logs in or
         signs up with <strong>exactly</strong> the address you enter here, so
@@ -307,7 +307,7 @@ export default function CompanyPage() {
           type="email"
           value={inviteEmail}
           onChange={(e) => setInviteEmail(e.target.value)}
-          placeholder="name@organisation.org"
+          placeholder="name@organization.org"
           className="flex-1 border border-slate-300 px-3 py-2.5 text-[15px] focus:border-brand-dukeblue"
         />
         <button type="submit" disabled={inviting} className="btn btn-primary">
@@ -322,7 +322,7 @@ export default function CompanyPage() {
 
       {invites && invites.length > 0 && (
         <>
-          <h3 className="mt-8 text-sm font-semibold text-slate-800">Pending invitations</h3>
+          <h3 className="mt-8 text-sm font-semibold text-slate-800">Pending Invitations</h3>
           <ul className="mt-2 divide-y divide-slate-200 border-y border-slate-200">
             {invites.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between gap-4 py-2.5 text-[15px]">

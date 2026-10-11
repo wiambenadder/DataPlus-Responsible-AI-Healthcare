@@ -1,72 +1,85 @@
 @import "tailwindcss";
 
 /*
- * Design tokens — modelled on the Duke Global Health Institute website
- * (globalhealth.duke.edu): Spectral for headings, Work Sans for text,
- * DGHI navy / Duke Blue / teal / bronze, cool slate greys and square
- * corners.
+ * Design tokens follow the Duke University brand (brand.duke.edu):
+ * EB Garamond for headings, Open Sans for text, Duke Navy and Royal Blue,
+ * the Duke secondary palette for the five assessment domains, flat colour
+ * (no gradients) and small, squared corners.
  *
- * Rather than rewriting every page, the existing Tailwind colour names
- * are re-pointed here: `blue-*` is a navy → Duke Blue scale (blue-600 is
- * DGHI navy #003266) and `slate-*` is DGHI's slate/graphite greys.
- * `brand-*` names give direct access to the DGHI accents.
+ * The Tailwind names already used across the code are re-pointed here:
+ * `blue-*` is a Duke Navy → Royal Blue scale (blue-600 is Duke Navy) and
+ * `slate-*` is a neutral grey scale. `brand-*` names give direct access to
+ * Duke colours.
  */
 @theme {
-  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-serif: var(--font-spectral), Georgia, Cambria, "Times New Roman", serif;
+  --font-sans: var(--font-open-sans), "Open Sans", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-serif: var(--font-eb-garamond), "EB Garamond", Georgia, "Times New Roman",
+    serif;
 
-  /* DGHI accents */
-  --color-brand-navy: #003266;
-  --color-brand-dukeblue: #075195;
-  --color-brand-darkblue: #122644;
-  --color-brand-teal: #248386; /* DGHI "tealAA" — passes contrast on white */
-  --color-brand-darkteal: #1d696b;
-  --color-brand-bronze: #b76a11;
-  --color-brand-graphite: #425865;
+  /* Duke primary */
+  --color-brand-navy: #012169; /* Duke Navy Blue */
+  --color-brand-dukeblue: #00539b; /* Duke Royal Blue */
+  --color-brand-darkblue: #00163f;
+  --color-ink: #262626; /* Duke body text */
 
-  /* Navy → Duke Blue scale (600 = DGHI navy, 500 = Duke Blue) */
-  --color-blue-50: #eef3f9;
-  --color-blue-100: #dbe6f2;
-  --color-blue-200: #b6cbe3;
-  --color-blue-300: #86a8cf;
-  --color-blue-400: #3e74ad;
-  --color-blue-500: #075195;
-  --color-blue-600: #003266;
-  --color-blue-700: #002552;
-  --color-blue-800: #122644;
-  --color-blue-900: #0b1a30;
-  --color-blue-950: #06101e;
+  /* Duke secondary (used sparingly: domain accents and status) */
+  --color-brand-shale: #0577b1;
+  --color-brand-eno: #339898;
+  --color-brand-teal: #1d6363; /* Magnolia — passes contrast on white */
+  --color-brand-darkteal: #154a4a;
+  --color-brand-persimmon: #e89923;
+  --color-brand-copper: #c84e00;
+  --color-brand-bronze: #a03f00;
+  --color-brand-ironweed: #993399;
+  --color-brand-dandelion: #ffd960;
+  --color-brand-graphite: #4f5660;
 
-  /* DGHI slate / graphite greys */
-  --color-slate-50: #f7f7f7;
-  --color-slate-100: #efefef;
-  --color-slate-200: #e0e0e0;
-  --color-slate-300: #c6ccd0;
-  --color-slate-400: #87949b;
-  --color-slate-500: #5b6d77;
-  --color-slate-600: #425865;
-  --color-slate-700: #34464f;
-  --color-slate-800: #25343c;
-  --color-slate-900: #1c2931;
-  --color-slate-950: #121b21;
+  /* Duke neutrals */
+  --color-whisper: #f3f2f1;
+  --color-hatteras: #e2e6ed;
 
-  /* Square, institutional corners */
+  /* Duke Navy → Royal Blue scale (600 = Navy, 500 = Royal) */
+  --color-blue-50: #eef3fa;
+  --color-blue-100: #dbe6f3;
+  --color-blue-200: #b4c9e4;
+  --color-blue-300: #7f9fcf;
+  --color-blue-400: #3c6bb0;
+  --color-blue-500: #00539b;
+  --color-blue-600: #012169;
+  --color-blue-700: #011a54;
+  --color-blue-800: #00163f;
+  --color-blue-900: #000f2c;
+  --color-blue-950: #000a1e;
+
+  /* Neutral greys */
+  --color-slate-50: #f8f9fa;
+  --color-slate-100: #f1f3f5;
+  --color-slate-200: #dcdfe3;
+  --color-slate-300: #c3c8cf;
+  --color-slate-400: #8e959e;
+  --color-slate-500: #666d76;
+  --color-slate-600: #4f5660;
+  --color-slate-700: #3d434b;
+  --color-slate-800: #2b3036;
+  --color-slate-900: #262626;
+  --color-slate-950: #181818;
+
+  /* Small, squared corners */
   --radius-sm: 0.125rem;
-  --radius-md: 0.125rem;
-  --radius-lg: 0.1875rem;
+  --radius-md: 0.1875rem;
+  --radius-lg: 0.25rem;
   --radius-xl: 0.25rem;
-  --radius-2xl: 0.25rem;
-  --radius-3xl: 0.375rem;
+  --radius-2xl: 0.375rem;
+  --radius-3xl: 0.5rem;
 
-  --shadow-sm: 0 1px 0 0 rgb(28 41 49 / 0.04);
-  --shadow-md: 0 1px 3px 0 rgb(28 41 49 / 0.1);
-  --shadow-lg: 0 8px 24px -8px rgb(28 41 49 / 0.25);
+  --shadow-sm: none;
+  --shadow-md: 0 1px 3px 0 rgb(1 33 105 / 0.08);
+  --shadow-lg: 0 10px 28px -12px rgb(1 33 105 / 0.3);
 }
 
 @layer base {
-  /* Tailwind v4 draws a bare `border` in the text colour; use a light
-     grey instead, as DGHI does. */
+  /* Tailwind v4 draws a bare `border` in the text colour; use light grey. */
   *,
   ::before,
   ::after,
@@ -80,17 +93,18 @@
 
   body {
     background: #ffffff;
-    color: var(--color-slate-900);
+    color: var(--color-ink);
     min-height: 100vh;
-    line-height: 1.6;
+    line-height: 1.65;
   }
 
   h1,
   h2 {
     font-family: var(--font-serif);
+    font-weight: 500;
     color: var(--color-brand-navy);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
+    letter-spacing: -0.005em;
+    line-height: 1.12;
   }
 
   ::selection {
@@ -105,7 +119,7 @@
   textarea,
   input,
   select {
-    border-radius: 0.125rem;
+    border-radius: 0.1875rem;
   }
 
   button {
@@ -117,31 +131,28 @@
 }
 
 @layer components {
-  /* Small uppercase category label, as used across DGHI pages
-     ("Featured Program", "Student Stories"). */
+  /* Small spaced-capitals label, as used across Duke sites. */
   .label-caps {
     font-family: var(--font-sans);
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--color-brand-teal);
+    color: var(--color-brand-dukeblue);
   }
 
-  /* Buttons: uppercase Work Sans, square corners. */
+  /* Buttons: Open Sans bold, title case, squared corners. */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     padding: 0.7rem 1.4rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.9375rem;
+    font-weight: 700;
     border: 2px solid transparent;
-    border-radius: 0.125rem;
-    line-height: 1.2;
+    border-radius: 0.1875rem;
+    line-height: 1.25;
   }
   .btn-primary {
     background: var(--color-brand-navy);
@@ -167,25 +178,58 @@
     color: var(--color-brand-navy);
   }
   .btn-light:hover {
+    background: var(--color-blue-50);
+    border-color: var(--color-blue-50);
+  }
+  .btn-outline-light {
     background: transparent;
+    border-color: #fff;
     color: #fff;
+  }
+  .btn-outline-light:hover {
+    background: #fff;
+    color: var(--color-brand-navy);
   }
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
-  /* "Read more ›" style text link. */
+  /* "Learn More ›" text link. */
   .link-more {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--color-brand-dukeblue);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
   }
   .link-more:hover {
     color: var(--color-brand-navy);
-    text-decoration-thickness: 2px;
+    border-bottom-width: 2px;
+  }
+
+  /* Section heading row with a thin rule underneath. */
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.25rem;
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid var(--color-slate-200);
+  }
+  .section-head > h2 {
+    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+  }
+
+  /* Flat status tag. */
+  .tag {
+    display: inline-block;
+    border-radius: 0.125rem;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
   }
 }
 

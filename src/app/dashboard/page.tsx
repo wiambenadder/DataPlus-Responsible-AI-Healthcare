@@ -19,7 +19,7 @@ import {
   type UploadRow,
 } from "@/lib/assessment";
 import { normalizeName } from "@/lib/feedback-format";
-import { DOMAIN_INFO } from "@/lib/domain-info";
+import { DOMAIN_INFO, domainStyle } from "@/lib/domain-info";
 import { useFeedback } from "@/_components/feedback/useFeedback";
 import FeedbackSection from "@/_components/feedback/FeedbackSection";
 import SubdomainItem from "@/_components/assessment/SubdomainItem";
@@ -33,8 +33,8 @@ const DOMAIN_SLUGS = DOMAIN_ENTRIES.map(([d]) => slugify(d));
  * Assessment results.
  *
  * All five domains sit on one page so they can be scanned, searched
- * (Ctrl+F) and linked to. Desktop gets a sticky "On this page" sidebar,
- * mobile a sticky domain picker; both highlight the domain in view.
+ * (Ctrl+F) and linked to. Desktop gets a sticky row of domain tabs, mobile
+ * a sticky domain picker; both mark the domain in view.
  * Every domain and criterion has its own URL fragment, e.g.
  *   /dashboard#model-source              → the Model Source domain
  *   /dashboard#model-source--timeliness  → that criterion, opened
@@ -238,7 +238,7 @@ export default function DashboardPage() {
       let current = DOMAIN_SLUGS[0];
       for (const slug of DOMAIN_SLUGS) {
         const el = document.getElementById(slug);
-        if (el && el.getBoundingClientRect().top <= 160) current = slug;
+        if (el && el.getBoundingClientRect().top <= 180) current = slug;
       }
       const atBottom =
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
@@ -356,7 +356,7 @@ export default function DashboardPage() {
   if (!signedIn || !companyId || loadError) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <h1 className="text-4xl">Your assessment results</h1>
+        <h1 className="text-4xl">Your Results</h1>
         {loadError ? (
           <p className="mt-3 text-slate-700">
             We couldn&apos;t load your results ({loadError}).{" "}
@@ -385,57 +385,119 @@ export default function DashboardPage() {
   }
 
   const met = counts.get("meets") ?? 0;
+  const total = allItems.length;
+  const pct = total ? Math.round((met / total) * 100) : 0;
+  const updatedTimes = responses
+    .map((r) => (r as { created_at?: string | null }).created_at)
+    .filter(Boolean)
+    .map((d) => new Date(d as string).getTime());
+  const updated = updatedTimes.length
+    ? new Date(Math.max(...updatedTimes)).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
 
   return (
-    <div>
-      {/* Page header band */}
-      <div className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 lg:px-8">
-          <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
-            <Link href="/" className="hover:underline">
-              Home
+    <div className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+      {/* Header: title and the 31 practices at a glance */}
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-end">
+        <div>
+          <p className="label-caps">
+            {[companyName ?? "Your organization", updated ? `Updated ${updated}` : null]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+          <h1 className="mt-2 text-4xl sm:text-5xl">Your Results</h1>
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-700">
+            <strong className="font-semibold text-ink">
+              {met} of {total} practices met
+            </strong>{" "}
+            ({pct} percent){latestPeriod ? `, from the ${latestPeriod} reporting period` : ""}.
+            Choose a domain, then open any practice to see why it was rated that way and
+            where the evidence came from.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <button type="button" onClick={exportPdf} disabled={exporting} className="btn btn-secondary">
+              <Download className="h-4 w-4" aria-hidden />
+              {exporting ? "Preparing PDF…" : "Download PDF"}
+            </button>
+            <Link href="/framework#rating" className="link-more">
+              How results work ›
             </Link>
-            <span className="mx-2" aria-hidden>›</span>
-            <span>Dashboard</span>
-          </nav>
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="label-caps">{companyName ?? "Your organisation"}</p>
-              <h1 className="mt-2 text-4xl sm:text-5xl">Your assessment results</h1>
-              <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
-                <strong className="font-semibold text-slate-900">
-                  {met} of {allItems.length} criteria met
-                </strong>{" "}
-                across five domains{latestPeriod ? ` (latest reporting period: ${latestPeriod})` : ""}.
-                Open any criterion to see the evidence behind it, and tell us if
-                something is wrong.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/framework" className="btn btn-secondary">
-                How results work
-              </Link>
-              <button type="button" onClick={exportPdf} disabled={exporting} className="btn btn-primary">
-                <Download className="h-4 w-4" aria-hidden />
-                {exporting ? "Preparing PDF…" : "Download PDF"}
-              </button>
-            </div>
           </div>
-          <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
+        </div>
+
+        <div className="border border-slate-200 p-5">
+          <p className="text-sm font-bold text-ink">All {total} practices</p>
+          <ul className="mt-2 space-y-1.5">
+            {domains.map((d) => (
+              <li key={d.slug} className="flex items-center gap-2 text-[13px]">
+                <a href={`#${d.slug}`} className="w-36 shrink-0 font-semibold text-slate-700 hover:underline">
+                  {d.name}
+                </a>
+                <span className="flex gap-1">
+                  {d.items.map((r) => (
+                    <a
+                      key={r.anchor}
+                      href={`#${r.anchor}`}
+                      title={`${r.subdomain}: ${STATUS_META[statusOf(r)].label}`}
+                      aria-label={`${r.subdomain}: ${STATUS_META[statusOf(r)].label}`}
+                      className={`block h-[18px] w-[18px] hover:outline hover:outline-2 hover:outline-offset-1 hover:outline-brand-navy ${STATUS_META[statusOf(r)].dot}`}
+                    />
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-slate-700">
             {STATUS_ORDER.map((s) => (
-              <li key={s} className="inline-flex items-center gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${STATUS_META[s].dot}`} aria-hidden />
+              <li key={s} className="inline-flex items-center gap-1.5">
+                <span className={`h-2.5 w-2.5 ${STATUS_META[s].dot}`} aria-hidden />
                 {STATUS_META[s].label}
-                <span className="font-semibold tabular-nums text-slate-900">{counts.get(s) ?? 0}</span>
+                <span className="font-semibold tabular-nums text-ink">{counts.get(s) ?? 0}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-    <div className="mx-auto max-w-7xl px-4 pb-24 pt-2 sm:px-6 lg:px-8">
+      {/* Domain tabs (desktop): jump to a domain; the one in view is marked */}
+      <nav
+        aria-label="Domains"
+        className="sticky top-0 z-30 mt-10 hidden border-b border-slate-200 bg-white lg:block"
+      >
+        <ol className="grid grid-cols-5">
+          {domains.map((d) => {
+            const active = activeDomain === d.slug;
+            const st = domainStyle(d.name);
+            const dMet = d.items.filter((r) => statusOf(r) === "meets").length;
+            return (
+              <li key={d.slug}>
+                <a
+                  href={`#${d.slug}`}
+                  aria-current={active ? "location" : undefined}
+                  className={`-mb-px block h-full border-t-4 px-4 pb-3 pt-3 ${
+                    active
+                      ? "border-x border-b border-x-slate-200 border-b-white bg-white"
+                      : "border-b border-b-slate-200 bg-whisper hover:bg-slate-100"
+                  }`}
+                  style={{ borderTopColor: active ? st.accent : "#dcdfe3" }}
+                >
+                  <span className="block text-[15px] font-bold text-ink">{d.name}</span>
+                  <span className="block text-[13.5px] text-slate-600">
+                    {dMet} of {d.items.length} met
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+
       {/* Mobile: sticky domain picker */}
-      <div className="sticky top-0 z-30 -mx-4 border-b border-slate-200 bg-white/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+      <div className="sticky top-0 z-30 -mx-4 mt-8 border-b border-slate-200 bg-white/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
         <label className="flex items-center gap-3 text-sm">
           <span className="shrink-0 text-slate-500">Domain</span>
           <select
@@ -443,7 +505,7 @@ export default function DashboardPage() {
             onChange={(e) => {
               window.location.hash = e.target.value;
             }}
-            className="min-w-0 flex-1 rounded border border-slate-300 bg-white px-2 py-1.5 text-[15px] font-semibold text-slate-900"
+            className="min-w-0 flex-1 border border-slate-300 bg-white px-2 py-1.5 text-[15px] font-semibold text-ink"
           >
             {domains.map((d) => (
               <option key={d.slug} value={d.slug}>
@@ -455,172 +517,122 @@ export default function DashboardPage() {
         </label>
       </div>
 
-      <div className="mt-8 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12">
-        {/* Desktop: sticky side navigation */}
-        <aside className="hidden lg:block">
-          <div className="sticky top-6">
-            <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-600">On this page</p>
-            <ol className="mt-2 border-l border-slate-300">
-              {domains.map((d) => {
-                const active = activeDomain === d.slug;
-                const dMet = d.items.filter((r) => statusOf(r) === "meets").length;
-                return (
-                  <li key={d.slug}>
-                    <a
-                      href={`#${d.slug}`}
-                      aria-current={active ? "location" : undefined}
-                      className={`-ml-px flex items-baseline justify-between gap-2 border-l-[3px] py-1.5 pl-3 pr-1 text-sm ${
-                        active
-                          ? "border-brand-teal font-semibold text-brand-navy"
-                          : "border-transparent text-slate-700 hover:border-slate-400 hover:text-slate-900"
-                      }`}
-                    >
-                      <span>
-                        <span className="tabular-nums text-slate-400">{d.number}.</span>{" "}
-                        {d.name}
-                      </span>
-                      <span className="text-xs font-normal tabular-nums text-slate-500">
-                        {dMet}/{d.items.length}
-                      </span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ol>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <p className="text-slate-600">
+          <strong className="font-semibold text-slate-700">Not reported</strong> means nothing
+          submitted covers the practice.{" "}
+          <strong className="font-semibold text-slate-700">Does not currently meet</strong>{" "}
+          means the evidence doesn&apos;t yet show it in place.
+        </p>
+        <span className="flex gap-5">
+          <button type="button" onClick={() => setEverything(true)} className="font-bold text-brand-dukeblue hover:underline">
+            Expand all
+          </button>
+          <button type="button" onClick={() => setEverything(false)} className="font-bold text-brand-dukeblue hover:underline">
+            Collapse all
+          </button>
+        </span>
+      </div>
 
-            <div className="mt-5 flex gap-4 text-sm">
-              <button
-                type="button"
-                onClick={() => setEverything(true)}
-                className="font-semibold text-brand-dukeblue hover:underline"
-              >
-                Expand all
-              </button>
-              <button
-                type="button"
-                onClick={() => setEverything(false)}
-                className="font-semibold text-brand-dukeblue hover:underline"
-              >
-                Collapse all
-              </button>
-            </div>
-
-            <p className="mt-6 text-xs leading-relaxed text-slate-500">
-              <span className="font-semibold text-slate-600">Not reported</span> means
-              nothing submitted covers the criterion.{" "}
-              <span className="font-semibold text-slate-600">Does not currently meet</span>{" "}
-              means the evidence doesn&apos;t yet show the practice in place.
-            </p>
-          </div>
-        </aside>
-
-        {/* Domains */}
-        <div className="space-y-6">
-          {domains.map((d) => {
-            const collapsed = collapsedDomains.has(d.slug);
-            const dMet = d.items.filter((r) => statusOf(r) === "meets").length;
-            const allOpen = d.items.every((r) => expanded.has(r.anchor));
-            return (
-              <section
-                key={d.slug}
-                id={d.slug}
-                aria-labelledby={`${d.slug}-title`}
-                className="scroll-mt-16 border border-slate-200 border-t-4 border-t-brand-navy bg-white lg:scroll-mt-6"
-              >
-                <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 border-b border-slate-200 px-4 py-4 sm:px-6">
-                  <div className="min-w-0">
-                    <p className="label-caps">Domain {d.number}</p>
-                    <h2 id={`${d.slug}-title`} className="mt-1">
-                      <button
-                        type="button"
-                        aria-expanded={!collapsed}
-                        onClick={() => toggleDomain(d.slug)}
-                        className="inline-flex items-center gap-2 text-left font-serif text-[1.7rem] font-semibold text-brand-navy hover:text-brand-dukeblue"
-                      >
-                        {d.name}
-                        <ChevronDown
-                          className={`h-5 w-5 text-slate-400 transition-transform ${
-                            collapsed ? "-rotate-90" : ""
-                          }`}
-                          aria-hidden
-                        />
-                      </button>
-                    </h2>
-                    <p className="mt-1 max-w-2xl text-[15px] text-slate-700">
-                      {DOMAIN_INFO[d.name]?.short}{" "}
-                      <Link
-                        href={`/framework#domain-${d.slug}`}
-                        className="whitespace-nowrap font-semibold text-brand-dukeblue underline underline-offset-2"
-                      >
-                        About this domain
-                      </Link>
-                    </p>
-                    <p className="mt-2 text-sm font-semibold text-slate-800">
-                      {dMet} of {d.items.length} criteria met
-                    </p>
-                    <DomainBar items={d.items} statusOf={statusOf} />
-                  </div>
-
-                  <div className="flex items-center gap-4 pt-5 text-sm">
-                    {!collapsed && (
-                      <button
-                        type="button"
-                        onClick={() => setDomainItems(d.slug, !allOpen)}
-                        className="font-semibold text-brand-dukeblue hover:underline"
-                      >
-                        {allOpen ? "Collapse all" : "Expand all"}
-                      </button>
-                    )}
+      {/* Domains */}
+      <div className="space-y-14">
+        {domains.map((d) => {
+          const collapsed = collapsedDomains.has(d.slug);
+          const dMet = d.items.filter((r) => statusOf(r) === "meets").length;
+          const allOpen = d.items.every((r) => expanded.has(r.anchor));
+          const st = domainStyle(d.name);
+          return (
+            <section
+              key={d.slug}
+              id={d.slug}
+              aria-labelledby={`${d.slug}-title`}
+              className="scroll-mt-28 pt-8"
+            >
+              <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-slate-200 pb-4">
+                <div className="min-w-0">
+                  <p className="text-[0.75rem] font-bold uppercase tracking-[0.1em]" style={{ color: st.text }}>
+                    Domain {d.number} · {dMet} of {d.items.length} met
+                  </p>
+                  <h2 id={`${d.slug}-title`} className="mt-1">
                     <button
                       type="button"
-                      onClick={() => copyLink(d.slug)}
-                      className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-900"
-                      title="Copy a link to this domain"
+                      aria-expanded={!collapsed}
+                      onClick={() => toggleDomain(d.slug)}
+                      className="inline-flex items-center gap-2 text-left font-serif text-[2rem] font-medium text-brand-navy hover:text-brand-dukeblue"
                     >
-                      <Link2 className="h-4 w-4" aria-hidden />
-                      {copied === d.slug ? "Copied" : "Link"}
+                      {d.name}
+                      <ChevronDown
+                        className={`h-5 w-5 text-slate-400 transition-transform ${collapsed ? "-rotate-90" : ""}`}
+                        aria-hidden
+                      />
                     </button>
-                  </div>
-                </header>
+                  </h2>
+                  <p className="mt-1 max-w-3xl text-[15px] text-slate-600">
+                    {DOMAIN_INFO[d.name]?.short}{" "}
+                    <Link href={`/framework#domain-${d.slug}`} className="link-more whitespace-nowrap">
+                      About this domain
+                    </Link>
+                  </p>
+                </div>
 
-                {!collapsed && (
-                  <ul className="divide-y divide-slate-200 px-3 sm:px-5">
-                    {d.items.map((r) => (
-                      <SubdomainItem
-                        key={r.anchor}
-                        result={r}
-                        status={statusOf(r)}
-                        confidence={confidenceOf(r)}
-                        disputed={disputedOf(r)}
-                        expanded={expanded.has(r.anchor)}
-                        onToggle={() => toggleItem(r.anchor)}
-                        feedbackCount={
-                          feedback
-                            .forSubdomain(r.subdomain)
-                            .filter((e) => e.sync !== "save_failed").length
-                        }
-                        onOpenSource={(item) => setDrawer({ item, subdomain: r.subdomain })}
-                        onReportSource={(item) => reportSource(r, item)}
-                        onCopyLink={() => copyLink(r.anchor)}
-                        copied={copied === r.anchor}
-                      >
-                        <FeedbackSection
-                          api={feedback}
-                          domain={d.name}
-                          subdomain={r.subdomain}
-                          question={r.primary?.question ?? null}
-                          answer={r.primary?.answer ?? null}
-                          currentUser={user}
-                          formId={`fb-${r.anchor}`}
-                        />
-                      </SubdomainItem>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            );
-          })}
-        </div>
+                <div className="flex items-center gap-5 text-sm">
+                  {!collapsed && (
+                    <button
+                      type="button"
+                      onClick={() => setDomainItems(d.slug, !allOpen)}
+                      className="font-bold text-brand-dukeblue hover:underline"
+                    >
+                      {allOpen ? "Collapse all" : "Expand all"}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => copyLink(d.slug)}
+                    className="inline-flex items-center gap-1 text-slate-500 hover:text-ink"
+                    title="Copy a link to this domain"
+                  >
+                    <Link2 className="h-4 w-4" aria-hidden />
+                    {copied === d.slug ? "Copied" : "Link"}
+                  </button>
+                </div>
+              </header>
+
+              {!collapsed && (
+                <ul>
+                  {d.items.map((r) => (
+                    <SubdomainItem
+                      key={r.anchor}
+                      result={r}
+                      status={statusOf(r)}
+                      confidence={confidenceOf(r)}
+                      disputed={disputedOf(r)}
+                      expanded={expanded.has(r.anchor)}
+                      onToggle={() => toggleItem(r.anchor)}
+                      feedbackCount={
+                        feedback.forSubdomain(r.subdomain).filter((e) => e.sync !== "save_failed").length
+                      }
+                      onOpenSource={(item) => setDrawer({ item, subdomain: r.subdomain })}
+                      onReportSource={(item) => reportSource(r, item)}
+                      onCopyLink={() => copyLink(r.anchor)}
+                      copied={copied === r.anchor}
+                      accent={st.accent}
+                    >
+                      <FeedbackSection
+                        api={feedback}
+                        domain={d.name}
+                        subdomain={r.subdomain}
+                        question={r.primary?.question ?? null}
+                        answer={r.primary?.answer ?? null}
+                        currentUser={user}
+                        formId={`fb-${r.anchor}`}
+                      />
+                    </SubdomainItem>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })}
       </div>
 
       <BackToTop />
@@ -629,27 +641,6 @@ export default function DashboardPage() {
         subdomain={drawer?.subdomain ?? ""}
         onClose={() => setDrawer(null)}
       />
-    </div>
-    </div>
-  );
-}
-
-/** Thin bar showing how the domain's criteria split across statuses. */
-function DomainBar({
-  items,
-  statusOf,
-}: {
-  items: SubdomainResult[];
-  statusOf: (r: SubdomainResult) => Status;
-}) {
-  const sorted = [...items].sort(
-    (a, b) => STATUS_META[statusOf(a)].order - STATUS_META[statusOf(b)].order
-  );
-  return (
-    <div className="mt-2 flex h-1.5 w-56 max-w-full gap-px overflow-hidden rounded-sm bg-slate-100" aria-hidden>
-      {sorted.map((r) => (
-        <span key={r.anchor} className={`flex-1 ${STATUS_META[statusOf(r)].dot}`} />
-      ))}
     </div>
   );
 }

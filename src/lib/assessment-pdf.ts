@@ -82,7 +82,7 @@ export function generateAssessmentPdf(args: {
   );
   y += 6;
   text(
-    `${counts.get("meets") ?? 0} of ${all.length} criteria met`,
+    `${counts.get("meets") ?? 0} of ${all.length} practices met`,
     12,
     "bold"
   );
@@ -129,7 +129,7 @@ export function generateAssessmentPdf(args: {
         GREY
       );
       y += 3;
-      if (r.criterion) text(`Criterion: ${r.criterion}`, 9.5, "italic", GREY);
+      if (r.criterion) text(`What it looks for: ${r.criterion}`, 9.5, "italic", GREY);
       y += 3;
       text("Summary", 10, "bold");
       text(r.summary ?? "No result yet.", 10);
@@ -151,7 +151,7 @@ export function generateAssessmentPdf(args: {
           text(e.verbatim ? `“${e.text}”` : e.text, 9.5, e.verbatim ? "italic" : "normal", INK, 10);
           text(
             `Source: ${e.sourceTitle}${e.sourceDate ? ` · ${e.sourceDate}` : ""}${
-              e.verbatim ? "" : " · summarised by the platform, not a direct quote"
+              e.verbatim ? "" : " · summarized by the platform, not a direct quote"
             }`,
             8.5,
             "normal",

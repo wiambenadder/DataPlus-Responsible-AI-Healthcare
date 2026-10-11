@@ -499,7 +499,7 @@ export default function ReportPage() {
   );
 
   const pageHeader = (title: string, lede: React.ReactNode) => (
-    <div className="border-b border-slate-200 bg-slate-50">
+    <div className="border-b border-slate-200 bg-whisper">
       <div className="mx-auto max-w-3xl px-4 pb-8 pt-6 sm:px-6">
         <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
           <Link href="/" className="hover:underline">Home</Link>
@@ -534,9 +534,9 @@ export default function ReportPage() {
   if (alreadySubmitted && !editingExisting) {
     return (
       <div>
-        {pageHeader("Your assessment has been submitted", 
+        {pageHeader("Your Assessment Has Been Submitted", 
             <p>
-              Your organisation has already completed the assessment. You can
+              Your organization has already completed the assessment. You can
               change any of your answers, or look at what you&apos;ve sent so far.
               Changed answers are re-assessed automatically.
             </p>
@@ -544,13 +544,13 @@ export default function ReportPage() {
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
           <div className="flex flex-wrap gap-3">
             <button onClick={startEdit} className="btn btn-primary">
-              Edit your answers
+              Edit Your Answers
             </button>
             <button onClick={() => router.push("/report/history")} className="btn btn-secondary">
-              View your submissions
+              View Your Submissions
             </button>
             <Link href="/dashboard" className="btn btn-secondary">
-              See your results
+              See Your Results
             </Link>
           </div>
 
@@ -571,18 +571,18 @@ export default function ReportPage() {
 
   return (
     <div>
-      {pageHeader(editingExisting ? "Edit your answers" : "Upload documents and answer questions", 
+      {pageHeader(editingExisting ? "Edit Your Answers" : "Upload Documents and Answer Questions", 
           <p>
             {editingExisting
               ? "Change any answer below. Only the answers you change are re-assessed."
-              : "Start with documents that describe your tool and organisation. You'll then only be asked about topics your documents didn't cover."}
+              : "Start with documents that describe your tool and organization. You'll then only be asked about topics your documents didn't cover."}
           </p>
         )}
 
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         {!uploadComplete && (
           <section aria-labelledby="upload-title">
-            <h2 id="upload-title" className="text-2xl">Step 1 · Upload supporting documents</h2>
+            <h2 id="upload-title" className="text-2xl">Step 1: Upload Supporting Documents</h2>
             <p className="mt-2 text-[15px] text-slate-700">
               Reports, evaluations, case studies, policies or decks — anything that
               shows how you build and run your AI tool. PDF only.
@@ -641,7 +641,7 @@ export default function ReportPage() {
               onClick={() => setUploadComplete(true)}
               className="btn btn-secondary mt-6"
             >
-              {fileStatuses.length > 0 ? "Continue to the questions" : "Continue without uploading"}
+              {fileStatuses.length > 0 ? "Continue to the Questions" : "Continue Without Uploading"}
             </button>
           </section>
         )}
@@ -663,7 +663,7 @@ export default function ReportPage() {
 
         {uploadComplete && interviewQuestions.length > 0 && (
           <>
-            {!editingExisting && <h2 className="mb-4 text-2xl">Step 2 · Answer the remaining questions</h2>}
+            {!editingExisting && <h2 className="mb-4 text-2xl">Step 2: Answer the Remaining Questions</h2>}
             {periodField}
 
             <div className="mb-6">
@@ -674,7 +674,7 @@ export default function ReportPage() {
                 <span>{interviewQuestions[currentQuestion].subtopic}</span>
               </div>
               <div className="h-1.5 w-full bg-slate-200">
-                <div className="h-1.5 bg-brand-teal transition-all" style={{ width: `${progress}%` }} />
+                <div className="h-1.5 bg-brand-navy transition-all" style={{ width: `${progress}%` }} />
               </div>
             </div>
 
@@ -704,9 +704,9 @@ export default function ReportPage() {
                     ? "Saving…"
                     : currentQuestion === interviewQuestions.length - 1
                     ? editingExisting
-                      ? "Save changes"
+                      ? "Save Changes"
                       : "Submit"
-                    : "Next question"}
+                    : "Next Question"}
                 </button>
               </div>
             </div>

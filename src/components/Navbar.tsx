@@ -1,14 +1,14 @@
 "use client";
 
 /*
- * Site header, in the pattern of the Duke Global Health Institute site:
- * a thin dark utility bar, then a white bar with the wordmark on the left
- * and the main navigation on the right.
+ * Site header in the pattern of Duke websites: a thin dark utility bar,
+ * then a navy bar with the Innovations in Healthcare logo and the
+ * "Innovator Insights" wordmark on the left and the main navigation on the
+ * right. Labels are title case.
  *
- * Labels follow innovator feedback: "Report" was unclear, so the menu is
- * "Submit evidence" with plain descriptions; the wordmark has a hover
- * state and there is an explicit "Home" link, because the old logo
- * "did not look clickable".
+ * From innovator feedback: "Report" was unclear, so the menu is "Submit
+ * Evidence" with plain descriptions, and there is an explicit "Home" link
+ * because the old logo "did not look clickable".
  */
 
 import Link from "next/link";
@@ -17,29 +17,30 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SITE } from "@/lib/site";
+import OrgLogo from "./OrgLogo";
 
 const SUBMIT_LINKS = [
   {
     href: "/report/assessment",
-    label: "Upload documents and answer questions",
+    label: "Upload Documents and Answer Questions",
     note: "Start or update your assessment",
   },
   {
     href: "/report/history",
-    label: "Your submissions",
-    note: "Documents and answers you've already sent",
+    label: "Your Submissions",
+    note: "Documents and answers you have already sent",
   },
 ];
 
 const ACCOUNT_LINKS = [
-  { href: "/user", label: "Your profile" },
-  { href: "/company", label: "Company and team" },
+  { href: "/user", label: "Your Profile" },
+  { href: "/company", label: "Company and Team" },
 ];
 
 const INFO_LINKS = [
-  { href: "/framework", label: "The framework" },
-  { href: "/data-use", label: "How we use your data" },
-  { href: "/hub", label: "All tools" },
+  { href: "/framework", label: "The Framework" },
+  { href: "/data-use", label: "How We Use Your Data" },
+  { href: "/hub", label: "All Tools" },
 ];
 
 /** Closes a dropdown on outside click or Escape. */
@@ -107,18 +108,21 @@ export default function SiteHeader() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   const navLink = (active: boolean) =>
-    `relative flex h-full items-center px-1 text-[15px] font-semibold text-brand-navy hover:text-brand-dukeblue ${
+    `relative flex h-full items-center text-[15px] font-semibold text-white ${
       active
-        ? "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-brand-teal"
-        : ""
+        ? "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-white"
+        : "text-white/90 hover:text-white"
     }`;
+
+  const dropdown =
+    "absolute top-full z-10 border border-slate-200 border-t-4 border-t-brand-navy bg-white py-2 shadow-lg";
 
   return (
     <header id="top" className="relative z-50">
       {/* Utility bar */}
       <div className="bg-brand-darkblue text-[13px] text-white/85">
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-end gap-5 px-4 sm:px-6 lg:px-8">
-          <nav aria-label="Information" className="hidden items-center gap-5 sm:flex">
+        <div className="mx-auto flex h-9 max-w-7xl items-center justify-end gap-6 px-4 sm:px-6 lg:px-8">
+          <nav aria-label="Information" className="hidden items-center gap-6 sm:flex">
             {INFO_LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="hover:text-white hover:underline">
                 {l.label}
@@ -127,19 +131,19 @@ export default function SiteHeader() {
           </nav>
           <span className="hidden h-4 w-px bg-white/25 sm:block" aria-hidden />
           {signedIn ? (
-            <span className="flex items-center gap-4">
-              <span className="hidden max-w-[16rem] truncate text-white/70 md:inline">{email}</span>
+            <span className="flex items-center gap-5">
+              <span className="hidden max-w-[16rem] truncate text-white/65 md:inline">{email}</span>
               <button type="button" onClick={logout} className="hover:text-white hover:underline">
-                Log out
+                Log Out
               </button>
             </span>
           ) : (
-            <span className="flex items-center gap-4">
+            <span className="flex items-center gap-5">
               <Link href="/login" className="hover:text-white hover:underline">
-                Log in
+                Log In
               </Link>
               <Link href="/signup" className="hover:text-white hover:underline">
-                Create an account
+                Create an Account
               </Link>
             </span>
           )}
@@ -147,14 +151,17 @@ export default function SiteHeader() {
       </div>
 
       {/* Main bar */}
-      <div className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-[76px] max-w-7xl items-stretch px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="group flex flex-col justify-center" aria-label={`${SITE.name} home`}>
-            <span className="font-serif text-[26px] font-semibold leading-none text-brand-navy group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
+      <div className="bg-brand-navy">
+        <div className="mx-auto flex h-[78px] max-w-7xl items-stretch gap-6 px-4 sm:px-6 lg:px-8">
+          <Link
+            href={signedIn ? "/" : "/hub"}
+            className="group flex items-center gap-4"
+            aria-label={`${SITE.name} home`}
+          >
+            <OrgLogo className="h-7 sm:h-9" />
+            <span className="h-9 w-px bg-white/40" aria-hidden />
+            <span className="font-serif text-[21px] font-medium leading-none text-white sm:text-[25px] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
               {SITE.name}
-            </span>
-            <span className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-              {SITE.tagline}
             </span>
           </Link>
 
@@ -171,17 +178,13 @@ export default function SiteHeader() {
                   onClick={() => setSubmitOpen((o) => !o)}
                   className={`${navLink(isActive("/report"))} gap-1`}
                 >
-                  Submit evidence
+                  Submit Evidence
                   <ChevronDown className="h-4 w-4" aria-hidden />
                 </button>
                 {submitOpen && (
-                  <div className="absolute left-0 top-full w-80 border border-slate-200 border-t-4 border-t-brand-teal bg-white py-2 shadow-lg">
+                  <div className={`${dropdown} left-0 w-80`}>
                     {SUBMIT_LINKS.map((l) => (
-                      <Link
-                        key={l.href}
-                        href={l.href}
-                        className="block px-4 py-2.5 hover:bg-slate-50"
-                      >
+                      <Link key={l.href} href={l.href} className="block px-4 py-2.5 hover:bg-slate-50">
                         <span className="block text-[15px] font-semibold text-brand-navy">{l.label}</span>
                         <span className="block text-sm text-slate-600">{l.note}</span>
                       </Link>
@@ -191,7 +194,7 @@ export default function SiteHeader() {
               </div>
 
               <Link href="/dashboard" className={navLink(isActive("/dashboard"))}>
-                Dashboard
+                Results
               </Link>
               <Link href="/roadmap" className={navLink(isActive("/roadmap"))}>
                 Roadmap
@@ -208,7 +211,7 @@ export default function SiteHeader() {
                   <ChevronDown className="h-4 w-4" aria-hidden />
                 </button>
                 {accountOpen && (
-                  <div className="absolute right-0 top-full w-56 border border-slate-200 border-t-4 border-t-brand-teal bg-white py-2 shadow-lg">
+                  <div className={`${dropdown} right-0 w-56`}>
                     {ACCOUNT_LINKS.map((l) => (
                       <Link
                         key={l.href}
@@ -223,29 +226,34 @@ export default function SiteHeader() {
                       onClick={logout}
                       className="block w-full border-t border-slate-100 px-4 py-2 text-left text-[15px] text-slate-700 hover:bg-slate-50"
                     >
-                      Log out
+                      Log Out
                     </button>
                   </div>
                 )}
               </div>
             </nav>
           ) : (
-            <nav aria-label="Main" className="ml-auto hidden items-center gap-6 lg:flex">
-              <Link href="/framework" className="text-[15px] font-semibold text-brand-navy hover:text-brand-dukeblue">
-                The framework
+            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-7 lg:flex">
+              <Link href="/hub" className={navLink(isActive("/hub"))}>
+                All Tools
               </Link>
-              <Link href="/login" className="text-[15px] font-semibold text-brand-navy hover:text-brand-dukeblue">
-                Log in
+              <Link href="/framework" className={navLink(isActive("/framework"))}>
+                About
               </Link>
-              <Link href="/signup" className="btn btn-primary">
-                Create an account
+              <Link href="/login" className={navLink(isActive("/login"))}>
+                Log In
               </Link>
+              <span className="flex items-center">
+                <Link href="/signup" className="btn btn-outline-light py-1.5 text-[15px]">
+                  Create an Account
+                </Link>
+              </span>
             </nav>
           )}
 
           <button
             type="button"
-            className="ml-auto self-center p-2 text-brand-navy lg:hidden"
+            className="ml-auto self-center p-2 text-white lg:hidden"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((o) => !o)}
@@ -261,27 +269,37 @@ export default function SiteHeader() {
             ? [
                 { href: "/", label: "Home" },
                 ...SUBMIT_LINKS,
-                { href: "/dashboard", label: "Dashboard" },
+                { href: "/dashboard", label: "Results" },
                 { href: "/roadmap", label: "Roadmap" },
                 ...ACCOUNT_LINKS,
                 ...INFO_LINKS,
               ]
             : [
-                { href: "/login", label: "Log in" },
-                { href: "/signup", label: "Create an account" },
-                ...INFO_LINKS,
+                { href: "/hub", label: "All Tools" },
+                { href: "/login", label: "Log In" },
+                { href: "/signup", label: "Create an Account" },
+                ...INFO_LINKS.filter((l) => l.href !== "/hub"),
               ]
           ).map((l) => (
             <Link
               key={l.href + l.label}
               href={l.href}
               className={`block border-b border-slate-100 py-3 text-[15px] font-semibold ${
-                isActive(l.href) ? "text-brand-teal" : "text-brand-navy"
+                isActive(l.href) ? "text-brand-dukeblue" : "text-brand-navy"
               }`}
             >
               {l.label}
             </Link>
           ))}
+          {signedIn && (
+            <button
+              type="button"
+              onClick={logout}
+              className="block w-full py-3 text-left text-[15px] font-semibold text-slate-700"
+            >
+              Log Out
+            </button>
+          )}
         </nav>
       )}
     </header>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 /**
- * Inner-page layout in the DGHI pattern: breadcrumb, category label,
+ * Inner-page layout in the Duke pattern: breadcrumb, category label,
  * large serif title and lead paragraph, then the body with an
  * "On this page" list beside it on wide screens.
  */
@@ -21,7 +21,7 @@ export default function InfoLayout({
 }) {
   return (
     <div>
-      <div className="border-b border-slate-200 bg-slate-50">
+      <div className="border-b border-slate-200 bg-whisper">
         <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
           <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
             <Link href="/" className="hover:underline">
@@ -42,7 +42,7 @@ export default function InfoLayout({
         <div className="min-w-0 space-y-12">{children}</div>
 
         <aside className="hidden lg:block">
-          <nav aria-label="On this page" className="sticky top-6 border-l-4 border-brand-teal pl-5">
+          <nav aria-label="On this page" className="sticky top-6 border-l-4 border-brand-navy pl-5">
             <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-600">On this page</p>
             <ul className="mt-3 space-y-2 text-[15px]">
               {sections.map((s) => (

@@ -61,9 +61,9 @@ export default function LoginPage() {
 
   return (
     <AuthCard
-      title="Log in to your account"
+      title="Log In"
       subtitle="Use the email address and password you registered with."
-      secondary={{ href: "/signup", label: "Create an account", lead: "New to Innovator Insights?" }}
+      secondary={{ href: "/signup", label: "Create an Account", lead: "New to Innovator Insights?" }}
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         {error ? (
@@ -134,7 +134,7 @@ export default function LoginPage() {
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
-              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="absolute right-1.5 grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-dukeblue"
             >
               {showPassword ? (
                 <svg
@@ -176,7 +176,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-md bg-blue-600 text-[15px] font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-600/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-sm bg-brand-navy text-[15px] font-bold text-white transition hover:bg-brand-dukeblue focus:outline-none focus:ring-4 focus:ring-brand-navy/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <>
@@ -184,7 +184,7 @@ export default function LoginPage() {
               Logging in…
             </>
           ) : (
-            "Log in"
+            "Log In"
           )}
         </button>
       </form>

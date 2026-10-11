@@ -1,177 +1,287 @@
 "use client";
 
 import Link from "next/link";
-
-import { useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { fetchRoadmapData } from "@/lib/roadmap/fetch";
 import { buildRoadmapModel } from "@/lib/roadmap/transform";
+import { applyDisputes } from "@/lib/roadmap/disputes";
+import { ADVANCE_THRESHOLD } from "@/lib/roadmap/framework";
+import { fetchFeedbackSummary } from "@/lib/disputes";
+import type { HelpContext } from "@/lib/help-guide";
 import type {
   DomainMappingRow,
   QualitativeResponseRow,
   RoadmapModel,
+  SubdomainStatus,
 } from "@/lib/roadmap/types";
-import StageProgressCard from "@/_components/roadmap/StageProgressCard";
-import StageSection from "@/_components/roadmap/StageSection";
+import StageStep from "@/_components/roadmap/StageStep";
+import RoadmapAssistant, { type AssistantHandle } from "@/_components/roadmap/RoadmapAssistant";
 
-async function resolveCompanyId(): Promise<string | null> {
+const STATUS_WORDS: Record<SubdomainStatus, string> = {
+  practiced: "Met",
+  not_practiced: "Not met yet",
+  no_data: "No evidence yet",
+  under_review: "Under review",
+};
+
+type Loaded = {
+  companyId: string;
+  companyName: string | null;
+  responses: QualitativeResponseRow[];
+  mappings: DomainMappingRow[];
+  disputed: Set<string>;
+};
+
+async function load(): Promise<Loaded | { error: string }> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) return null;
+  if (!user) return { error: "signed_out" };
 
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("company_id")
     .eq("id", user.id)
     .single();
+  if (error) throw error;
+  const companyId = profile?.company_id as string | undefined;
+  if (!companyId) return { error: "no_company" };
 
-  if (error) {
-    throw error;
-  }
-
-  return profile?.company_id ?? null;
+  const [{ responses, mappings }, company, feedback] = await Promise.all([
+    fetchRoadmapData(companyId),
+    supabase.from("companies").select("company_name").eq("id", companyId).single(),
+    fetchFeedbackSummary(companyId),
+  ]);
+  return {
+    companyId,
+    companyName: (company.data?.company_name as string | undefined) ?? null,
+    responses,
+    mappings,
+    disputed: feedback.disputed,
+  };
 }
 
+/**
+ * Roadmap: the 31 practices in six stages. A flat tracker shows every
+ * stage at a glance; below, the stages are listed step by step (as on
+ * GOV.UK and university sites), with the current stage open. The Roadmap
+ * Assistant answers questions about the roadmap and the site.
+ */
 export default function RoadmapPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const [responses, setResponses] = useState<QualitativeResponseRow[]>([]);
-  const [mappings, setMappings] = useState<DomainMappingRow[]>([]);
-  const [period, setPeriod] = useState<string>("");
+  const [data, setData] = useState<Loaded | null>(null);
+  const [period, setPeriod] = useState("");
+  const [openStages, setOpenStages] = useState<Set<number> | null>(null);
+  const assistant = useRef<AssistantHandle>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const id = await resolveCompanyId();
-        if (!id) {
-          if (!cancelled) {
-            setError("No company found for the current user.");
-            setLoading(false);
-          }
-          return;
-        }
-
-        const { responses, mappings } = await fetchRoadmapData(id);
-        if (!cancelled) {
-          setCompanyId(id);
-          setResponses(responses);
-          setMappings(mappings);
-          setLoading(false);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(
-            e instanceof Error ? e.message : "Failed to load roadmap data."
-          );
-          setLoading(false);
-        }
+    load().then(
+      (res) => {
+        if ("error" in res) setError(res.error);
+        else setData(res);
+        setLoading(false);
+      },
+      (e) => {
+        setError(e instanceof Error ? e.message : "Failed to load roadmap data.");
+        setLoading(false);
       }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    );
   }, []);
 
   const model: RoadmapModel | null = useMemo(() => {
-    if (!companyId) return null;
-    return buildRoadmapModel(companyId, responses, mappings, period || null);
-  }, [companyId, responses, mappings, period]);
+    if (!data) return null;
+    return applyDisputes(
+      buildRoadmapModel(data.companyId, data.responses, data.mappings, period || null),
+      data.disputed
+    );
+  }, [data, period]);
 
-  const scrollToStage = (id: number) => {
-    document
-      .getElementById(`stage-${id}`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const context: HelpContext | null = useMemo(() => {
+    if (!model) return null;
+    return {
+      company: data?.companyName ?? null,
+      currentStage: model.currentStageId,
+      overall: { met: model.overall.practiced, total: model.overall.total },
+      stages: model.stages.map((s) => ({
+        id: s.id,
+        name: s.name,
+        practiced: s.practicedCount,
+        total: s.totalCount,
+        needed: Math.ceil(s.totalCount * ADVANCE_THRESHOLD),
+        state: s.state.replace("_", " "),
+        practices: s.domainGroups.flatMap((g) =>
+          g.subdomains.map((p) => ({ name: p.name, domain: p.domainName, status: STATUS_WORDS[p.status] }))
+        ),
+      })),
+    };
+  }, [model, data]);
+
+  // The current stage starts open; after that, the reader decides.
+  const open = openStages ?? new Set(model ? [model.currentStageId] : []);
+  const allOpen = model ? model.stages.every((s) => open.has(s.id)) : false;
+
+  const toggle = (id: number) => {
+    const next = new Set(open);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setOpenStages(next);
   };
 
-  return (
-    <div>
-      <div className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 lg:px-8">
-          <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
-            <Link href="/" className="hover:underline">Home</Link>
-            <span className="mx-2" aria-hidden>›</span>
-            <span>Roadmap</span>
-          </nav>
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="label-caps">Six stages</p>
-              <h1 className="mt-2 text-4xl sm:text-5xl">Your roadmap</h1>
-              <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
-                Your results grouped into six stages, roughly in the order an AI
-                tool matures. Each stage shows what it takes to move on, and you
-                can open any criterion to see the reasoning and evidence behind it.
-              </p>
-            </div>
+  const goTo = (id: number) => {
+    setOpenStages(new Set(open).add(id));
+    requestAnimationFrame(() =>
+      document.getElementById(`stage-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
+  };
 
-            {model && model.reportingPeriods.length > 1 && (
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                Reporting period
-                <select
-                  value={period}
-                  onChange={(e) => setPeriod(e.target.value)}
-                  className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal"
-                >
-                  <option value="">All periods</option>
-                  {model.reportingPeriods.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-500" role="status">
+        Loading your roadmap…
+      </div>
+    );
+  }
+
+  if (error || !model) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <h1 className="text-4xl">Your Roadmap</h1>
+        <p className="mt-3 text-slate-700">
+          {error === "signed_out" ? (
+            <>
+              <Link href="/login" className="link-more">
+                Log in
+              </Link>{" "}
+              to see your roadmap.
+            </>
+          ) : error === "no_company" ? (
+            <>
+              Your account isn&apos;t linked to a company yet.{" "}
+              <Link href="/company-setup" className="link-more">
+                Set up your company
+              </Link>
+            </>
+          ) : (
+            <>We couldn&apos;t load your roadmap ({error}). Refresh the page to try again.</>
+          )}
+        </p>
+      </div>
+    );
+  }
+
+  const hasData = model.stages.some((s) => s.state !== "not_started");
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+      <div className="mt-10 flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <p className="label-caps">{data?.companyName ?? "Your organization"}</p>
+          <h1 className="mt-2 text-4xl sm:text-5xl">Your Roadmap</h1>
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
+            Six stages, in the order an AI tool usually matures. Meet half the practices in a
+            stage to move on to the next; meet all of them to complete it.
+          </p>
         </div>
+        {model.reportingPeriods.length > 1 && (
+          <label className="flex items-center gap-2 text-sm font-semibold text-ink">
+            Reporting period
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal"
+            >
+              <option value="">Latest</option>
+              {model.reportingPeriods.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {loading && (
-          <div className="mt-10 flex items-center justify-center gap-2 text-slate-500">
-            <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-            Loading roadmap…
+      {/* Stage tracker */}
+      <ol className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
+        {model.stages.map((s) => {
+          const cur = s.id === model.currentStageId;
+          return (
+            <li key={s.id}>
+              <button type="button" onClick={() => goTo(s.id)} className="group block w-full text-left">
+                <span className={`block h-2 ${cur ? "bg-blue-200" : "bg-slate-200"}`}>
+                  <span
+                    className={`block h-full ${cur ? "bg-brand-dukeblue" : s.state === "complete" ? "bg-brand-teal" : "bg-brand-navy"}`}
+                    style={{ width: `${Math.round(s.score * 100)}%` }}
+                  />
+                </span>
+                <span
+                  className={`mt-3 block text-[0.72rem] font-bold uppercase tracking-[0.1em] ${
+                    cur ? "text-brand-dukeblue" : "text-slate-500"
+                  }`}
+                >
+                  Stage {s.id}
+                  {cur ? " · Current" : s.state === "complete" ? " · Complete" : ""}
+                </span>
+                <span className="mt-0.5 block text-[15px] font-bold leading-snug text-ink group-hover:underline">
+                  {s.name}
+                </span>
+                <span className="block text-[13.5px] text-slate-600">
+                  {s.practicedCount} of {s.totalCount} met
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+
+      {!hasData && (
+        <p className="mt-8 border-l-4 border-brand-dukeblue bg-blue-50 px-5 py-4 text-[15px]">
+          Your roadmap fills in once your first results are ready.{" "}
+          <Link href="/report/assessment" className="link-more">
+            Upload documents and answer questions ›
+          </Link>
+        </p>
+      )}
+
+      <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+        <section aria-labelledby="stages-heading">
+          <div className="section-head">
+            <h2 id="stages-heading">Stages and Practices</h2>
+            <button
+              type="button"
+              onClick={() => setOpenStages(allOpen ? new Set() : new Set(model.stages.map((s) => s.id)))}
+              className="link-more"
+            >
+              {allOpen ? "Hide all stages" : "Show all stages"}
+            </button>
           </div>
-        )}
+          <ol className="mt-4">
+            {model.stages.map((s, i) => (
+              <StageStep
+                key={s.id}
+                stage={s}
+                isCurrent={s.id === model.currentStageId}
+                open={open.has(s.id)}
+                onToggle={() => toggle(s.id)}
+                onAsk={(q) => assistant.current?.ask(q)}
+                first={i === 0}
+                last={i === model.stages.length - 1}
+              />
+            ))}
+          </ol>
+          <p className="mt-6 text-[14.5px] text-slate-600">
+            Ratings come from your results page.{" "}
+            <Link href="/dashboard" className="link-more">
+              See the evidence for each practice ›
+            </Link>
+          </p>
+        </section>
 
-        {error && !loading && (
-          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-            {error} Check your Supabase connection and that the
-            <code className="mx-1 rounded bg-white px-1">qualitative_responses</code>
-            and
-            <code className="mx-1 rounded bg-white px-1">domain_mapping</code>
-            tables are readable for this user.
-          </div>
-        )}
-
-        {model && !loading && !error && (
-          <>
-            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-              {model.stages.map((stage) => (
-                <StageProgressCard
-                  key={stage.id}
-                  stage={stage}
-                  isCurrent={stage.id === model.currentStageId}
-                  onSelect={scrollToStage}
-                />
-              ))}
-            </div>
-
-            <div className="mt-8 space-y-6">
-              {model.stages.map((stage) => (
-                <StageSection
-                  key={stage.id}
-                  stage={stage}
-                  isCurrent={stage.id === model.currentStageId}
-                />
-              ))}
-            </div>
-          </>
-        )}
+        <div className="lg:sticky lg:top-6">
+          <RoadmapAssistant ref={assistant} context={context} />
+        </div>
       </div>
     </div>
   );

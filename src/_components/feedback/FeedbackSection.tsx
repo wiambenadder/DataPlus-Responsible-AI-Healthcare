@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check, PencilLine, TriangleAlert, type LucideIcon } from "lucide-react";
 import {
   KIND_LABEL,
   REVISION_REASONS,
@@ -13,9 +14,16 @@ import type { FeedbackApi } from "./useFeedback";
 const KINDS: FeedbackKind[] = ["accurate", "needs_revision", "wrong_source"];
 
 const KIND_TONE: Record<FeedbackKind, string> = {
-  accurate: "border-brand-darkteal/30 bg-[#e7f2f2] text-brand-darkteal",
-  needs_revision: "border-brand-bronze/35 bg-[#fbf1e4] text-[#7d4708]",
-  wrong_source: "border-[#a63a1b]/30 bg-[#f9ebe6] text-[#8c2d12]",
+  accurate: "border-transparent bg-[#d9ece9] text-[#174f4f]",
+  needs_revision: "border-transparent bg-[#fbefc9] text-[#6e5200]",
+  wrong_source: "border-transparent bg-[#f8ddd0] text-[#8f3800]",
+};
+
+/** Icon and colour for each choice on the "Is this right?" buttons. */
+const KIND_ICON: Record<FeedbackKind, { icon: LucideIcon; color: string }> = {
+  accurate: { icon: Check, color: "#1D6363" },
+  needs_revision: { icon: PencilLine, color: "#a86a0c" },
+  wrong_source: { icon: TriangleAlert, color: "#C84E00" },
 };
 
 const REVIEW_LABEL: Record<string, string> = {
@@ -78,9 +86,9 @@ export default function FeedbackSection({
 
   return (
     <div>
-      <h4 className="text-[15px] font-semibold text-brand-navy">
-        Feedback{" "}
-        <span className="font-normal text-slate-500">({visible.length})</span>
+      <h4 className="text-[0.75rem] font-bold uppercase tracking-[0.1em] text-brand-navy">
+        Comments from your team{" "}
+        <span className="font-normal normal-case tracking-normal text-slate-500">({visible.length})</span>
       </h4>
 
       {/* Submitted feedback */}
@@ -89,7 +97,7 @@ export default function FeedbackSection({
           <p className="text-sm text-slate-500">Loading feedback…</p>
         ) : api.loadState === "error" && visible.length === 0 ? (
           <p className="text-sm text-slate-600">
-            Couldn&apos;t load earlier feedback.{" "}
+            Couldn&apos;t load earlier comments.{" "}
             <button
               type="button"
               onClick={api.reload}
@@ -99,7 +107,7 @@ export default function FeedbackSection({
             </button>
           </p>
         ) : visible.length === 0 ? (
-          <p className="text-sm text-slate-500">No feedback submitted yet.</p>
+          <p className="text-sm text-slate-500">No comments yet.</p>
         ) : (
           <ul className="divide-y divide-slate-200 border-y border-slate-200">
             {visible.map((entry) => (
@@ -118,14 +126,12 @@ export default function FeedbackSection({
       <form
         id={formId}
         onSubmit={handleSubmit}
-        className="mt-4 scroll-mt-24 border-l-4 border-brand-teal bg-slate-50 p-4"
+        className="mt-5 scroll-mt-28 border-t border-slate-200 pt-4"
       >
         <fieldset disabled={saving}>
-          <legend className="text-[15px] font-semibold text-brand-navy">
-            Is this result right?
-          </legend>
+          <legend className="text-[15px] font-bold text-brand-navy">Is this right?</legend>
           <p className="mt-0.5 text-sm text-slate-600">
-            Choosing an option is enough — a comment is optional.
+            Choosing an option is enough. A comment is optional.
           </p>
           <KindPicker
             name={`${formId}-kind`}
@@ -158,7 +164,7 @@ export default function FeedbackSection({
                 ? "What should change?"
                 : "Anything the team should know?"
             }
-            className="mt-1 w-full resize-y border border-slate-300 bg-white p-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 disabled:bg-slate-50"
+            className="mt-1 w-full resize-y border border-slate-300 bg-white p-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-dukeblue disabled:bg-slate-50"
           />
 
           <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -254,7 +260,7 @@ function FeedbackItem({
             <button
               type="button"
               onClick={saveEdit}
-              className="rounded bg-blue-600 px-3 py-1.5 font-semibold text-white hover:bg-blue-700"
+              className="rounded-sm bg-brand-navy px-3 py-1.5 font-semibold text-white hover:bg-brand-dukeblue"
             >
               {editState === "saving" ? "Saving…" : "Save changes"}
             </button>
@@ -414,16 +420,17 @@ function KindPicker({
   onChange: (kind: FeedbackKind) => void;
 }) {
   return (
-    <div className="mt-2 flex flex-wrap gap-2" role="radiogroup">
+    <div className="mt-2.5 flex flex-wrap gap-2.5" role="radiogroup">
       {KINDS.map((k) => {
         const selected = value === k;
+        const { icon: Icon, color } = KIND_ICON[k];
         return (
           <label
             key={k}
-            className={`cursor-pointer rounded border px-3 py-1.5 text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-blue-500 ${
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] bg-white px-4 py-1.5 text-[14.5px] font-semibold transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand-dukeblue ${
               selected
-                ? "border-brand-navy bg-brand-navy font-semibold text-white"
-                : "border-slate-300 bg-white text-slate-800 hover:border-slate-500"
+                ? "border-brand-navy bg-blue-50 text-brand-navy"
+                : "border-slate-300 text-ink hover:border-slate-500"
             }`}
           >
             <input
@@ -434,6 +441,7 @@ function KindPicker({
               onChange={() => onChange(k)}
               className="sr-only"
             />
+            <Icon className="h-4 w-4" style={{ color }} aria-hidden strokeWidth={2.2} />
             {KIND_LABEL[k]}
           </label>
         );
@@ -468,7 +476,7 @@ function ReasonPicker({
               type="checkbox"
               checked={value.includes(r)}
               onChange={() => toggle(r)}
-              className="h-4 w-4 accent-blue-600"
+              className="h-4 w-4 accent-brand-navy"
             />
             {r}
           </label>
