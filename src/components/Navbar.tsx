@@ -1,36 +1,56 @@
 "use client";
 
-// Site header. A plain navy bar, like a university web property: wordmark
-// on the left, a few text links on the right, the current page underlined.
+/*
+ * Site header, in the pattern of the Duke Global Health Institute site:
+ * a thin dark utility bar, then a white bar with the wordmark on the left
+ * and the main navigation on the right.
+ *
+ * Labels follow innovator feedback: "Report" was unclear, so the menu is
+ * "Submit evidence" with plain descriptions; the wordmark has a hover
+ * state and there is an explicit "Home" link, because the old logo
+ * "did not look clickable".
+ */
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { ChevronDown, LogOut, Menu, X } from "lucide-react";
+import { SITE } from "@/lib/site";
 
-const REPORT_LINKS = [
-  { href: "/report/assessment", label: "Assessment" },
-  { href: "/report/history", label: "History" },
+const SUBMIT_LINKS = [
+  {
+    href: "/report/assessment",
+    label: "Upload documents and answer questions",
+    note: "Start or update your assessment",
+  },
+  {
+    href: "/report/history",
+    label: "Your submissions",
+    note: "Documents and answers you've already sent",
+  },
 ];
 
 const ACCOUNT_LINKS = [
   { href: "/user", label: "Your profile" },
-  { href: "/company", label: "Company details" },
+  { href: "/company", label: "Company and team" },
 ];
 
-/** Closes a dropdown when the user clicks outside it or presses Escape. */
+const INFO_LINKS = [
+  { href: "/framework", label: "The framework" },
+  { href: "/data-use", label: "How we use your data" },
+  { href: "/hub", label: "All tools" },
+];
+
+/** Closes a dropdown on outside click or Escape. */
 function useDismiss(open: boolean, close: () => void) {
   const ref = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (!open) return;
-    function onPointer(e: MouseEvent) {
+    const onPointer = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) close();
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") close();
-    }
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     document.addEventListener("mousedown", onPointer);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -38,22 +58,21 @@ function useDismiss(open: boolean, close: () => void) {
       document.removeEventListener("keydown", onKey);
     };
   }, [open, close]);
-
   return ref;
 }
 
-export default function Navbar() {
+export default function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname() ?? "/";
 
   const [signedIn, setSignedIn] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [userOpen, setUserOpen] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const reportRef = useDismiss(reportOpen, () => setReportOpen(false));
-  const userRef = useDismiss(userOpen, () => setUserOpen(false));
+  const submitRef = useDismiss(submitOpen, () => setSubmitOpen(false));
+  const accountRef = useDismiss(accountOpen, () => setAccountOpen(false));
 
   useEffect(() => {
     async function checkUser() {
@@ -63,21 +82,18 @@ export default function Navbar() {
       setSignedIn(!!user);
       setEmail(user?.email ?? null);
     }
-
     checkUser();
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      checkUser();
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(() => checkUser());
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Close menus on navigation (adjusting state during render, as React
-  // recommends, rather than in an effect).
+  // Close menus on navigation (adjusting state during render rather than
+  // in an effect, as React recommends).
   const [lastPath, setLastPath] = useState(pathname);
   if (lastPath !== pathname) {
     setLastPath(pathname);
-    setReportOpen(false);
-    setUserOpen(false);
+    setSubmitOpen(false);
+    setAccountOpen(false);
     setMobileOpen(false);
   }
 
@@ -90,170 +106,184 @@ export default function Navbar() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  const linkClass = (active: boolean) =>
-    `relative py-1 text-[15px] text-white/85 hover:text-white ${
+  const navLink = (active: boolean) =>
+    `relative flex h-full items-center px-1 text-[15px] font-semibold text-brand-navy hover:text-brand-dukeblue ${
       active
-        ? "text-white after:absolute after:inset-x-0 after:-bottom-[13px] after:h-[3px] after:bg-white"
+        ? "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-brand-teal"
         : ""
     }`;
 
   return (
-    <header className="sticky top-0 z-50 bg-blue-600 text-white">
-      <div className="mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="font-serif text-[19px] font-semibold tracking-tight text-white"
-        >
-          Innovator Insights
-        </Link>
+    <header id="top" className="relative z-50">
+      {/* Utility bar */}
+      <div className="bg-brand-darkblue text-[13px] text-white/85">
+        <div className="mx-auto flex h-9 max-w-7xl items-center justify-end gap-5 px-4 sm:px-6 lg:px-8">
+          <nav aria-label="Information" className="hidden items-center gap-5 sm:flex">
+            {INFO_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="hover:text-white hover:underline">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <span className="hidden h-4 w-px bg-white/25 sm:block" aria-hidden />
+          {signedIn ? (
+            <span className="flex items-center gap-4">
+              <span className="hidden max-w-[16rem] truncate text-white/70 md:inline">{email}</span>
+              <button type="button" onClick={logout} className="hover:text-white hover:underline">
+                Log out
+              </button>
+            </span>
+          ) : (
+            <span className="flex items-center gap-4">
+              <Link href="/login" className="hover:text-white hover:underline">
+                Log in
+              </Link>
+              <Link href="/signup" className="hover:text-white hover:underline">
+                Create an account
+              </Link>
+            </span>
+          )}
+        </div>
+      </div>
 
-        {signedIn ? (
-          <>
-            <nav
-              aria-label="Main"
-              className="ml-auto hidden items-center gap-7 md:flex"
-            >
-              <div ref={reportRef} className="relative">
+      {/* Main bar */}
+      <div className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex h-[76px] max-w-7xl items-stretch px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="group flex flex-col justify-center" aria-label={`${SITE.name} home`}>
+            <span className="font-serif text-[26px] font-semibold leading-none text-brand-navy group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
+              {SITE.name}
+            </span>
+            <span className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+              {SITE.tagline}
+            </span>
+          </Link>
+
+          {signedIn ? (
+            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-7 lg:flex">
+              <Link href="/" className={navLink(isActive("/"))}>
+                Home
+              </Link>
+
+              <div ref={submitRef} className="relative flex items-stretch">
                 <button
                   type="button"
-                  aria-expanded={reportOpen}
-                  onClick={() => setReportOpen((o) => !o)}
-                  className={`${linkClass(isActive("/report"))} flex items-center gap-1`}
+                  aria-expanded={submitOpen}
+                  onClick={() => setSubmitOpen((o) => !o)}
+                  className={`${navLink(isActive("/report"))} gap-1`}
                 >
-                  Report
+                  Submit evidence
                   <ChevronDown className="h-4 w-4" aria-hidden />
                 </button>
-                {reportOpen && (
-                  <Menu_ items={REPORT_LINKS} isActive={isActive} />
+                {submitOpen && (
+                  <div className="absolute left-0 top-full w-80 border border-slate-200 border-t-4 border-t-brand-teal bg-white py-2 shadow-lg">
+                    {SUBMIT_LINKS.map((l) => (
+                      <Link
+                        key={l.href}
+                        href={l.href}
+                        className="block px-4 py-2.5 hover:bg-slate-50"
+                      >
+                        <span className="block text-[15px] font-semibold text-brand-navy">{l.label}</span>
+                        <span className="block text-sm text-slate-600">{l.note}</span>
+                      </Link>
+                    ))}
+                  </div>
                 )}
               </div>
 
-              <Link href="/dashboard" className={linkClass(isActive("/dashboard"))}>
+              <Link href="/dashboard" className={navLink(isActive("/dashboard"))}>
                 Dashboard
               </Link>
-              <Link href="/roadmap" className={linkClass(isActive("/roadmap"))}>
+              <Link href="/roadmap" className={navLink(isActive("/roadmap"))}>
                 Roadmap
               </Link>
 
-              <div ref={userRef} className="relative">
+              <div ref={accountRef} className="relative flex items-stretch">
                 <button
                   type="button"
-                  aria-expanded={userOpen}
-                  onClick={() => setUserOpen((o) => !o)}
-                  className="flex items-center gap-1 rounded border border-white/30 px-2.5 py-1 text-sm text-white/90 hover:border-white/60 hover:text-white"
+                  aria-expanded={accountOpen}
+                  onClick={() => setAccountOpen((o) => !o)}
+                  className={`${navLink(isActive("/user") || isActive("/company"))} gap-1`}
                 >
                   Account
                   <ChevronDown className="h-4 w-4" aria-hidden />
                 </button>
-                {userOpen && (
-                  <Menu_
-                    items={ACCOUNT_LINKS}
-                    isActive={isActive}
-                    header={email}
-                    footer={
-                      <button
-                        type="button"
-                        onClick={logout}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                {accountOpen && (
+                  <div className="absolute right-0 top-full w-56 border border-slate-200 border-t-4 border-t-brand-teal bg-white py-2 shadow-lg">
+                    {ACCOUNT_LINKS.map((l) => (
+                      <Link
+                        key={l.href}
+                        href={l.href}
+                        className="block px-4 py-2 text-[15px] text-brand-navy hover:bg-slate-50"
                       >
-                        <LogOut className="h-4 w-4" aria-hidden />
-                        Log out
-                      </button>
-                    }
-                  />
+                        {l.label}
+                      </Link>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="block w-full border-t border-slate-100 px-4 py-2 text-left text-[15px] text-slate-700 hover:bg-slate-50"
+                    >
+                      Log out
+                    </button>
+                  </div>
                 )}
               </div>
             </nav>
+          ) : (
+            <nav aria-label="Main" className="ml-auto hidden items-center gap-6 lg:flex">
+              <Link href="/framework" className="text-[15px] font-semibold text-brand-navy hover:text-brand-dukeblue">
+                The framework
+              </Link>
+              <Link href="/login" className="text-[15px] font-semibold text-brand-navy hover:text-brand-dukeblue">
+                Log in
+              </Link>
+              <Link href="/signup" className="btn btn-primary">
+                Create an account
+              </Link>
+            </nav>
+          )}
 
-            <button
-              type="button"
-              className="ml-auto rounded p-1.5 text-white md:hidden"
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              aria-expanded={mobileOpen}
-              onClick={() => setMobileOpen((o) => !o)}
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </>
-        ) : (
-          <div className="ml-auto flex items-center gap-5">
-            <Link href="/login" className="text-[15px] text-white/85 hover:text-white">
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded border border-white/70 px-3 py-1 text-[15px] text-white hover:bg-white hover:text-blue-600"
-            >
-              Sign up
-            </Link>
-          </div>
-        )}
+          <button
+            type="button"
+            className="ml-auto self-center p-2 text-brand-navy lg:hidden"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((o) => !o)}
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
-      {signedIn && mobileOpen && (
-        <nav
-          aria-label="Main"
-          className="border-t border-white/15 bg-blue-700 px-4 pb-3 pt-1 md:hidden"
-        >
-          {[
-            ...REPORT_LINKS.map((l) => ({ ...l, label: `Report · ${l.label}` })),
-            { href: "/dashboard", label: "Dashboard" },
-            { href: "/roadmap", label: "Roadmap" },
-            ...ACCOUNT_LINKS,
-          ].map((l) => (
+      {mobileOpen && (
+        <nav aria-label="Main" className="border-b border-slate-200 bg-white px-4 pb-4 lg:hidden">
+          {(signedIn
+            ? [
+                { href: "/", label: "Home" },
+                ...SUBMIT_LINKS,
+                { href: "/dashboard", label: "Dashboard" },
+                { href: "/roadmap", label: "Roadmap" },
+                ...ACCOUNT_LINKS,
+                ...INFO_LINKS,
+              ]
+            : [
+                { href: "/login", label: "Log in" },
+                { href: "/signup", label: "Create an account" },
+                ...INFO_LINKS,
+              ]
+          ).map((l) => (
             <Link
-              key={l.href}
+              key={l.href + l.label}
               href={l.href}
-              className={`block border-b border-white/10 py-2.5 text-[15px] ${
-                isActive(l.href) ? "font-semibold text-white" : "text-white/85"
+              className={`block border-b border-slate-100 py-3 text-[15px] font-semibold ${
+                isActive(l.href) ? "text-brand-teal" : "text-brand-navy"
               }`}
             >
               {l.label}
             </Link>
           ))}
-          <button
-            type="button"
-            onClick={logout}
-            className="mt-1 py-2.5 text-[15px] text-white/85"
-          >
-            Log out
-          </button>
         </nav>
       )}
     </header>
-  );
-}
-
-function Menu_({
-  items,
-  isActive,
-  header,
-  footer,
-}: {
-  items: { href: string; label: string }[];
-  isActive: (href: string) => boolean;
-  header?: string | null;
-  footer?: React.ReactNode;
-}) {
-  return (
-    <div className="absolute right-0 top-full mt-3 w-56 overflow-hidden rounded-md border border-slate-200 bg-white py-1 text-slate-800 shadow-lg">
-      {header && (
-        <p className="truncate border-b border-slate-100 px-4 pb-2 pt-1.5 text-xs text-slate-500">
-          {header}
-        </p>
-      )}
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={`block px-4 py-2 text-sm hover:bg-slate-50 ${
-            isActive(item.href) ? "font-semibold text-blue-600" : ""
-          }`}
-        >
-          {item.label}
-        </Link>
-      ))}
-      {footer && <div className="mt-1 border-t border-slate-100 pt-1">{footer}</div>}
-    </div>
   );
 }

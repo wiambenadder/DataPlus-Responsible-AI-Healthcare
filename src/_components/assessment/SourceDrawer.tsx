@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { X } from "lucide-react";
+import OpenFileButton from "./OpenFileButton";
 import type { EvidenceItem } from "@/lib/assessment";
 
 /**
@@ -90,16 +91,12 @@ export default function SourceDrawer({
               <p className="mt-3 whitespace-pre-line border-l-2 border-slate-300 pl-4 text-[15px] leading-relaxed text-slate-800">
                 {item.text}
               </p>
-              {item.sourceUrl ? (
-                <a
-                  href={item.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-5 inline-flex items-center gap-1.5 rounded bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                >
-                  Open the original document
-                  <ExternalLink className="h-4 w-4" aria-hidden />
-                </a>
+              {item.sourcePath ? (
+                <p className="mt-5">
+                  <OpenFileButton path={item.sourcePath} className="btn btn-primary">
+                    Open the original document
+                  </OpenFileButton>
+                </p>
               ) : (
                 <p className="mt-5 text-sm text-slate-600">
                   The original file couldn&apos;t be found among your uploads.

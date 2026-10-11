@@ -13,9 +13,9 @@ import type { FeedbackApi } from "./useFeedback";
 const KINDS: FeedbackKind[] = ["accurate", "needs_revision", "wrong_source"];
 
 const KIND_TONE: Record<FeedbackKind, string> = {
-  accurate: "border-emerald-700/30 bg-emerald-50 text-emerald-900",
-  needs_revision: "border-amber-700/30 bg-amber-50 text-amber-900",
-  wrong_source: "border-rose-700/30 bg-rose-50 text-rose-900",
+  accurate: "border-brand-darkteal/30 bg-[#e7f2f2] text-brand-darkteal",
+  needs_revision: "border-brand-bronze/35 bg-[#fbf1e4] text-[#7d4708]",
+  wrong_source: "border-[#a63a1b]/30 bg-[#f9ebe6] text-[#8c2d12]",
 };
 
 const REVIEW_LABEL: Record<string, string> = {
@@ -78,7 +78,7 @@ export default function FeedbackSection({
 
   return (
     <div>
-      <h4 className="text-sm font-semibold text-slate-900">
+      <h4 className="text-[15px] font-semibold text-brand-navy">
         Feedback{" "}
         <span className="font-normal text-slate-500">({visible.length})</span>
       </h4>
@@ -93,7 +93,7 @@ export default function FeedbackSection({
             <button
               type="button"
               onClick={api.reload}
-              className="font-semibold text-blue-600 underline underline-offset-2"
+              className="font-semibold text-brand-dukeblue underline underline-offset-2"
             >
               Retry
             </button>
@@ -118,12 +118,15 @@ export default function FeedbackSection({
       <form
         id={formId}
         onSubmit={handleSubmit}
-        className="mt-4 scroll-mt-32 rounded-md border border-slate-200 bg-slate-50/60 p-3 sm:p-4"
+        className="mt-4 scroll-mt-24 border-l-4 border-brand-teal bg-slate-50 p-4"
       >
         <fieldset disabled={saving}>
-          <legend className="text-sm font-semibold text-slate-800">
+          <legend className="text-[15px] font-semibold text-brand-navy">
             Is this result right?
           </legend>
+          <p className="mt-0.5 text-sm text-slate-600">
+            Choosing an option is enough — a comment is optional.
+          </p>
           <KindPicker
             name={`${formId}-kind`}
             value={draft.kind}
@@ -162,7 +165,7 @@ export default function FeedbackSection({
             <button
               type="submit"
               disabled={!draft.kind || saving}
-              className="rounded bg-blue-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="btn btn-primary"
             >
               {saving ? "Saving…" : lastFailed ? "Try again" : "Submit feedback"}
             </button>
@@ -319,7 +322,7 @@ function FeedbackItem({
             <button
               type="button"
               onClick={startEdit}
-              className="font-semibold text-blue-600 hover:underline"
+              className="font-semibold text-brand-dukeblue hover:underline"
             >
               Edit
             </button>
@@ -419,7 +422,7 @@ function KindPicker({
             key={k}
             className={`cursor-pointer rounded border px-3 py-1.5 text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-blue-500 ${
               selected
-                ? "border-blue-600 bg-blue-600 font-semibold text-white"
+                ? "border-brand-navy bg-brand-navy font-semibold text-white"
                 : "border-slate-300 bg-white text-slate-800 hover:border-slate-500"
             }`}
           >

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { parseReason } from "@/lib/feedback-format";
 
 import { DOMAINS } from "@/lib/roadmap/framework";
 import HomeView from "@/_components/home/HomeView";
@@ -69,7 +70,29 @@ export default function DashboardPage() {
     if (reports?.length) {
       const periods = [...new Set(reports.map((r: any) => r.reporting_period))];
       setReportCount(periods.length);
-      setDomainProgress(computeDomainProgress(reports));
+
+      // Results someone reported as resting on the wrong source or company
+      // aren't counted as met until reviewed — the same rule as the dashboard.
+      const { data: fb } = await supabase
+        .from("feedback")
+        .select("subdomain, feedback_type, reason, status")
+        .eq("company_id", profile.company_id);
+      type FbRow = {
+        subdomain: string | null;
+        feedback_type: string | null;
+        reason: string | null;
+        status: string | null;
+      };
+      const disputed = new Set(
+        ((fb ?? []) as FbRow[])
+          .filter(
+            (f) =>
+              (f.status ?? "open") === "open" &&
+              parseReason(f.reason, f.feedback_type).kind === "wrong_source"
+          )
+          .map((f) => String(f.subdomain ?? "").trim().toLowerCase())
+      );
+      setDomainProgress(computeDomainProgress(reports, disputed));
     } else {
       setDomainProgress(computeDomainProgress([]));
     }
@@ -109,7 +132,10 @@ export default function DashboardPage() {
  * rows. Latest row per (domain, Subtopic) wins — same rule as the
  * roadmap page. Case/whitespace differences are normalized.
  */
-function computeDomainProgress(reports: any[]): DomainProgress[] {
+function computeDomainProgress(
+  reports: any[],
+  disputed: Set<string> = new Set()
+): DomainProgress[] {
   const latest = new Map<string, string>();
 
   // Oldest first, so the newest row for each subdomain wins (same rule
@@ -136,7 +162,7 @@ function computeDomainProgress(reports: any[]): DomainProgress[] {
       const key = `${d.name.toLowerCase()}::${sub.trim().toLowerCase()}`;
       const status = latest.get(key);
       if (status) assessed += 1;
-      if (status === "practiced") practiced += 1;
+      if (status === "practiced" && !disputed.has(sub.trim().toLowerCase())) practiced += 1;
     }
 
     return {

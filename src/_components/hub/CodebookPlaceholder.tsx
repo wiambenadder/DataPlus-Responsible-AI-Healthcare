@@ -23,11 +23,12 @@ export default function CodebookPlaceholder({
         <span className="text-slate-700">{stream.title}</span>
       </nav>
 
-      <p className="mt-8 font-serif text-lg italic text-slate-600">{stream.question}</p>
-      <h1 className="mt-1 text-4xl font-semibold text-slate-900">{stream.title}</h1>
+      <p className="label-caps mt-8">In development</p>
+      <p className="mt-2 font-serif text-lg italic text-slate-600">{stream.question}</p>
+      <h1 className="mt-1 text-4xl sm:text-5xl">{stream.title}</h1>
       <p className="mt-4 text-lg leading-relaxed text-slate-700">{stream.description}</p>
 
-      <div className="mt-8 border-l-4 border-blue-600 bg-white px-5 py-4">
+      <div className="mt-8 border-l-4 border-brand-teal bg-slate-50 px-5 py-4">
         <p className="font-semibold text-slate-900">This tool is still being built.</p>
         <p className="mt-1 text-[15px] text-slate-600">What it will let you do:</p>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] text-slate-700 marker:text-slate-400">
@@ -38,7 +39,7 @@ export default function CodebookPlaceholder({
       </div>
 
       <p className="mt-8">
-        <Link href="/hub" className="text-[15px] font-semibold text-blue-600 hover:underline">
+        <Link href="/hub" className="link-more">
           Back to all tools
         </Link>
       </p>

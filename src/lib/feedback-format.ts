@@ -27,6 +27,7 @@ export const KIND_LABEL: Record<FeedbackKind, string> = {
 /** Optional reasons offered when someone picks "Needs revision". */
 export const REVISION_REASONS = [
   "Incorrect information",
+  "We answered this, but it wasn't picked up",
   "Requires further detail",
   "Outdated information",
   "Wrong company or partner",

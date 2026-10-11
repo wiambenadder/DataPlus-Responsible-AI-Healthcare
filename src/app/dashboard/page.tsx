@@ -19,6 +19,7 @@ import {
   type UploadRow,
 } from "@/lib/assessment";
 import { normalizeName } from "@/lib/feedback-format";
+import { DOMAIN_INFO } from "@/lib/domain-info";
 import { useFeedback } from "@/_components/feedback/useFeedback";
 import FeedbackSection from "@/_components/feedback/FeedbackSection";
 import SubdomainItem from "@/_components/assessment/SubdomainItem";
@@ -86,7 +87,7 @@ export default function DashboardPage() {
       supabase.from("qualitative_responses").select("*").eq("company_id", cid),
       supabase
         .from("domain_mapping")
-        .select("id, domain, subtopic, source_quotes, source_pdf, confidence, upload_id")
+        .select("*")
         .eq("company_id", cid),
       supabase
         .from("uploads")
@@ -145,10 +146,6 @@ export default function DashboardPage() {
         responses,
         mappings,
         uploads,
-        sourceUrl: (u) =>
-          u.file_url
-            ? supabase.storage.from("reports").getPublicUrl(u.file_url).data.publicUrl
-            : null,
       }),
     [responses, mappings, uploads]
   );
@@ -359,17 +356,17 @@ export default function DashboardPage() {
   if (!signedIn || !companyId || loadError) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <h1 className="text-3xl font-semibold text-slate-900">Assessment results</h1>
+        <h1 className="text-4xl">Your assessment results</h1>
         {loadError ? (
           <p className="mt-3 text-slate-700">
             We couldn&apos;t load your results ({loadError}).{" "}
-            <button onClick={load} className="font-semibold text-blue-600 underline">
+            <button onClick={load} className="font-semibold text-brand-dukeblue underline">
               Try again
             </button>
           </p>
         ) : !signedIn ? (
           <p className="mt-3 text-slate-700">
-            <Link href="/login" className="font-semibold text-blue-600 underline">
+            <Link href="/login" className="font-semibold text-brand-dukeblue underline">
               Log in
             </Link>{" "}
             to see your results.
@@ -377,7 +374,7 @@ export default function DashboardPage() {
         ) : (
           <p className="mt-3 text-slate-700">
             Your account isn&apos;t linked to a company yet.{" "}
-            <Link href="/company-setup" className="font-semibold text-blue-600 underline">
+            <Link href="/company-setup" className="font-semibold text-brand-dukeblue underline">
               Set up your company
             </Link>
             .
@@ -390,61 +387,55 @@ export default function DashboardPage() {
   const met = counts.get("meets") ?? 0;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8">
-      <nav aria-label="Breadcrumb" className="text-sm text-slate-500">
-        <Link href="/" className="hover:text-slate-900 hover:underline">
-          Home
-        </Link>
-        <span className="mx-2" aria-hidden>/</span>
-        <span className="text-slate-700">Assessment results</span>
-      </nav>
-
-      {/* Header */}
-      <header className="mt-3 flex flex-wrap items-end justify-between gap-4 border-b border-slate-300 pb-5">
-        <div>
-          <h1 className="text-3xl font-semibold text-slate-900 sm:text-[2.1rem]">
-            Assessment results
-          </h1>
-          <p className="mt-1.5 text-[15px] text-slate-600">
-            {companyName ?? "Your company"}
-            {latestPeriod && <> · Latest reporting period: {latestPeriod}</>}
-          </p>
+    <div>
+      {/* Page header band */}
+      <div className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+          <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
+            <Link href="/" className="hover:underline">
+              Home
+            </Link>
+            <span className="mx-2" aria-hidden>›</span>
+            <span>Dashboard</span>
+          </nav>
+          <div className="mt-6 flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="label-caps">{companyName ?? "Your organisation"}</p>
+              <h1 className="mt-2 text-4xl sm:text-5xl">Your assessment results</h1>
+              <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
+                <strong className="font-semibold text-slate-900">
+                  {met} of {allItems.length} criteria met
+                </strong>{" "}
+                across five domains{latestPeriod ? ` (latest reporting period: ${latestPeriod})` : ""}.
+                Open any criterion to see the evidence behind it, and tell us if
+                something is wrong.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/framework" className="btn btn-secondary">
+                How results work
+              </Link>
+              <button type="button" onClick={exportPdf} disabled={exporting} className="btn btn-primary">
+                <Download className="h-4 w-4" aria-hidden />
+                {exporting ? "Preparing PDF…" : "Download PDF"}
+              </button>
+            </div>
+          </div>
+          <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
+            {STATUS_ORDER.map((s) => (
+              <li key={s} className="inline-flex items-center gap-2">
+                <span className={`h-2.5 w-2.5 rounded-full ${STATUS_META[s].dot}`} aria-hidden />
+                {STATUS_META[s].label}
+                <span className="font-semibold tabular-nums text-slate-900">{counts.get(s) ?? 0}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-        <button
-          type="button"
-          onClick={exportPdf}
-          disabled={exporting}
-          className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 hover:border-blue-600 hover:text-blue-600 disabled:opacity-60"
-        >
-          <Download className="h-4 w-4" aria-hidden />
-          {exporting ? "Preparing PDF…" : "Download PDF"}
-        </button>
-      </header>
+      </div>
 
-      {/* Where you stand */}
-      <section aria-label="Summary" className="mt-5">
-        <p className="text-[15px] text-slate-800">
-          <strong className="font-semibold">
-            {met} of {allItems.length}
-          </strong>{" "}
-          criteria met across five domains. Open any criterion to see the evidence
-          behind its result, and tell us if something is wrong.
-        </p>
-        <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
-          {STATUS_ORDER.map((s) => (
-            <li key={s} className="inline-flex items-center gap-2">
-              <span className={`h-2 w-2 rounded-full ${STATUS_META[s].dot}`} aria-hidden />
-              {STATUS_META[s].label}
-              <span className="font-semibold tabular-nums text-slate-900">
-                {counts.get(s) ?? 0}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
+    <div className="mx-auto max-w-7xl px-4 pb-24 pt-2 sm:px-6 lg:px-8">
       {/* Mobile: sticky domain picker */}
-      <div className="sticky top-14 z-30 -mx-4 mt-5 border-y border-slate-200 bg-slate-50/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+      <div className="sticky top-0 z-30 -mx-4 border-b border-slate-200 bg-white/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
         <label className="flex items-center gap-3 text-sm">
           <span className="shrink-0 text-slate-500">Domain</span>
           <select
@@ -464,11 +455,11 @@ export default function DashboardPage() {
         </label>
       </div>
 
-      <div className="mt-6 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:gap-10">
+      <div className="mt-8 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12">
         {/* Desktop: sticky side navigation */}
         <aside className="hidden lg:block">
-          <div className="sticky top-20">
-            <p className="text-xs font-semibold text-slate-500">On this page</p>
+          <div className="sticky top-6">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-600">On this page</p>
             <ol className="mt-2 border-l border-slate-300">
               {domains.map((d) => {
                 const active = activeDomain === d.slug;
@@ -480,7 +471,7 @@ export default function DashboardPage() {
                       aria-current={active ? "location" : undefined}
                       className={`-ml-px flex items-baseline justify-between gap-2 border-l-[3px] py-1.5 pl-3 pr-1 text-sm ${
                         active
-                          ? "border-blue-600 font-semibold text-blue-600"
+                          ? "border-brand-teal font-semibold text-brand-navy"
                           : "border-transparent text-slate-700 hover:border-slate-400 hover:text-slate-900"
                       }`}
                     >
@@ -501,14 +492,14 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setEverything(true)}
-                className="font-semibold text-blue-600 hover:underline"
+                className="font-semibold text-brand-dukeblue hover:underline"
               >
                 Expand all
               </button>
               <button
                 type="button"
                 onClick={() => setEverything(false)}
-                className="font-semibold text-blue-600 hover:underline"
+                className="font-semibold text-brand-dukeblue hover:underline"
               >
                 Collapse all
               </button>
@@ -534,17 +525,17 @@ export default function DashboardPage() {
                 key={d.slug}
                 id={d.slug}
                 aria-labelledby={`${d.slug}-title`}
-                className="scroll-mt-32 border border-slate-200 bg-white lg:scroll-mt-20"
+                className="scroll-mt-16 border border-slate-200 border-t-4 border-t-brand-navy bg-white lg:scroll-mt-6"
               >
                 <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 border-b border-slate-200 px-4 py-4 sm:px-6">
                   <div className="min-w-0">
-                    <p className="text-xs text-slate-500">Domain {d.number}</p>
-                    <h2 id={`${d.slug}-title`} className="mt-0.5">
+                    <p className="label-caps">Domain {d.number}</p>
+                    <h2 id={`${d.slug}-title`} className="mt-1">
                       <button
                         type="button"
                         aria-expanded={!collapsed}
                         onClick={() => toggleDomain(d.slug)}
-                        className="inline-flex items-center gap-2 text-left text-2xl font-semibold text-slate-900 hover:text-blue-600"
+                        className="inline-flex items-center gap-2 text-left font-serif text-[1.7rem] font-semibold text-brand-navy hover:text-brand-dukeblue"
                       >
                         {d.name}
                         <ChevronDown
@@ -555,7 +546,16 @@ export default function DashboardPage() {
                         />
                       </button>
                     </h2>
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 max-w-2xl text-[15px] text-slate-700">
+                      {DOMAIN_INFO[d.name]?.short}{" "}
+                      <Link
+                        href={`/framework#domain-${d.slug}`}
+                        className="whitespace-nowrap font-semibold text-brand-dukeblue underline underline-offset-2"
+                      >
+                        About this domain
+                      </Link>
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-slate-800">
                       {dMet} of {d.items.length} criteria met
                     </p>
                     <DomainBar items={d.items} statusOf={statusOf} />
@@ -566,7 +566,7 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => setDomainItems(d.slug, !allOpen)}
-                        className="font-semibold text-blue-600 hover:underline"
+                        className="font-semibold text-brand-dukeblue hover:underline"
                       >
                         {allOpen ? "Collapse all" : "Expand all"}
                       </button>
@@ -629,6 +629,7 @@ export default function DashboardPage() {
         subdomain={drawer?.subdomain ?? ""}
         onClose={() => setDrawer(null)}
       />
+    </div>
     </div>
   );
 }

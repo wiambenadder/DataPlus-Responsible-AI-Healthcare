@@ -3,7 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
 import { QUESTIONS } from "@/lib/assessment-q";
+
+const STATUS_TEXT: Record<FileStatus["status"], string> = {
+  uploading: "Uploading…",
+  processing: "Reading the document…",
+  mapping: "Finding evidence for each criterion…",
+  done: "Done",
+  error: "Couldn't be processed",
+};
 
 type FileStatus = {
   name: string;
@@ -488,144 +498,164 @@ export default function ReportPage() {
       f.status === "mapping"
   );
 
+  const pageHeader = (title: string, lede: React.ReactNode) => (
+    <div className="border-b border-slate-200 bg-slate-50">
+      <div className="mx-auto max-w-3xl px-4 pb-8 pt-6 sm:px-6">
+        <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
+          <Link href="/" className="hover:underline">Home</Link>
+          <span className="mx-2" aria-hidden>›</span>
+          <span>Submit evidence</span>
+        </nav>
+        <p className="label-caps mt-6">Submit evidence</p>
+        <h1 className="mt-2 text-4xl">{title}</h1>
+        <div className="mt-3 text-[16px] text-slate-700">{lede}</div>
+      </div>
+    </div>
+  );
+
+  const periodField = (
+    <div className="mb-8">
+      <label htmlFor="reporting-period" className="block text-sm font-semibold text-slate-800">
+        Reporting period
+      </label>
+      <p className="text-sm text-slate-600">The period these answers describe, for example &ldquo;Q2 2026&rdquo;.</p>
+      <input
+        id="reporting-period"
+        className="mt-2 w-full border border-slate-300 px-3 py-2.5 text-[15px] focus:border-brand-dukeblue disabled:bg-slate-50"
+        placeholder="Q2 2026"
+        value={reportingPeriod}
+        onChange={(e) => setReportingPeriod(e.target.value)}
+        disabled={editingExisting}
+      />
+    </div>
+  );
+
   // Gate: already submitted and not currently editing -> show summary screen
   if (alreadySubmitted && !editingExisting) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="max-w-3xl mx-auto p-8">
-          <div className="bg-white border rounded-3xl p-10 shadow-sm text-center">
-            <h1 className="text-3xl font-semibold mb-4">
-              Assessment Already Submitted
-            </h1>
-
-            <p className="text-gray-600 mb-8">
-              Your organization has already completed the assessment
-              interview. You can review or edit your responses below.
+      <div>
+        {pageHeader("Your assessment has been submitted", 
+            <p>
+              Your organisation has already completed the assessment. You can
+              change any of your answers, or look at what you&apos;ve sent so far.
+              Changed answers are re-assessed automatically.
             </p>
-
-            <div className="flex flex-wrap gap-4 justify-center">
-              <button
-                onClick={startEdit}
-                className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700"
-              >
-                Edit My Responses
-              </button>
-
-              <button
-                onClick={() => router.push("/report/history")}
-                className="border px-6 py-3 rounded-xl"
-              >
-                View Submission
-              </button>
-
-              {/*
-                HIDDEN FOR NOW: entry point for editing document-extracted
-                evidence (routes to /report/evidence). Uncomment when that
-                flow is ready to ship. Left in place rather than deleted so
-                it's easy to re-enable.
-              */}
-              {/*
-              <button
-                onClick={() => router.push("/report/evidence")}
-                className="border px-6 py-3 rounded-xl"
-              >
-                Edit Extracted Evidence
-              </button>
-              */}
-            </div>
+          )}
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+          <div className="flex flex-wrap gap-3">
+            <button onClick={startEdit} className="btn btn-primary">
+              Edit your answers
+            </button>
+            <button onClick={() => router.push("/report/history")} className="btn btn-secondary">
+              View your submissions
+            </button>
+            <Link href="/dashboard" className="btn btn-secondary">
+              See your results
+            </Link>
           </div>
+
+          {/*
+            HIDDEN FOR NOW: entry point for editing document-extracted
+            evidence (routes to /report/evidence). Uncomment when that flow
+            is ready to ship.
+          */}
+          {/*
+          <button onClick={() => router.push("/report/evidence")} className="btn btn-secondary">
+            Edit extracted evidence
+          </button>
+          */}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-4xl font-semibold mb-2">Assessment Questionnaire</h1>
+    <div>
+      {pageHeader(editingExisting ? "Edit your answers" : "Upload documents and answer questions", 
+          <p>
+            {editingExisting
+              ? "Change any answer below. Only the answers you change are re-assessed."
+              : "Start with documents that describe your tool and organisation. You'll then only be asked about topics your documents didn't cover."}
+          </p>
+        )}
 
-        <p className="text-gray-500 mb-8">
-          Help us understand your organization's progress and challenges.
-        </p>
-
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         {!uploadComplete && (
-          <div className="bg-white border rounded-2xl shadow-sm p-8 mb-8">
-            <h2 className="text-2xl font-semibold mb-4">
-              Upload Supporting Documentation
-            </h2>
-
-            <p className="text-gray-600 mb-6">
-              Upload brochures, reports, evaluations, or case studies. We'll
-              analyze the documents before beginning the interview.
+          <section aria-labelledby="upload-title">
+            <h2 id="upload-title" className="text-2xl">Step 1 · Upload supporting documents</h2>
+            <p className="mt-2 text-[15px] text-slate-700">
+              Reports, evaluations, case studies, policies or decks — anything that
+              shows how you build and run your AI tool. PDF only.
             </p>
 
-            <input
-              type="file"
-              accept=".pdf"
-              multiple
-              onChange={handleUpload}
-            />
+            <div role="note" className="mt-5 flex gap-3 border-l-4 border-brand-bronze bg-slate-50 p-4 text-[15px] text-slate-800">
+              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-brand-bronze" aria-hidden />
+              <div>
+                <p className="font-semibold text-slate-900">Don&apos;t upload personal or patient information</p>
+                <p className="mt-1">
+                  Remove names, ID numbers, contact details, medical records and images
+                  of people before uploading. Documents are read by AI models as part
+                  of the assessment —{" "}
+                  <Link href="/data-use" className="font-semibold text-brand-dukeblue underline underline-offset-2">
+                    how we use your data
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+
+            <label className="mt-6 block border-2 border-dashed border-slate-300 bg-white p-6 text-center hover:border-brand-dukeblue">
+              <span className="block font-semibold text-brand-navy">Choose PDF files</span>
+              <span className="mt-1 block text-sm text-slate-600">You can select several at once.</span>
+              <input type="file" accept=".pdf" multiple onChange={handleUpload} className="mt-3 text-sm" />
+            </label>
 
             {fileStatuses.length > 0 && (
-              <ul className="mt-6 space-y-1 text-sm">
+              <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200 text-[15px]">
                 {fileStatuses.map((f) => (
-                  <li key={f.name} className="flex justify-between">
-                    <span>{f.name}</span>
+                  <li key={f.name} className="flex justify-between gap-4 py-2.5">
+                    <span className="min-w-0 truncate">{f.name}</span>
                     <span
-                      className={
+                      className={`shrink-0 text-sm ${
                         f.status === "error"
-                          ? "text-red-600"
+                          ? "font-semibold text-red-700"
                           : f.status === "done"
-                          ? "text-green-600"
-                          : "text-gray-500"
-                      }
+                          ? "font-semibold text-brand-darkteal"
+                          : "text-slate-600"
+                      }`}
                     >
-                      {f.status}
+                      {STATUS_TEXT[f.status]}
                     </span>
                   </li>
                 ))}
               </ul>
             )}
+            {fileStatuses.some((f) => f.status === "error") && (
+              <p className="mt-2 text-sm text-red-700">
+                A file couldn&apos;t be processed. Check it&apos;s a text-based PDF (not a scan) and try again.
+              </p>
+            )}
 
             <button
               disabled={stillWorking}
               onClick={() => setUploadComplete(true)}
-              className="mt-6 border rounded-xl px-5 py-3 disabled:opacity-50"
+              className="btn btn-secondary mt-6"
             >
-              Continue Without Upload
+              {fileStatuses.length > 0 ? "Continue to the questions" : "Continue without uploading"}
             </button>
-          </div>
+          </section>
         )}
 
         {uploadComplete && interviewQuestions.length === 0 && (
           <>
-            <div className="mb-8">
-              <label className="block text-sm font-medium mb-2">
-                Reporting Period
-              </label>
-
-              <input
-                className="w-full border p-3 rounded-xl"
-                placeholder="Q2 2026"
-                value={reportingPeriod}
-                onChange={(e) => setReportingPeriod(e.target.value)}
-                disabled={editingExisting}
-              />
-            </div>
-
-            <div className="bg-white border rounded-2xl shadow-sm p-8 text-center">
-              <p className="text-gray-500 mb-6">
-                All topics have already been covered by your uploaded
-                documents. There are no interview questions remaining —
-                click below to finish processing your submission.
+            {periodField}
+            <div className="border-l-4 border-brand-teal bg-slate-50 p-6">
+              <p className="text-[15px] text-slate-800">
+                Your documents covered every topic, so there are no questions left.
+                Submit to finish and see your results.
               </p>
-
-              <button
-                disabled={saving}
-                onClick={submitInterview}
-                className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50"
-              >
-                {saving ? "Submitting..." : "Submit Report"}
+              <button disabled={saving} onClick={submitInterview} className="btn btn-primary mt-4">
+                {saving ? "Submitting…" : "Submit"}
               </button>
             </div>
           </>
@@ -633,67 +663,50 @@ export default function ReportPage() {
 
         {uploadComplete && interviewQuestions.length > 0 && (
           <>
-            <div className="mb-8">
-              <label className="block text-sm font-medium mb-2">
-                Reporting Period
-              </label>
+            {!editingExisting && <h2 className="mb-4 text-2xl">Step 2 · Answer the remaining questions</h2>}
+            {periodField}
 
-              <input
-                className="w-full border p-3 rounded-xl"
-                placeholder="Q2 2026"
-                value={reportingPeriod}
-                onChange={(e) => setReportingPeriod(e.target.value)}
-                disabled={editingExisting}
-              />
-            </div>
-
-            <div className="mb-8">
-              <div className="flex justify-between text-sm text-gray-500 mb-2">
-                <span>Question {currentQuestion + 1}</span>
-                <span>{interviewQuestions.length}</span>
+            <div className="mb-6">
+              <div className="mb-2 flex justify-between text-sm text-slate-600">
+                <span>
+                  Question {currentQuestion + 1} of {interviewQuestions.length}
+                </span>
+                <span>{interviewQuestions[currentQuestion].subtopic}</span>
               </div>
-
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all"
-                  style={{ width: `${progress}%` }}
-                />
+              <div className="h-1.5 w-full bg-slate-200">
+                <div className="h-1.5 bg-brand-teal transition-all" style={{ width: `${progress}%` }} />
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border shadow-sm p-8">
-              <div className="text-xl font-medium mb-6">
+            <div className="border border-slate-200 border-t-4 border-t-brand-navy bg-white p-6 sm:p-8">
+              <label htmlFor="answer" className="block font-serif text-xl leading-snug text-brand-navy">
                 {interviewQuestions[currentQuestion].question}
-              </div>
+              </label>
+              <p className="mt-2 text-sm text-slate-600">
+                If you don&apos;t do this yet, say so — &ldquo;We don&apos;t do this yet&rdquo; is a
+                valid answer.
+              </p>
 
               <textarea
+                id="answer"
                 value={answers[currentQuestion] ?? ""}
                 onChange={(e) => updateAnswer(e.target.value)}
-                placeholder="Type your answer..."
-                className="w-full h-40 border rounded-xl p-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Type your answer…"
+                className="mt-4 h-40 w-full resize-y border border-slate-300 p-3 text-[15px] focus:border-brand-dukeblue"
               />
 
-              <div className="flex justify-between mt-6">
-                <button
-                  onClick={previousQuestion}
-                  disabled={currentQuestion === 0}
-                  className="border px-6 py-3 rounded-xl disabled:opacity-40"
-                >
+              <div className="mt-6 flex justify-between">
+                <button onClick={previousQuestion} disabled={currentQuestion === 0} className="btn btn-secondary">
                   Previous
                 </button>
-
-                <button
-                  disabled={saving}
-                  onClick={nextQuestion}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700"
-                >
+                <button disabled={saving} onClick={nextQuestion} className="btn btn-primary">
                   {saving
-                    ? "Saving..."
+                    ? "Saving…"
                     : currentQuestion === interviewQuestions.length - 1
                     ? editingExisting
-                      ? "Save Changes"
-                      : "Submit Report"
-                    : "Continue"}
+                      ? "Save changes"
+                      : "Submit"
+                    : "Next question"}
                 </button>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { slugify } from "@/lib/assessment";
+import { DOMAIN_INFO } from "@/lib/domain-info";
 import type { DomainId } from "@/lib/roadmap/framework";
 
 export interface DomainProgress {
@@ -14,9 +14,9 @@ export interface DomainProgress {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Signed-in home page: who you are, where you stand by domain, and where
- * to go next. Kept deliberately plain — a table and a list rather than
- * cards and icons.
+ * Signed-in home page, laid out like a DGHI page: a title band, a row of
+ * large figures with links (as on the DGHI home page), results by
+ * domain, and next steps as labelled cards.
  */
 export default function HomeView({
   company,
@@ -27,7 +27,7 @@ export default function HomeView({
   reportCount: number;
   domainProgress: DomainProgress[];
 }) {
-  const name = company?.company_name ?? company?.name ?? "Your company";
+  const name = company?.company_name ?? company?.name ?? "Your organisation";
   const orgType = company?.organization_type ?? company?.org_type;
   const established = company?.year_established ?? company?.established;
 
@@ -38,199 +38,161 @@ export default function HomeView({
     staffLine(company?.full_time_staff, company?.part_time_staff),
   ].filter(Boolean);
 
-  const totalMet = domainProgress.reduce((n, d) => n + d.practiced, 0);
+  const met = domainProgress.reduce((n, d) => n + d.practiced, 0);
+  const assessed = domainProgress.reduce((n, d) => n + d.assessed, 0);
   const total = domainProgress.reduce((n, d) => n + d.total, 0);
   const hasReports = reportCount > 0;
 
+  const stats = [
+    {
+      figure: `${met}`,
+      label: `of ${total} criteria met`,
+      href: "/dashboard",
+      cta: "See your results",
+    },
+    {
+      figure: `${total - assessed}`,
+      label: total - assessed === 1 ? "criterion with no evidence yet" : "criteria with no evidence yet",
+      href: "/report/assessment",
+      cta: hasReports ? "Add or update answers" : "Start your assessment",
+    },
+    {
+      figure: "6",
+      label: "roadmap stages to work through",
+      href: "/roadmap",
+      cta: "Open your roadmap",
+    },
+  ];
+
   const nextSteps = [
     {
+      label: "Submit evidence",
       href: "/report/assessment",
-      title: hasReports ? "Continue reporting" : "Start your first report",
+      title: hasReports ? "Update your assessment" : "Start your assessment",
       body: hasReports
-        ? "Add a new reporting period, upload documents or finish open questions."
-        : "Answer the assessment questions and upload documents. Everything else is built from this.",
+        ? "Change an answer or fill in criteria that have no evidence yet."
+        : "Upload documents about your tool, then answer questions on anything they don't cover.",
+      cta: hasReports ? "Update answers" : "Get started",
     },
     {
+      label: "Check your results",
       href: "/dashboard",
-      title: "Review your results",
-      body: "See every criterion with the evidence and source behind it, and flag anything that's wrong.",
+      title: "See the evidence behind every result",
+      body: "Each criterion shows what it was based on and where that came from. Tell us when something is wrong.",
+      cta: "Open dashboard",
     },
     {
-      href: "/roadmap",
-      title: "Read your roadmap",
-      body: "The criteria in six stages, from need and governance to long-term oversight.",
-    },
-    {
-      href: "/report/history",
-      title: "Your submissions",
-      body: "Earlier answers and the documents you've uploaded.",
+      label: "Learn the framework",
+      href: "/framework",
+      title: "What each domain and criterion means",
+      body: "Plain-language explanations, what counts as met, and the thresholds for each roadmap stage.",
+      cta: "Read the explainer",
     },
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-      <header className="border-b border-slate-300 pb-6">
-        <p className="text-sm text-slate-500">Welcome back</p>
-        <h1 className="mt-1 text-3xl font-semibold text-slate-900 sm:text-4xl">
-          {name}
-        </h1>
-        {facts.length > 0 && (
-          <p className="mt-2 text-[15px] text-slate-600">{facts.join(" · ")}</p>
-        )}
-      </header>
+    <div>
+      {/* Title band */}
+      <div className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 lg:px-8">
+          <p className="label-caps">Welcome back</p>
+          <h1 className="mt-2 text-4xl sm:text-5xl">{name}</h1>
+          {facts.length > 0 && (
+            <p className="mt-3 text-[16px] text-slate-700">{facts.join(" · ")}</p>
+          )}
+        </div>
+      </div>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div>
-          {/* Results by domain */}
-          <section aria-labelledby="results-heading">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 id="results-heading" className="text-xl font-semibold text-slate-900">
-                Your results by domain
-              </h2>
+      {/* Figures */}
+      <section aria-label="At a glance" className="bg-brand-navy text-white">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:px-8">
+          {stats.map((s) => (
+            <div key={s.cta} className="border-l-4 border-brand-teal pl-5">
+              <p className="font-serif text-5xl font-semibold leading-none">{s.figure}</p>
+              <p className="mt-2 text-[16px] text-white/85">{s.label}</p>
               <Link
-                href="/dashboard"
-                className="text-sm font-semibold text-blue-600 hover:underline"
+                href={s.href}
+                className="mt-3 inline-block text-sm font-semibold uppercase tracking-[0.08em] text-white underline decoration-white/40 underline-offset-4 hover:decoration-white"
               >
-                Open full results
+                {s.cta} ›
               </Link>
             </div>
-            <p className="mt-1 text-sm text-slate-600">
-              {hasReports
-                ? `${totalMet} of ${total} criteria met so far.`
-                : "No results yet — they appear here once you've submitted a report."}
-            </p>
-
-            <table className="mt-4 w-full border-y border-slate-300 bg-white text-left text-sm">
-              <thead className="border-b border-slate-200 text-xs text-slate-500">
-                <tr>
-                  <th scope="col" className="px-4 py-2 font-semibold">Domain</th>
-                  <th scope="col" className="px-4 py-2 font-semibold">Criteria met</th>
-                  <th scope="col" className="hidden px-4 py-2 font-semibold sm:table-cell">
-                    Assessed
-                  </th>
-                  <th scope="col" className="w-2/5 px-4 py-2">
-                    <span className="sr-only">Progress</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {domainProgress.map((d, i) => (
-                  <tr key={d.domainId} className="hover:bg-slate-50">
-                    <th scope="row" className="px-4 py-3 font-normal">
-                      <Link
-                        href={`/dashboard#${slugify(d.name)}`}
-                        className="font-semibold text-slate-900 hover:text-blue-600 hover:underline"
-                      >
-                        <span className="mr-1.5 tabular-nums text-slate-400">{i + 1}.</span>
-                        {d.name}
-                      </Link>
-                    </th>
-                    <td className="px-4 py-3 tabular-nums text-slate-800">
-                      {d.practiced} of {d.total}
-                    </td>
-                    <td className="hidden px-4 py-3 tabular-nums text-slate-600 sm:table-cell">
-                      {d.assessed} of {d.total}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div
-                        className="h-1.5 w-full bg-slate-200"
-                        role="img"
-                        aria-label={`${d.practiced} of ${d.total} criteria met`}
-                      >
-                        <div
-                          className="h-full bg-blue-600"
-                          style={{ width: `${d.total ? (d.practiced / d.total) * 100 : 0}%` }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          {/* Next steps */}
-          <section aria-labelledby="next-heading" className="mt-12">
-            <h2 id="next-heading" className="text-xl font-semibold text-slate-900">
-              Next steps
-            </h2>
-            <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-300">
-              {nextSteps.map((s, i) => (
-                <li key={s.href}>
-                  <Link
-                    href={s.href}
-                    className="group flex items-start gap-4 px-1 py-4 hover:bg-white"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className={`text-[15px] font-semibold group-hover:underline ${
-                          i === 0 && !hasReports ? "text-blue-600" : "text-slate-900"
-                        }`}
-                      >
-                        {s.title}
-                      </p>
-                      <p className="mt-0.5 text-sm text-slate-600">{s.body}</p>
-                    </div>
-                    <ArrowRight
-                      className="mt-1 h-4 w-4 shrink-0 text-slate-400 group-hover:text-blue-600"
-                      aria-hidden
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
+          ))}
         </div>
+      </section>
 
-        <aside className="space-y-6">
-          <section className="border border-slate-200 bg-white p-5">
-            <h2 className="text-lg font-semibold text-slate-900">
-              How the assessment works
-            </h2>
-            <ol className="mt-3 list-decimal space-y-3 pl-5 text-sm leading-relaxed text-slate-700 marker:text-slate-400">
-              <li>
-                <strong className="font-semibold text-slate-900">Share your work.</strong>{" "}
-                Answer the questions and upload reports, decks or anything else that
-                shows how you build and run your tool.
-              </li>
-              <li>
-                <strong className="font-semibold text-slate-900">Evidence is mapped.</strong>{" "}
-                The platform finds what your material says about each of 31
-                criteria in five domains, and rates it. This step is AI-assisted.
-              </li>
-              <li>
-                <strong className="font-semibold text-slate-900">Check the results.</strong>{" "}
-                Every rating shows the evidence and the source it came from. If
-                something is wrong, say so under that criterion.
-              </li>
-              <li>
-                <strong className="font-semibold text-slate-900">Use the roadmap.</strong>{" "}
-                The criteria are grouped into six stages so you can see what to
-                work on next.
-              </li>
-            </ol>
-          </section>
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        {/* Results by domain */}
+        <section aria-labelledby="results-heading">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="label-caps">Your results</p>
+              <h2 id="results-heading" className="mt-1 text-3xl">
+                Results by domain
+              </h2>
+            </div>
+            <Link href="/dashboard" className="link-more">
+              Open full results
+            </Link>
+          </div>
 
-          <section className="text-sm leading-relaxed text-slate-600">
-            <h2 className="font-sans text-sm font-semibold text-slate-900">
-              What the results mean
-            </h2>
-            <dl className="mt-2 space-y-1.5">
-              <div>
-                <dt className="inline font-semibold text-slate-800">Meets criterion</dt>{" "}
-                <dd className="inline">— the evidence shows the practice is in place.</dd>
-              </div>
-              <div>
-                <dt className="inline font-semibold text-slate-800">Does not currently meet</dt>{" "}
-                <dd className="inline">— the evidence doesn&apos;t yet show it in place.</dd>
-              </div>
-              <div>
-                <dt className="inline font-semibold text-slate-800">Not reported</dt>{" "}
-                <dd className="inline">— nothing you&apos;ve submitted covers it yet.</dd>
-              </div>
-            </dl>
-          </section>
-        </aside>
+          <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
+            {domainProgress.map((d, i) => (
+              <li key={d.domainId}>
+                <Link
+                  href={`/dashboard#${slugify(d.name)}`}
+                  className="group grid gap-2 py-5 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center sm:gap-10"
+                >
+                  <span>
+                    <span className="text-sm font-semibold text-slate-500">Domain {i + 1}</span>
+                    <span className="block font-serif text-2xl font-semibold text-brand-navy group-hover:underline">
+                      {d.name}
+                    </span>
+                    <span className="mt-0.5 block text-[15px] text-slate-700">{DOMAIN_INFO[d.name]?.short}</span>
+                  </span>
+                  <span>
+                    <span className="block text-[15px] font-semibold text-slate-900">
+                      {d.practiced} of {d.total} met
+                    </span>
+                    <span
+                      className="mt-2 block h-2 w-full bg-slate-200"
+                      role="img"
+                      aria-label={`${d.practiced} of ${d.total} criteria met`}
+                    >
+                      <span
+                        className="block h-full bg-brand-teal"
+                        style={{ width: `${d.total ? (d.practiced / d.total) * 100 : 0}%` }}
+                      />
+                    </span>
+                    <span className="mt-1 block text-xs text-slate-600">
+                      {d.assessed} of {d.total} have evidence
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Next steps */}
+        <section aria-labelledby="next-heading" className="mt-16">
+          <p className="label-caps">Next steps</p>
+          <h2 id="next-heading" className="mt-1 text-3xl">
+            Where to go from here
+          </h2>
+          <ul className="mt-6 grid gap-6 md:grid-cols-3">
+            {nextSteps.map((s) => (
+              <li key={s.href} className="flex flex-col border-t-4 border-brand-navy bg-slate-50 p-6">
+                <p className="label-caps">{s.label}</p>
+                <h3 className="mt-2 font-serif text-2xl font-semibold leading-snug text-brand-navy">{s.title}</h3>
+                <p className="mt-2 flex-1 text-[15px] text-slate-700">{s.body}</p>
+                <Link href={s.href} className="btn btn-primary mt-5 self-start">
+                  {s.cta}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </div>
   );
