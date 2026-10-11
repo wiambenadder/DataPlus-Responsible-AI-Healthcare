@@ -24,7 +24,7 @@ export default function StageProgressCard({
       type="button"
       onClick={() => onSelect(stage.id)}
       className={`group flex flex-col border bg-white p-4 text-left hover:border-slate-400 ${
-        isCurrent ? "border-slate-200 border-t-4 border-t-blue-600" : "border-slate-200"
+        isCurrent ? "border-slate-200 border-t-4 border-t-brand-teal" : "border-slate-200 border-t-4 border-t-slate-200"
       }`}
     >
       <div className="flex items-center justify-between">
@@ -41,7 +41,7 @@ export default function StageProgressCard({
 
       <p className="mt-1 text-sm font-semibold text-slate-900">{stage.name}</p>
 
-      <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-900">
+      <p className="mt-3 font-serif text-3xl font-semibold tabular-nums text-brand-navy">
         {pct}%
       </p>
       <p className="mt-1 text-xs text-slate-500">

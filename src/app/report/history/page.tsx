@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import OpenFileButton from "@/_components/assessment/OpenFileButton";
+import Link from "next/link";
 
 type InterviewRow = {
   id: string;
@@ -185,147 +187,82 @@ export default function HistoryPage() {
 
   const periods = Object.keys(interviewReports).sort().reverse();
 
+  const statusLabel = (v: string | null | undefined) => {
+    const r = (v ?? "").trim().toLowerCase();
+    if (r === "practiced") return "Meets criterion";
+    if (r.startsWith("not")) return "Does not currently meet";
+    return v ? v : "Not rated yet";
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto px-4 py-12 sm:px-6">
-        <div className="mb-10">
-          <p className="text-sm text-slate-500 mb-2">
-            Assessment
+    <div>
+      <div className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-5xl px-4 pb-8 pt-6 sm:px-6">
+          <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
+            <Link href="/" className="hover:underline">Home</Link>
+            <span className="mx-2" aria-hidden>›</span>
+            <span>Your submissions</span>
+          </nav>
+          <p className="label-caps mt-6">Submit evidence</p>
+          <h1 className="mt-2 text-4xl">Your submissions</h1>
+          <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
+            Everything your organisation has sent so far: your answers by
+            reporting period, and the documents you uploaded.{" "}
+            <Link href="/report/assessment" className="font-semibold text-brand-dukeblue underline underline-offset-2">
+              Edit your answers
+            </Link>
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            Report History
-          </h1>
         </div>
+      </div>
 
-        {/*
-        <div className="mb-10">
-          <h2 className="text-2xl font-semibold mb-4">
-            Background Report History
-          </h2>
+      <div className="mx-auto max-w-5xl space-y-12 px-4 py-10 sm:px-6">
+        {/* The company background report section is switched off; see git history to restore it. */}
 
-          <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
-            <button
-              onClick={() => setBackgroundOpen(!backgroundOpen)}
-              className="w-full p-5 flex justify-between items-center text-left"
-            >
-              <div>
-                <div className="font-semibold text-lg">
-                  Company Background
-                </div>
+        <section aria-labelledby="answers-title">
+          <h2 id="answers-title" className="text-3xl">Your answers</h2>
 
-                <div className="text-sm text-gray-500">
-                  {backgroundRows.length} responses
-                </div>
-              </div>
-
-              <div className="text-xl">{backgroundOpen ? "−" : "+"}</div>
-            </button>
-
-            {backgroundOpen && (
-              <div className="border-t p-5">
-                {backgroundRows.length === 0 ? (
-                  <p className="text-gray-500">
-                    No background report submitted yet.
-                  </p>
-                ) : (
-                  backgroundRows.map((row) => (
-                    <EditableBackgroundResponse
-                      key={row.id}
-                      row={row}
-                      onSave={saveBackgroundResponse}
-                    />
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        */}
-
-        {/* Consistent, generous gap between the two major sections below. */}
-        <div className="space-y-10">
-          <section>
-            <h2 className="text-2xl font-semibold text-slate-900 mb-4">
-              Interview Report History
-            </h2>
-
-            {periods.length === 0 && (
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm text-slate-500">
-                No interview reports found.
-              </div>
-            )}
-
-            <div className="space-y-4">
+          {periods.length === 0 ? (
+            <p className="mt-4 text-slate-600">No answers submitted yet.</p>
+          ) : (
+            <div className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
               {periods.map((period) => (
-                <div
-                  key={period}
-                  className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
-                >
+                <div key={period}>
                   <button
                     onClick={() =>
-                      setOpenInterview((prev) => ({
-                        ...prev,
-                        [period]: !prev[period],
-                      }))
+                      setOpenInterview((prev) => ({ ...prev, [period]: !prev[period] }))
                     }
-                    className="flex w-full items-center justify-between gap-4 p-5 text-left"
+                    aria-expanded={!!openInterview[period]}
+                    className="flex w-full items-center justify-between gap-4 py-4 text-left hover:bg-slate-50"
                   >
-                    <div>
-                      <div className="font-semibold text-lg text-slate-900">
-                        {period}
-                      </div>
-
-                      <div className="text-sm text-slate-500">
-                        {interviewReports[period].length} responses
-                      </div>
-                    </div>
-
-                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-600">
-                      {openInterview[period] ? "−" : "+"}
+                    <span>
+                      <span className="block font-serif text-xl font-semibold text-brand-navy">{period}</span>
+                      <span className="text-sm text-slate-600">
+                        {interviewReports[period].length} answers
+                      </span>
+                    </span>
+                    <span className="text-sm font-semibold text-brand-dukeblue">
+                      {openInterview[period] ? "Hide" : "Show"}
                     </span>
                   </button>
 
                   {openInterview[period] && (
-                    <div className="border-t border-slate-200 p-5">
+                    <div className="space-y-6 pb-6">
                       {interviewReports[period].map((row) => (
-                        <div
-                          key={row.id}
-                          className="border-b border-slate-100 pb-5 mb-5 last:border-b-0 last:mb-0 last:pb-0"
-                        >
-                          {(row.domain || row.Subtopic) && (
-                            <div className="text-sm text-slate-500 mb-2">
-                              {row.domain}
-                              {row.domain && row.Subtopic && " • "}
-                              {row.Subtopic}
-                            </div>
+                        <div key={row.id} className="border-l-4 border-slate-200 pl-4">
+                          {row.Subtopic && (
+                            <p className="label-caps">
+                              {row.domain} · {row.Subtopic}
+                            </p>
                           )}
-
-                          <div className="font-medium text-slate-900 mb-2">
-                            {row.question}
-                          </div>
-
-                          <div className="text-slate-700 whitespace-pre-wrap mb-4">
-                            {row.answer}
-                          </div>
-
+                          <p className="mt-1 font-semibold text-slate-900">{row.question}</p>
+                          <p className="mt-1 whitespace-pre-wrap text-[15px] text-slate-800">{row.answer}</p>
                           {(row.ai_assessment || row.ai_reasoning) && (
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                              <div className="font-medium text-slate-900 mb-1">
-                                AI Assessment
-                              </div>
-
-                              <div className="mb-3 text-slate-700">
-                                {row.ai_assessment || "Pending"}
-                              </div>
-
-                              <div className="font-medium text-slate-900 mb-1">
-                                AI Reasoning
-                              </div>
-
-                              <div className="text-slate-700">
-                                {row.ai_reasoning || "No reasoning yet."}
-                              </div>
-                            </div>
+                            <p className="mt-2 text-sm text-slate-600">
+                              <span className="font-semibold text-slate-800">
+                                Result: {statusLabel(row.ai_assessment)}.
+                              </span>{" "}
+                              {row.ai_reasoning}
+                            </p>
                           )}
                         </div>
                       ))}
@@ -334,58 +271,42 @@ export default function HistoryPage() {
                 </div>
               ))}
             </div>
-          </section>
+          )}
+        </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-slate-900 mb-4">
-              Uploaded Documents
-            </h2>
+        <section aria-labelledby="docs-title">
+          <h2 id="docs-title" className="text-3xl">Uploaded documents</h2>
 
-            {uploads.length === 0 ? (
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm text-slate-500">
-                No uploaded documents.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {uploads.map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
-                  >
-                    <div>
-                      <div className="text-lg font-semibold text-slate-900">
-                        {file.file_name}
-                      </div>
-
-                      <div className="mt-2 text-sm text-slate-500">
-                        PDF Document
-                      </div>
-
-                      <div className="mt-1 text-xs text-slate-400">
-                        Uploaded{" "}
-                        {file.created_at &&
-                          new Date(file.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
-                      </div>
-                    </div>
-
-                    <a
-                      href={
-                        supabase.storage
-                          .from("reports")
-                          .getPublicUrl(file.file_url).data.publicUrl
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-                    >
-                      View PDF
-                    </a>
+          {uploads.length === 0 ? (
+            <p className="mt-4 text-slate-600">No documents uploaded yet.</p>
+          ) : (
+            <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
+              {uploads.map((file) => (
+                <li key={file.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">{file.file_name}</p>
+                    <p className="text-sm text-slate-600">
+                      PDF
+                      {file.created_at &&
+                        ` · uploaded ${new Date(file.created_at).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}`}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
+                  {file.file_url ? (
+                    <OpenFileButton path={file.file_url} className="btn btn-secondary">
+                      Open PDF
+                    </OpenFileButton>
+                  ) : (
+                    <span className="text-sm text-slate-600">File not available</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </div>
   );

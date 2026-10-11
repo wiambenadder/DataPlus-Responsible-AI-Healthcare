@@ -41,6 +41,9 @@ export type MappingRow = {
   source_pdf: string | null;
   confidence: number | null;
   upload_id: string | null;
+  /** Optional, for when extraction starts saving them (see docs/AI_PROMPT_CHANGES.md). */
+  source_excerpt?: string | null;
+  page_number?: number | null;
 };
 
 export type UploadRow = {
@@ -67,20 +70,20 @@ export const STATUS_META: Record<
 > = {
   meets: {
     label: "Meets criterion",
-    badge: "border-emerald-800/25 bg-emerald-50 text-emerald-900",
-    dot: "bg-emerald-700",
+    badge: "border-brand-darkteal/30 bg-[#e7f2f2] text-brand-darkteal",
+    dot: "bg-brand-darkteal",
     order: 0,
   },
   partial: {
     label: "Partially meets",
-    badge: "border-amber-700/30 bg-amber-50 text-amber-900",
-    dot: "bg-amber-600",
+    badge: "border-brand-bronze/35 bg-[#fbf1e4] text-[#7d4708]",
+    dot: "bg-brand-bronze",
     order: 1,
   },
   not_met: {
     label: "Does not currently meet",
-    badge: "border-orange-800/25 bg-orange-50 text-orange-900",
-    dot: "bg-orange-700",
+    badge: "border-[#a63a1b]/30 bg-[#f9ebe6] text-[#8c2d12]",
+    dot: "bg-[#a63a1b]",
     order: 2,
   },
   not_reported: {
@@ -91,8 +94,8 @@ export const STATUS_META: Record<
   },
   needs_verification: {
     label: "Needs verification",
-    badge: "border-violet-800/25 bg-violet-50 text-violet-900",
-    dot: "bg-violet-700",
+    badge: "border-brand-dukeblue/30 bg-blue-50 text-brand-dukeblue",
+    dot: "bg-brand-dukeblue",
     order: 4,
   },
 };
@@ -165,13 +168,17 @@ export type EvidenceItem = {
   question: string | null;
   sourceTitle: string;
   sourceDate: string;
-  /** Link to the original PDF, when we can find it. */
-  sourceUrl: string | null;
+  /** Storage path of the original PDF, when we can find it. */
+  sourcePath: string | null;
   reportingPeriod: string | null;
   /** Extractor confidence (0–1) for document evidence. */
   score: number | null;
   /** Rating of this piece of evidence, for "other evidence on file". */
   rating: Status | null;
+  /** Exact passage from the document, when extraction provides one. */
+  quote?: string | null;
+  /** PDF page of `quote`, when known. */
+  page?: number | null;
 };
 
 export type SubdomainResult = {
@@ -246,16 +253,13 @@ export function lookupCriterion(domain: string, subdomain: string): string | nul
 /* Builder                                                             */
 /* ------------------------------------------------------------------ */
 
-export type SourceUrlFn = (upload: UploadRow) => string | null;
-
 export function buildResults(args: {
   framework: [string, string[]][];
   responses: ResponseRow[];
   mappings: MappingRow[];
   uploads: UploadRow[];
-  sourceUrl: SourceUrlFn;
 }): Map<string, SubdomainResult> {
-  const { framework, responses, mappings, uploads, sourceUrl } = args;
+  const { framework, responses, mappings, uploads } = args;
 
   const uploadById = new Map(uploads.map((u) => [String(u.id), u]));
   const uploadByName = new Map(
@@ -308,10 +312,12 @@ export function buildResults(args: {
             question: null,
             sourceTitle: upload?.file_name ?? m.source_pdf ?? "Uploaded document",
             sourceDate: formatDate(upload?.created_at),
-            sourceUrl: upload ? sourceUrl(upload) : null,
+            sourcePath: upload?.file_url ?? null,
             reportingPeriod: row.reporting_period,
             score: typeof m.confidence === "number" ? m.confidence : null,
             rating,
+            quote: m.source_excerpt?.trim() || null,
+            page: typeof m.page_number === "number" ? m.page_number : null,
           };
         });
     }
@@ -329,7 +335,7 @@ export function buildResults(args: {
         question: null,
         sourceTitle: files.length ? files.join(", ") : "Uploaded documents",
         sourceDate: formatDate(upload?.created_at ?? row.created_at),
-        sourceUrl: upload ? sourceUrl(upload) : null,
+        sourcePath: upload?.file_url ?? null,
         reportingPeriod: row.reporting_period,
         score: null,
         rating,
@@ -348,7 +354,7 @@ export function buildResults(args: {
         ? `Assessment answer · ${row.reporting_period}`
         : "Assessment answer",
       sourceDate: formatDate(row.created_at),
-      sourceUrl: null,
+      sourcePath: null,
       reportingPeriod: row.reporting_period,
       score: null,
       rating,

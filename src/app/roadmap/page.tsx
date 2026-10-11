@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -88,30 +90,32 @@ export default function RoadmapPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="border-b border-slate-300 pb-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <div className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+          <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
+            <Link href="/" className="hover:underline">Home</Link>
+            <span className="mx-2" aria-hidden>›</span>
+            <span>Roadmap</span>
+          </nav>
+          <div className="mt-6 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-semibold text-slate-900 sm:text-[2.1rem]">
-                Roadmap
-              </h1>
-              <p className="mt-2 max-w-2xl text-[15px] text-slate-600">
-                Follow your progress through the six stages of responsible AI
-                adoption. Each stage groups the framework subdomains that matter
-                at that point — open any subdomain to see the reasoning and the
-                evidence behind it.
+              <p className="label-caps">Six stages</p>
+              <h1 className="mt-2 text-4xl sm:text-5xl">Your roadmap</h1>
+              <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
+                Your results grouped into six stages, roughly in the order an AI
+                tool matures. Each stage shows what it takes to move on, and you
+                can open any criterion to see the reasoning and evidence behind it.
               </p>
             </div>
 
             {model && model.reportingPeriods.length > 1 && (
-              <label className="flex items-center gap-2 text-sm text-slate-500">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                 Reporting period
                 <select
                   value={period}
                   onChange={(e) => setPeriod(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="border border-slate-300 bg-white px-3 py-2 text-sm font-normal"
                 >
                   <option value="">All periods</option>
                   {model.reportingPeriods.map((p) => (
@@ -124,7 +128,9 @@ export default function RoadmapPage() {
             )}
           </div>
         </div>
+      </div>
 
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {loading && (
           <div className="mt-10 flex items-center justify-center gap-2 text-slate-500">
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
@@ -166,7 +172,7 @@ export default function RoadmapPage() {
             </div>
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
