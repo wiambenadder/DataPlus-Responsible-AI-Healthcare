@@ -1,3 +1,36 @@
+/**
+ * Re-runs AI assessments for qualitative responses for a given reporting period.
+ *
+ * By default, this endpoint reprocesses every qualitative response belonging to
+ * the specified company and reporting period. When an optional `subtopics` array
+ * is provided, only responses matching the supplied `{ domain, subtopic }` pairs
+ * are re-evaluated. This allows the UI to selectively refresh AI assessments
+ * after a user edits specific responses instead of reprocessing the entire
+ * reporting period.
+ *
+ * Request body:
+ * {
+ *   reporting_period: string;
+ *   company_id: string;
+ *   subtopics?: Array<{
+ *     domain: string;
+ *     subtopic: string;
+ *   }>;
+ * }
+ *
+ * The endpoint:
+ * 1. Retrieves the relevant qualitative responses from Supabase.
+ * 2. Optionally filters to only the requested domain/subtopic pairs.
+ * 3. Sends each response to the AI using the predefined assessment prompt.
+ * 4. Stores the returned `ai_assessment` and `ai_reasoning` back in Supabase.
+ *
+ * Response:
+ * {
+ *   success: boolean;
+ *   rowsProcessed: number;
+ * }
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";

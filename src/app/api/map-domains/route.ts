@@ -1,3 +1,32 @@
+/**
+ * Extracts structured assessment evidence from a completed document upload.
+ *
+ * This endpoint takes the text extracted from an uploaded PDF or document and
+ * uses an LLM to map relevant evidence into a predefined assessment framework.
+ * Each piece of evidence is classified by domain and subtopic, summarized,
+ * assigned a confidence score, and stored in the `domain_mapping` table for
+ * later review and assessment.
+ *
+ * Workflow:
+ * 1. Retrieve the completed document extraction from the `uploads` table.
+ * 2. Send the extracted text and assessment framework to the AI.
+ * 3. Parse the returned JSON containing all matched framework items.
+ * 4. Normalize the domain and subtopic labels.
+ * 5. Save each extracted match, summary, source document, and confidence score
+ *    into the `domain_mapping` table.
+ *
+ * Request body:
+ * {
+ *   uploadId: string;
+ * }
+ *
+ * Response:
+ * {
+ *   success: boolean;
+ *   documentsProcessed: number;
+ * }
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";

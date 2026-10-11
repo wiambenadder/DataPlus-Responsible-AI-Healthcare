@@ -1,3 +1,16 @@
+/**
+ * Generates executive-summary bullet points for qualitative responses.
+ *
+ * Workflow:
+ * 1. Receives a company ID and reporting period in the POST request.
+ * 2. Retrieves all qualitative responses matching those filters from Supabase.
+ * 3. Sends each response to an OpenAI model with instructions to produce
+ *    concise, executive-level themes as bullet points.
+ * 4. Stores the generated bullet-point summary back into the
+ *    `bullet_point_summary` column for each response.
+ * 5. Returns the number of processed responses or an error if the operation fails.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
