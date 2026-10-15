@@ -414,7 +414,7 @@ export default function DashboardPage() {
             <strong className="font-semibold text-ink">
               {met} of {total} practices met
             </strong>{" "}
-            ({pct} percent){latestPeriod ? `, from the ${latestPeriod} reporting period` : ""}.
+            ({pct}%){latestPeriod ? `, from the ${latestPeriod} reporting period` : ""}.
             Choose a domain, then open any practice to see why it was rated that way and
             where the evidence came from.
           </p>

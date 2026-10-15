@@ -3,7 +3,10 @@
  * page.
  *
  * Edit this file to change a card's text, link, photo or status — no
- * component changes needed. When a codebook goes live, point `href` at its
+ * component changes needed. The Financing and Policy Codebook pages are
+ * deliberately simple: their title, introduction and "Why It Matters" text
+ * all come from here, so the teams building them can rewrite the page by
+ * editing their entry below. When a codebook goes live, point `href` at its
  * real route and set `status` to "live".
  */
 import type { PhotoKey } from "./photos";
@@ -18,8 +21,8 @@ export type Workstream = {
   /** Longer introduction for the tool's own page. */
   intro: string;
   highlights: string[];
-  /** "What you will be able to do" on the tool's own page. */
-  features: { title: string; text: string }[];
+  /** "Why It Matters" paragraphs on the tool's own page. */
+  why: string[];
   href: string;
   cta: string;
   status: WorkstreamStatus;
@@ -41,7 +44,7 @@ export const WORKSTREAMS: Workstream[] = [
       "31 practices rated, each with its evidence",
       "A six-stage roadmap of next steps",
     ],
-    features: [],
+    why: [],
     href: "/report/assessment",
     cta: "Start the Assessment",
     status: "live",
@@ -60,19 +63,9 @@ export const WORKSTREAMS: Workstream[] = [
       "How much a tool depends on grants",
       "Funders matched to innovators",
     ],
-    features: [
-      {
-        title: "Follow the funding",
-        text: "Who funded each tool, how much, and at which stage of its development.",
-      },
-      {
-        title: "Measure grant dependence",
-        text: "How much a tool relies on grants compared with revenue or government contracts.",
-      },
-      {
-        title: "Find the right funders",
-        text: "Funders matched to innovators by stage, region and focus area.",
-      },
+    why: [
+      "Many AI health tools start with grant funding and stop when it ends. Knowing how similar tools were funded, and which ones went on to pay their own way, helps innovators plan for the long term.",
+      "It also helps funders see where support is missing, and helps health systems judge whether a tool they adopt will still be there in a few years.",
     ],
     href: "/financing-codebook",
     cta: "Learn More",
@@ -92,19 +85,9 @@ export const WORKSTREAMS: Workstream[] = [
       "Key rules for each country, with sources",
       "Search documents across countries",
     ],
-    features: [
-      {
-        title: "Explore a world map",
-        text: "See which countries have AI and health technology policies, at a glance.",
-      },
-      {
-        title: "Read each country's rules",
-        text: "Five key questions per country, each linked to the passage in the official document.",
-      },
-      {
-        title: "Search across countries",
-        text: "Filter documents by topic, region and how binding they are.",
-      },
+    why: [
+      "Rules for AI in health differ from country to country, and they change. An innovator who knows them early can design for them, rather than discover them at launch.",
+      "Linking each rule to its official source lets innovators, funders and ministries check the details for themselves.",
     ],
     href: "/policy-codebook",
     cta: "Learn More",

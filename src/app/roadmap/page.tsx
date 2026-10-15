@@ -180,8 +180,10 @@ export default function RoadmapPage() {
           <p className="label-caps">{data?.companyName ?? "Your organization"}</p>
           <h1 className="mt-2 text-4xl sm:text-5xl">Your Roadmap</h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
-            Six stages, in the order an AI tool usually matures. Meet half the practices in a
-            stage to move on to the next; meet all of them to complete it.
+            Your roadmap puts the 31 practices in six stages, in the order an AI tool usually
+            matures. Meet half the practices in a stage to move on to the next; meet all of them
+            to complete it. Start with your current stage, and ask the Roadmap Assistant if
+            anything is unclear.
           </p>
         </div>
         {model.reportingPeriods.length > 1 && (

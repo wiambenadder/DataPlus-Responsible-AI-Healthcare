@@ -43,6 +43,11 @@ export default function SiteFooter() {
           <p className="text-xs font-bold uppercase tracking-[0.1em] text-white/60">Help</p>
           <ul className="mt-3 space-y-2 text-[15px]">
             <li>
+              <Link href="/about" className="text-white/90 hover:text-white hover:underline">
+                About
+              </Link>
+            </li>
+            <li>
               <Link href="/framework" className="text-white/90 hover:text-white hover:underline">
                 The Framework
               </Link>
