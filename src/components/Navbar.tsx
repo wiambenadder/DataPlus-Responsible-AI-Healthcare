@@ -38,6 +38,7 @@ const ACCOUNT_LINKS = [
 ];
 
 const INFO_LINKS = [
+  { href: "/about", label: "About" },
   { href: "/framework", label: "The Framework" },
   { href: "/data-use", label: "How We Use Your Data" },
   { href: "/hub", label: "All Tools" },
@@ -108,7 +109,7 @@ export default function SiteHeader() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   const navLink = (active: boolean) =>
-    `relative flex h-full items-center text-[15px] font-semibold text-white ${
+    `relative flex h-full items-center whitespace-nowrap text-[15px] font-semibold text-white ${
       active
         ? "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-white"
         : "text-white/90 hover:text-white"
@@ -160,13 +161,16 @@ export default function SiteHeader() {
           >
             <OrgLogo className="h-7 sm:h-9" />
             <span className="h-9 w-px bg-white/40" aria-hidden />
-            <span className="font-serif text-[21px] font-medium leading-none text-white sm:text-[25px] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
+            <span className="whitespace-nowrap font-serif text-[21px] font-medium leading-none text-white sm:text-[25px] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
               {SITE.name}
             </span>
           </Link>
 
           {signedIn ? (
-            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-7 lg:flex">
+            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-5 lg:flex xl:gap-7">
+              <Link href="/hub" className={navLink(isActive("/hub"))}>
+                All Tools
+              </Link>
               <Link href="/" className={navLink(isActive("/"))}>
                 Home
               </Link>
@@ -233,11 +237,11 @@ export default function SiteHeader() {
               </div>
             </nav>
           ) : (
-            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-7 lg:flex">
+            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-5 lg:flex xl:gap-7">
               <Link href="/hub" className={navLink(isActive("/hub"))}>
                 All Tools
               </Link>
-              <Link href="/framework" className={navLink(isActive("/framework"))}>
+              <Link href="/about" className={navLink(isActive("/about"))}>
                 About
               </Link>
               <Link href="/login" className={navLink(isActive("/login"))}>
@@ -267,12 +271,13 @@ export default function SiteHeader() {
         <nav aria-label="Main" className="border-b border-slate-200 bg-white px-4 pb-4 lg:hidden">
           {(signedIn
             ? [
+                { href: "/hub", label: "All Tools" },
                 { href: "/", label: "Home" },
                 ...SUBMIT_LINKS,
                 { href: "/dashboard", label: "Results" },
                 { href: "/roadmap", label: "Roadmap" },
                 ...ACCOUNT_LINKS,
-                ...INFO_LINKS,
+                ...INFO_LINKS.filter((l) => l.href !== "/hub"),
               ]
             : [
                 { href: "/hub", label: "All Tools" },

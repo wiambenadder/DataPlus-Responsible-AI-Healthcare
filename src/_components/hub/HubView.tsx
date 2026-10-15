@@ -46,6 +46,10 @@ export default function HubView() {
             <h2 id="tools-heading">Our Tools</h2>
             <p className="text-[15px] text-slate-600">Free and open to anyone</p>
           </div>
+          <p className="mt-4 max-w-3xl text-[16px] leading-relaxed text-slate-700">
+            Three tools for the questions every AI health tool faces: is it ready for real-world
+            care, can it be funded for the long term, and is it allowed where you work?
+          </p>
           <ul className="mt-8 grid gap-10 md:grid-cols-3 md:gap-8">
             {WORKSTREAMS.map((w) => (
               <li key={w.id}>
@@ -127,10 +131,12 @@ export default function HubView() {
         <section className="mt-20 grid gap-6 bg-whisper px-6 py-8 sm:px-10 md:grid-cols-[1fr_2fr] md:items-center">
           <p className="label-caps">About the Project</p>
           <p className="text-[17px] leading-relaxed text-slate-700">
-            {SITE.name} is built by a Duke University team with {SITE.org}, using its
-            framework for AI readiness in health.{" "}
-            <Link href="/data-use" className="link-more">
-              How we use your data ›
+            {SITE.name} aims to make the evaluation of AI in health more transparent, accessible
+            and scalable. Its framework comes from research by {SITE.org} with health innovators.
+            The project is supported by the Duke Global Health Innovation Center, {SITE.org} and
+            GEMINI at Duke, with anchor partner Society for Family Health (Rwanda).{" "}
+            <Link href="/about" className="link-more">
+              About the project ›
             </Link>
           </p>
         </section>

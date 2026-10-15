@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Photo from "@/components/Photo";
 import { slugify } from "@/lib/assessment";
+import { countryFlag } from "@/lib/countryFlag";
 import { domainStyle } from "@/lib/domain-info";
 import { ADVANCE_THRESHOLD, type DomainId } from "@/lib/roadmap/framework";
 import type { RoadmapModel } from "@/lib/roadmap/types";
@@ -38,7 +39,7 @@ export default function HomeView({ company, summary }: { company: any; summary: 
 
   const facts = [
     orgType,
-    company?.country,
+    company?.country ? `${countryFlag(company.country)} (${company.country})` : null,
     established ? `Founded ${established}` : null,
     staff,
   ].filter(Boolean);
@@ -73,6 +74,11 @@ export default function HomeView({ company, summary }: { company: any; summary: 
               <p className="mt-3 text-[15px] text-slate-700">{facts.join("  ·  ")}</p>
             )}
             <p className="mt-1 text-[14.5px] text-slate-600">{sourceLine(summary)}</p>
+            <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-slate-700">
+              This is your organization&apos;s overview. It shows how ready your AI tool is for
+              responsible, real-world use, based on the documents and answers your team has
+              shared, and what to work on next.
+            </p>
           </div>
 
           <div className="md:text-right">
@@ -81,7 +87,10 @@ export default function HomeView({ company, summary }: { company: any; summary: 
               <span className="ml-2 text-4xl text-slate-500">of {total}</span>
             </p>
             <p className="mt-2 text-[15px] text-slate-700">
-              practices met <span className="text-slate-500">({pct} percent)</span>
+              practices met <span className="text-slate-500">({pct}%)</span>
+            </p>
+            <p className="mt-1 max-w-[17rem] text-[13.5px] leading-snug text-slate-500 md:ml-auto">
+              A practice is met when your evidence shows it is already in place.
             </p>
             <Link href="/dashboard" className="link-more mt-2 inline-block text-[15px]">
               See all results ›
@@ -99,14 +108,20 @@ export default function HomeView({ company, summary }: { company: any; summary: 
               What the domains mean ›
             </Link>
           </div>
-          <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
+          <p className="mt-4 max-w-3xl text-[16px] leading-relaxed text-slate-700">
+            The 31 practices are grouped into five domains that follow an AI tool from the data
+            it learns from to whether it can last. Innovations in Healthcare developed them
+            through research with health innovators. A low score shows where to focus; open a
+            domain to see each practice, its rating and the evidence behind it.
+          </p>
+          <ul className="mt-8 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
             {domainProgress.map((d, i) => {
               const st = domainStyle(d.name);
               return (
-                <li key={d.domainId}>
+                <li key={d.domainId} className="flex">
                   <Link
                     href={`/dashboard#${slugify(d.name)}`}
-                    className="group block border-t-4 pt-3"
+                    className="group flex w-full flex-col border-t-4 pt-3"
                     style={{ borderTopColor: st.accent }}
                   >
                     <span
@@ -118,9 +133,12 @@ export default function HomeView({ company, summary }: { company: any; summary: 
                     <span className="block text-lg font-bold text-ink group-hover:underline">
                       {d.name}
                     </span>
-                    <span className="block min-h-[3rem] text-[14.5px] text-slate-600">{st.tagline}</span>
+                    <span className="block text-[14.5px] font-semibold text-slate-700">{st.tagline}</span>
+                    <span className="mb-4 mt-1 block text-[14px] leading-snug text-slate-600">
+                      {st.why}
+                    </span>
                     <span
-                      className="mt-3 block h-1.5 bg-slate-200"
+                      className="mt-auto block h-1.5 bg-slate-200"
                       role="img"
                       aria-label={`${d.practiced} of ${d.total} practices met`}
                     >
@@ -153,27 +171,32 @@ export default function HomeView({ company, summary }: { company: any; summary: 
           <div className="section-head">
             <h2 id="next-heading">Next Steps</h2>
           </div>
-          <div className="mt-6 grid gap-8 lg:grid-cols-[1.8fr_1fr_1fr]">
+          <p className="mt-4 max-w-3xl text-[16px] leading-relaxed text-slate-700">
+            Three ways to strengthen your results: follow your roadmap, add evidence where it is
+            missing, and check that each rating is right.
+          </p>
+          <div className="mt-8 grid gap-8 lg:grid-cols-[1.8fr_1fr_1fr]">
             <div className="grid bg-brand-navy text-white sm:grid-cols-[1fr_190px]">
               <div className="p-6 sm:p-7">
                 <p className="text-[0.75rem] font-bold uppercase tracking-[0.1em] text-blue-200">
-                  Roadmap · Stage {stage.id} of 6
+                  Your Roadmap
                 </p>
                 <h3 className="mt-2 font-serif text-[1.75rem] font-medium leading-tight">
-                  {!hasData
-                    ? "Start your assessment"
-                    : stage.state === "complete"
-                      ? "All stages complete"
-                      : toGo === 0
-                        ? `Ready to move on from Stage ${stage.id}`
-                        : `${toGo === 1 ? "One practice" : `${spell(toGo)} practices`} from Stage ${Math.min(6, stage.id + 1)}`}
+                  {!hasData ? "Your roadmap starts here" : `Stage ${stage.id} of 6: ${stage.name}`}
                 </h3>
-                <p className="mb-5 mt-2 text-[15px] leading-relaxed text-blue-50">
+                <p className="mt-2 text-[15px] leading-relaxed text-blue-50">
+                  The roadmap puts the 31 practices in the order an AI tool usually matures, in six
+                  stages, from showing the need for the tool to overseeing it for the long term. It
+                  shows which stage you are in and what to do to reach the next one.
+                </p>
+                <p className="mb-5 mt-3 border-t border-white/20 pt-3 text-[15px] leading-relaxed text-white">
                   {!hasData
-                    ? "Upload what you have. Your roadmap fills in as soon as your first results are ready."
-                    : toGo > 0 && open.length
-                      ? `Meet ${listOr(open.slice(0, 2))}${open.length > 2 ? " or another open practice" : ""} to move on.`
-                      : `${stage.name}: ${stage.practicedCount} of ${stage.totalCount} practices met.`}
+                    ? "Upload what you have. Your stages fill in as soon as your first results are ready."
+                    : stage.state === "complete"
+                      ? "You have met every practice in all six stages. Keep your evidence up to date."
+                      : toGo === 0
+                        ? `You have met ${stage.practicedCount} of ${stage.totalCount} practices in this stage, enough to move on to Stage ${Math.min(6, stage.id + 1)}. Meet the remaining ${stage.totalCount - stage.practicedCount} to complete it.`
+                        : `You have met ${stage.practicedCount} of ${stage.totalCount} practices in this stage. Meet ${toGo === 1 ? "one more" : `${spell(toGo)} more`}${open.length ? `, such as ${listOr(open.slice(0, 2))},` : ""} to move on to Stage ${Math.min(6, stage.id + 1)}.`}
                 </p>
                 <Link
                   href={hasData ? "/roadmap" : "/report/assessment"}
@@ -189,17 +212,17 @@ export default function HomeView({ company, summary }: { company: any; summary: 
 
             <NextCard
               title="Add Evidence"
-              text={
+              text={`Ratings can only reflect what you share. ${
                 noEvidence > 0
-                  ? `${capital(spell(noEvidence))} ${noEvidence === 1 ? "practice has" : "practices have"} no evidence yet. A short written answer can be enough.`
-                  : "Upload new documents or update an answer when something changes."
-              }
+                  ? `${capital(spell(noEvidence))} ${noEvidence === 1 ? "practice has" : "practices have"} no evidence yet; a short written answer can be enough.`
+                  : "Update an answer when something changes; changed answers are rated again."
+              }`}
               href="/report/assessment"
               cta="Submit evidence"
             />
             <NextCard
               title="Check Your Ratings"
-              text="Tell us if a rating is wrong or cites the wrong source or company."
+              text="Ratings are produced by AI from your evidence, so they can be wrong. Tell us when one is, or when it cites another organization's work, so the team can correct it."
               href="/dashboard"
               cta="Open results"
             />

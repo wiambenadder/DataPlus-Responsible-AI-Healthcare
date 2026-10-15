@@ -52,14 +52,42 @@ export const MEETS_RULE = {
  * bars; `text` is a darker shade that passes contrast on white. `tagline`
  * is a short description for compact cards.
  */
-export const DOMAIN_STYLE: Record<string, { accent: string; text: string; tagline: string }> = {
-  "Model Source": { accent: "#0577B1", text: "#00539B", tagline: "The data your model learns from" },
-  "Model Development": { accent: "#339898", text: "#1D6363", tagline: "How it is built and tested" },
-  "Model Deployment": { accent: "#E89923", text: "#8a5300", tagline: "How it runs safely in care" },
-  Impact: { accent: "#C84E00", text: "#a03f00", tagline: "What changes, and at what cost" },
-  Sustainability: { accent: "#993399", text: "#7a2a7a", tagline: "Whether it can last" },
+export const DOMAIN_STYLE: Record<
+  string,
+  { accent: string; text: string; tagline: string; why: string }
+> = {
+  "Model Source": {
+    accent: "#0577B1",
+    text: "#00539B",
+    tagline: "The data your model learns from",
+    why: "A model can only be as good, fair and safe as the data behind it.",
+  },
+  "Model Development": {
+    accent: "#339898",
+    text: "#1D6363",
+    tagline: "How it is built and tested",
+    why: "Shows the tool is accurate and works fairly for the people it will serve.",
+  },
+  "Model Deployment": {
+    accent: "#E89923",
+    text: "#8a5300",
+    tagline: "How it runs safely in care",
+    why: "Shows the tool works safely in real clinics, not only in testing.",
+  },
+  Impact: {
+    accent: "#C84E00",
+    text: "#a03f00",
+    tagline: "What changes, and at what cost",
+    why: "Shows the tool makes a measurable difference, at a cost health systems can bear.",
+  },
+  Sustainability: {
+    accent: "#993399",
+    text: "#7a2a7a",
+    tagline: "Whether it can last",
+    why: "Shows the tool can keep running, and be owned locally, once early funding ends.",
+  },
 };
 
 export function domainStyle(name: string) {
-  return DOMAIN_STYLE[name] ?? { accent: "#012169", text: "#012169", tagline: "" };
+  return DOMAIN_STYLE[name] ?? { accent: "#012169", text: "#012169", tagline: "", why: "" };
 }

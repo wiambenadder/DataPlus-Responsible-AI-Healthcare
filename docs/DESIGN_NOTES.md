@@ -47,3 +47,16 @@ GHIC site itself mostly uses Unsplash photos), so they aren't used here.
 
 `/whats-new` lists what innovators reported and what changed. Update it as
 more feedback is addressed.
+
+## Editing the codebook pages
+
+The Financing Codebook (`/financing-codebook`) and Policy Codebook
+(`/policy-codebook`) pages are deliberately simple placeholders. Everything on
+them comes from the codebook's entry in `src/lib/workstreams.ts`:
+
+- `title`, `intro` (the paragraph under the title), `why` (the "Why It Matters"
+  paragraphs), `photo`, and the card text on All Tools (`description`,
+  `highlights`, `cta`).
+
+To build the real codebook, replace `src/app/financing-codebook/page.tsx` (or
+`policy-codebook`) with the new page and set the entry's `status` to `"live"`.
