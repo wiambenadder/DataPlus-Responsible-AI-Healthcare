@@ -43,10 +43,6 @@ GHIC site itself mostly uses Unsplash photos), so they aren't used here.
 - It receives the company's stage statuses, never their documents. Keep the
   site description in `help-guide.ts` in step with the pages.
 
-## Feedback from innovator testing
-
-`/whats-new` lists what innovators reported and what changed. Update it as
-more feedback is addressed.
 
 ## Editing the codebook pages
 

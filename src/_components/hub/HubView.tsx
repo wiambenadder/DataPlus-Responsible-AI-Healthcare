@@ -22,16 +22,19 @@ export default function HubView() {
             Tools for Responsible AI in Global Health
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-blue-50">
-            {SITE.name} helps teams building AI for health see how ready their tool is
-            for real-world use, how similar tools are funded, and which policies apply
-            where they work.
+            {SITE.name} helps teams building AI for health:
           </p>
+          <ul className="mt-3 max-w-xl list-disc space-y-1.5 pl-5 text-lg leading-relaxed text-blue-50 marker:text-blue-200">
+            <li>See how ready their tool is for real-world use</li>
+            <li>Learn how similar tools are funded</li>
+            <li>Find which policies apply where they work</li>
+          </ul>
           <p className="mt-8 flex flex-wrap gap-3">
             <Link href="/report/assessment" className="btn btn-light">
               Start the Assessment
             </Link>
-            <Link href="/framework" className="btn btn-outline-light">
-              How It Works
+            <Link href="/about" className="btn btn-outline-light">
+              About the Platform
             </Link>
           </p>
         </div>
@@ -46,7 +49,7 @@ export default function HubView() {
             <h2 id="tools-heading">Our Tools</h2>
             <p className="text-[15px] text-slate-600">Free and open to anyone</p>
           </div>
-          <p className="mt-4 max-w-3xl text-[16px] leading-relaxed text-slate-700">
+          <p className="mt-4 text-[16px] leading-relaxed text-slate-700">
             Three tools for the questions every AI health tool faces: is it ready for real-world
             care, can it be funded for the long term, and is it allowed where you work?
           </p>
@@ -59,26 +62,28 @@ export default function HubView() {
           </ul>
         </section>
 
+        {/* Kept general on purpose: this page covers all three tools. The
+            assessment's own step-by-step lives on its Overview page. */}
         <section className="mt-20" aria-labelledby="how-heading">
           <div className="section-head">
-            <h2 id="how-heading">How the Assessment Works</h2>
-            <Link href="/framework" className="link-more">
-              Read about the framework ›
+            <h2 id="how-heading">How It Works</h2>
+            <Link href="/about" className="link-more">
+              About the platform ›
             </Link>
           </div>
           <ol className="mt-8 grid gap-10 md:grid-cols-3">
             {[
               [
-                "Share what you have",
-                "Upload reports you have already written, then answer short questions on anything they don't cover.",
+                "Choose the question you need answered",
+                "Is your tool ready for real-world care, how could it be funded for the long term, or which rules apply where you work? Start with the tool that answers it.",
               ],
               [
-                "Check every rating",
-                "Each practice shows the reason for its rating and the passage it came from. Tell us if something is wrong.",
+                "Use what you already have",
+                "Each tool works from information you already hold or can look up. The assessment, for example, reads the reports you have already written.",
               ],
               [
-                "Plan your next steps",
-                "A six-stage roadmap shows where your tool stands and what to work on next.",
+                "Act on what you learn",
+                "Every tool ends in something you can use: where you stand, what others have done, and what to do next, with the sources to back it up.",
               ],
             ].map(([title, text], i) => (
               <li key={title}>

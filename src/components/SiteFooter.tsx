@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
 
+// The three tools, in the same order as the All Tools page.
 const PLATFORM = [
   ["/hub", "All Tools"],
-  ["/report/assessment", "Submit Evidence"],
-  ["/dashboard", "Results"],
-  ["/roadmap", "Roadmap"],
+  ["/", "AI Readiness Assessment"],
+  ["/financing-codebook", "Financing Codebook"],
+  ["/policy-codebook", "Policy Codebook"],
 ];
 
 /** Navy footer with link columns, in the style of Duke websites. */
@@ -55,11 +56,6 @@ export default function SiteFooter() {
             <li>
               <Link href="/data-use" className="text-white/90 hover:text-white hover:underline">
                 How We Use Your Data
-              </Link>
-            </li>
-            <li>
-              <Link href="/whats-new" className="text-white/90 hover:text-white hover:underline">
-                What&apos;s New
               </Link>
             </li>
             {SITE.contactEmail && (

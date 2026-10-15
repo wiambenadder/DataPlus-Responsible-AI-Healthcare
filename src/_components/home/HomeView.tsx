@@ -27,6 +27,38 @@ export interface HomeSummary {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/** The four steps of the assessment, each pointing to the page that does it. */
+const GUIDE = [
+  {
+    title: "Share what you have",
+    what: "Upload reports, evaluations or policies you already have, then answer short questions only on what they don't cover.",
+    why: "No new paperwork, and nothing is rated on guesswork.",
+    href: "/report/assessment",
+    cta: "Submit Evidence",
+  },
+  {
+    title: "Check every rating",
+    what: "Each practice shows its rating, the reason for it and the exact passage it came from.",
+    why: "You can see why, correct mistakes, and trust what you show others.",
+    href: "/dashboard",
+    cta: "Results",
+  },
+  {
+    title: "Plan your next steps",
+    what: "The roadmap orders the practices into six stages and shows which one to strengthen next.",
+    why: "You know where to focus first instead of facing 31 practices at once.",
+    href: "/roadmap",
+    cta: "Roadmap",
+  },
+  {
+    title: "Share your progress",
+    what: "Download your results as a PDF and invite colleagues to review them with you.",
+    why: "A clear, sourced summary to bring to funders, partners and ministries.",
+    href: "/dashboard",
+    cta: "Download from Results",
+  },
+];
+
 /**
  * Signed-in home page: a grey title band with the company and the overall
  * figure, the five domains, next steps and the team.
@@ -100,8 +132,44 @@ export default function HomeView({ company, summary }: { company: any; summary: 
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* A plain-language guide for innovators opening this page for the
+            first time: what the assessment does, what each part of the site
+            is for, and why it's worth their time. */}
+        <section className="mt-12" aria-labelledby="how-heading">
+          <div className="section-head">
+            <h2 id="how-heading">How the Assessment Works</h2>
+            <Link href="/framework" className="link-more">
+              Read about the framework ›
+            </Link>
+          </div>
+          <p className="mt-4 max-w-3xl text-[16px] leading-relaxed text-slate-700">
+            The assessment compares what your team has shared with 31 practices that matter
+            when an AI tool moves from a pilot into everyday care. You don&apos;t need to write
+            anything new to start: it reads the reports you already have. In return you get an
+            evidence-backed picture of your tool that you can act on and share.
+          </p>
+          <ol className="mt-8 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {GUIDE.map((g, i) => (
+              <li key={g.title} className="flex flex-col">
+                <p className="font-serif text-5xl leading-none text-brand-navy">{i + 1}</p>
+                <h3 className="mt-3 text-lg font-bold text-ink">{g.title}</h3>
+                <p className="mt-1 text-[15px] leading-relaxed text-slate-700">{g.what}</p>
+                <p className="mb-4 mt-2 text-[14.5px] leading-relaxed text-slate-500">
+                  <span className="font-semibold text-slate-600">Why it helps: </span>
+                  {g.why}
+                </p>
+                <p className="mt-auto">
+                  <Link href={g.href} className="link-more">
+                    {g.cta} ›
+                  </Link>
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
         {/* Domains */}
-        <section className="mt-12" aria-labelledby="domains-heading">
+        <section className="mt-16" aria-labelledby="domains-heading">
           <div className="section-head">
             <h2 id="domains-heading">Your Five Domains</h2>
             <Link href="/framework#domains" className="link-more">
@@ -249,12 +317,6 @@ export default function HomeView({ company, summary }: { company: any; summary: 
           </Link>
         </section>
 
-        <p className="mt-6 text-[15px] text-slate-600">
-          We&apos;ve made changes based on feedback from innovators who tested the platform.{" "}
-          <Link href="/whats-new" className="link-more">
-            See what&apos;s new ›
-          </Link>
-        </p>
       </div>
     </div>
   );

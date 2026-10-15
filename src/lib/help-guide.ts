@@ -46,13 +46,17 @@ export type HelpMessage = { role: "user" | "assistant"; content: string };
 const SITE_GUIDE = `
 Innovator Insights is a free website from Innovations in Healthcare, built with a Duke University team. It assesses how ready a health AI tool is for real-world use against 31 practices in five domains: Model Source (the data the model learns from), Model Development (how it is built and tested), Model Deployment (how it runs safely in care), Impact (what changes, and at what cost) and Sustainability (whether it can last).
 
-Pages:
-- Home (/): overview of the company, practices met, the five domains and next steps.
-- Submit Evidence > Upload Documents and Answer Questions (/report/assessment): upload PDFs or other documents the team already has (reports, evaluations, policies, decks). The platform reads them and maps passages to practices. Then it asks short questions only about practices the documents did not cover. Answers can be updated later.
-- Submit Evidence > Your Submissions (/report/history): every document and answer already sent, with links to open them.
+Menus: the main menu has All Tools, AI Readiness, Financing, Policy and Account. Inside the AI Readiness Assessment, a second row of links has Overview, Submit Evidence, Your Submissions, Results and Roadmap.
+
+Pages of the AI Readiness Assessment:
+- Overview (/): the company's overview: how the assessment works, practices met, the five domains and next steps.
+- Submit Evidence (/report/assessment): upload PDFs or other documents the team already has (reports, evaluations, policies, decks). The platform reads them and maps passages to practices. Then it asks short questions only about practices the documents did not cover. Answers can be updated later.
+- Your Submissions (/report/history): every document and answer already sent, with links to open them.
 - Results (/dashboard): every practice with its status, the reason for the rating, a summary, confidence, and the evidence (an exact passage or the answer as typed) with a link to the source document. Each practice has an "Is this right?" choice: "This is accurate", "Needs revision" (with optional reasons) or "Wrong source or company". A comment is optional, and comments can be edited or deleted. A "Wrong source or company" report puts the practice under review, and it is not counted as met until the team reviews it. There is a Download PDF button.
 - Roadmap (/roadmap): the practices grouped into six stages in the order an AI tool usually matures. Meeting half the practices in a stage (rounded up) means the team can move on to the next stage; meeting all of them completes the stage.
 - Account > Company and Team (/company): invite colleagues by email, see pending invitations and cancel them.
+- All Tools (/hub): the three tools. The Financing Codebook and Policy Codebook are coming soon.
+- About (/about): why the platform exists, where the framework comes from and who supports it.
 - The Framework (/framework): what each domain and practice means and how ratings work.
 - How We Use Your Data (/data-use).
 
@@ -85,7 +89,7 @@ export function buildSystemPrompt(ctx: HelpContext | null): string {
 
 Rules:
 - Answer in plain, friendly, professional English, in two to six short sentences or a short list. Use sentence case. Spell out numbers one through nine.
-- Be specific to this company's roadmap when the question is about progress. Name the practices and the page to use, with its menu path (for example "Submit Evidence > Upload Documents and Answer Questions").
+- Be specific to this company's roadmap when the question is about progress. Name the practices and the page to use, with its menu path (for example "AI Readiness › Submit Evidence").
 - Never invent ratings, evidence, documents or features. You cannot see the company's documents, only the statuses below. You cannot change ratings; to dispute a rating, point to "Is this right?" on the Results page.
 - Do not give legal, regulatory or medical advice. For country rules, say the Policy Codebook is coming soon.
 - If you don't know, say so and suggest the Framework page or contacting the Innovations in Healthcare team.
@@ -127,7 +131,7 @@ function findPractice(q: string) {
 
 function stageAnswer(ctx: HelpContext | null): string {
   if (!ctx || !ctx.stages.length) {
-    return "Your roadmap fills in once you have results. Go to Submit Evidence > Upload Documents and Answer Questions to upload what you have; the stages update as soon as your ratings are ready.";
+    return "Your roadmap fills in once you have results. Go to AI Readiness › Submit Evidence to upload what you have; the stages update as soon as your ratings are ready.";
   }
   const stage = ctx.stages.find((s) => s.id === ctx.currentStage) ?? ctx.stages[0];
   const toGo = Math.max(0, stage.needed - stage.practiced);
@@ -162,7 +166,7 @@ const TOPICS: { test: RegExp; answer: string }[] = [
   {
     test: /upload|document|file|pdf|report.*(send|add)|add evidence|submit/i,
     answer:
-      "Go to Submit Evidence > Upload Documents and Answer Questions. Upload the documents you already have, such as annual reports, evaluations, policies or pitch decks. The platform reads them and links passages to practices, then asks short questions only about practices they don't cover. You can come back and update your answers at any time; Your Submissions lists everything you have sent.",
+      "Go to AI Readiness › Submit Evidence. Upload the documents you already have, such as annual reports, evaluations, policies or pitch decks. The platform reads them and links passages to practices, then asks short questions only about practices they don't cover. You can come back and update your answers at any time; Your Submissions lists everything you have sent.",
   },
   {
     test: /wrong|incorrect|disagree|dispute|mistake|feedback|comment|revis/i,
@@ -177,7 +181,7 @@ const TOPICS: { test: RegExp; answer: string }[] = [
   {
     test: /invite|team|colleague|member|add (a )?user/i,
     answer:
-      "Go to Account > Company and Team. Enter a colleague's email address to invite them; pending invitations are listed there, and you can cancel one if it went to the wrong address.",
+      "Go to Account › Company and Team. Enter a colleague's email address to invite them; pending invitations are listed there, and you can cancel one if it went to the wrong address.",
   },
   {
     test: /download|export|print|share/i,
@@ -211,7 +215,7 @@ export function guideAnswer(question: string, ctx: HelpContext | null): string {
       `${practice.subtopic} (${practice.domain}) looks for: ${practice.definition}`,
       p ? `Your current status: ${p.status}.` : "",
       "It counts as met when something is already in place; informal practices count, plans don't.",
-      "To add evidence, go to Submit Evidence > Upload Documents and Answer Questions and upload a document that shows it, or answer the question about it.",
+      "To add evidence, go to AI Readiness › Submit Evidence and upload a document that shows it, or answer the question about it.",
     ]
       .filter(Boolean)
       .join(" ");

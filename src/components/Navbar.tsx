@@ -1,14 +1,21 @@
 "use client";
 
 /*
- * Site header in the pattern of Duke websites: a thin dark utility bar,
+ * Site header, in the pattern of Duke websites: a thin dark utility bar,
  * then a navy bar with the Innovations in Healthcare logo and the
  * "Innovator Insights" wordmark on the left and the main navigation on the
  * right. Labels are title case.
  *
- * From innovator feedback: "Report" was unclear, so the menu is "Submit
- * Evidence" with plain descriptions, and there is an explicit "Home" link
- * because the old logo "did not look clickable".
+ * The platform has three tools (AI Readiness, Financing, Policy), so the
+ * main menu names the tools, and each tool gets its own row of links
+ * underneath when you're inside it. Today only the AI Readiness
+ * Assessment has pages of its own (Overview, Submit Evidence, Results,
+ * Roadmap); when a codebook grows pages, give it a section in TOOL_SECTIONS
+ * the same way.
+ *
+ * From innovator feedback: "Report" was unclear, so the page is called
+ * "Submit Evidence", and the old logo "did not look clickable", so there
+ * are plain-text links to every page.
  */
 
 import Link from "next/link";
@@ -19,17 +26,20 @@ import { supabase } from "@/lib/supabase";
 import { SITE } from "@/lib/site";
 import OrgLogo from "./OrgLogo";
 
-const SUBMIT_LINKS = [
-  {
-    href: "/report/assessment",
-    label: "Upload Documents and Answer Questions",
-    note: "Start or update your assessment",
-  },
-  {
-    href: "/report/history",
-    label: "Your Submissions",
-    note: "Documents and answers you have already sent",
-  },
+/** The tools, in the main menu for signed-in users. */
+const TOOLS = [
+  { href: "/", label: "AI Readiness", match: ["/", "/report", "/dashboard", "/roadmap"] },
+  { href: "/financing-codebook", label: "Financing", match: ["/financing-codebook"] },
+  { href: "/policy-codebook", label: "Policy", match: ["/policy-codebook"] },
+];
+
+/** The pages inside the AI Readiness Assessment (the second row). */
+const ASSESSMENT_PAGES = [
+  { href: "/", label: "Overview" },
+  { href: "/report/assessment", label: "Submit Evidence" },
+  { href: "/report/history", label: "Your Submissions" },
+  { href: "/dashboard", label: "Results" },
+  { href: "/roadmap", label: "Roadmap" },
 ];
 
 const ACCOUNT_LINKS = [
@@ -41,7 +51,6 @@ const INFO_LINKS = [
   { href: "/about", label: "About" },
   { href: "/framework", label: "The Framework" },
   { href: "/data-use", label: "How We Use Your Data" },
-  { href: "/hub", label: "All Tools" },
 ];
 
 /** Closes a dropdown on outside click or Escape. */
@@ -69,11 +78,9 @@ export default function SiteHeader() {
 
   const [signedIn, setSignedIn] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
-  const [submitOpen, setSubmitOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const submitRef = useDismiss(submitOpen, () => setSubmitOpen(false));
   const accountRef = useDismiss(accountOpen, () => setAccountOpen(false));
 
   useEffect(() => {
@@ -94,7 +101,6 @@ export default function SiteHeader() {
   const [lastPath, setLastPath] = useState(pathname);
   if (lastPath !== pathname) {
     setLastPath(pathname);
-    setSubmitOpen(false);
     setAccountOpen(false);
     setMobileOpen(false);
   }
@@ -107,6 +113,8 @@ export default function SiteHeader() {
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const inTool = (match: string[]) => match.some((m) => isActive(m));
+  const inAssessment = signedIn && inTool(TOOLS[0].match);
 
   const navLink = (active: boolean) =>
     `relative flex h-full items-center whitespace-nowrap text-[15px] font-semibold text-white ${
@@ -114,9 +122,6 @@ export default function SiteHeader() {
         ? "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-white"
         : "text-white/90 hover:text-white"
     }`;
-
-  const dropdown =
-    "absolute top-full z-10 border border-slate-200 border-t-4 border-t-brand-navy bg-white py-2 shadow-lg";
 
   return (
     <header id="top" className="relative z-50">
@@ -154,55 +159,25 @@ export default function SiteHeader() {
       {/* Main bar */}
       <div className="bg-brand-navy">
         <div className="mx-auto flex h-[78px] max-w-7xl items-stretch gap-6 px-4 sm:px-6 lg:px-8">
-          <Link
-            href={signedIn ? "/" : "/hub"}
-            className="group flex items-center gap-4"
-            aria-label={`${SITE.name} home`}
-          >
+          {/* The logo always leads to All Tools, the front door to all three tools. */}
+          <Link href="/hub" className="group flex items-center gap-4" aria-label={`${SITE.name}: All Tools`}>
             <OrgLogo className="h-7 sm:h-9" />
             <span className="h-9 w-px bg-white/40" aria-hidden />
-            <span className="whitespace-nowrap font-serif text-[21px] font-medium leading-none text-white sm:text-[25px] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
+            <span className="whitespace-nowrap font-serif text-[21px] font-medium leading-none text-white group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4 sm:text-[25px]">
               {SITE.name}
             </span>
           </Link>
 
           {signedIn ? (
-            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-5 lg:flex xl:gap-7">
+            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-6 lg:flex xl:gap-8">
               <Link href="/hub" className={navLink(isActive("/hub"))}>
                 All Tools
               </Link>
-              <Link href="/" className={navLink(isActive("/"))}>
-                Home
-              </Link>
-
-              <div ref={submitRef} className="relative flex items-stretch">
-                <button
-                  type="button"
-                  aria-expanded={submitOpen}
-                  onClick={() => setSubmitOpen((o) => !o)}
-                  className={`${navLink(isActive("/report"))} gap-1`}
-                >
-                  Submit Evidence
-                  <ChevronDown className="h-4 w-4" aria-hidden />
-                </button>
-                {submitOpen && (
-                  <div className={`${dropdown} left-0 w-80`}>
-                    {SUBMIT_LINKS.map((l) => (
-                      <Link key={l.href} href={l.href} className="block px-4 py-2.5 hover:bg-slate-50">
-                        <span className="block text-[15px] font-semibold text-brand-navy">{l.label}</span>
-                        <span className="block text-sm text-slate-600">{l.note}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Link href="/dashboard" className={navLink(isActive("/dashboard"))}>
-                Results
-              </Link>
-              <Link href="/roadmap" className={navLink(isActive("/roadmap"))}>
-                Roadmap
-              </Link>
+              {TOOLS.map((t) => (
+                <Link key={t.href} href={t.href} className={navLink(inTool(t.match))}>
+                  {t.label}
+                </Link>
+              ))}
 
               <div ref={accountRef} className="relative flex items-stretch">
                 <button
@@ -215,7 +190,7 @@ export default function SiteHeader() {
                   <ChevronDown className="h-4 w-4" aria-hidden />
                 </button>
                 {accountOpen && (
-                  <div className={`${dropdown} right-0 w-56`}>
+                  <div className="absolute right-0 top-full z-10 w-56 border border-slate-200 border-t-4 border-t-brand-navy bg-white py-2 shadow-lg">
                     {ACCOUNT_LINKS.map((l) => (
                       <Link
                         key={l.href}
@@ -237,8 +212,8 @@ export default function SiteHeader() {
               </div>
             </nav>
           ) : (
-            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-5 lg:flex xl:gap-7">
-              <Link href="/hub" className={navLink(isActive("/hub"))}>
+            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-7 lg:flex">
+              <Link href="/hub" className={navLink(isActive("/hub") || pathname === "/")}>
                 All Tools
               </Link>
               <Link href="/about" className={navLink(isActive("/about"))}>
@@ -267,46 +242,99 @@ export default function SiteHeader() {
         </div>
       </div>
 
+      {/* Second row: the pages of the tool you're in. */}
+      {inAssessment && (
+        <nav aria-label="AI Readiness Assessment" className="border-b border-slate-200 bg-white">
+          <div className="mx-auto flex max-w-7xl items-stretch gap-6 overflow-x-auto px-4 sm:px-6 lg:px-8">
+            <span className="hidden shrink-0 items-center py-3 font-serif text-[1.15rem] text-brand-navy md:flex">
+              AI Readiness Assessment
+            </span>
+            <span className="my-3 hidden w-px shrink-0 bg-slate-200 md:block" aria-hidden />
+            <ul className="flex items-stretch gap-6">
+              {ASSESSMENT_PAGES.map((p) => {
+                const active = isActive(p.href);
+                return (
+                  <li key={p.href} className="flex">
+                    <Link
+                      href={p.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex items-center whitespace-nowrap border-b-[3px] py-3 text-[14.5px] font-semibold ${
+                        active
+                          ? "border-brand-navy text-brand-navy"
+                          : "border-transparent text-slate-600 hover:text-brand-navy"
+                      }`}
+                    >
+                      {p.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </nav>
+      )}
+
       {mobileOpen && (
         <nav aria-label="Main" className="border-b border-slate-200 bg-white px-4 pb-4 lg:hidden">
-          {(signedIn
-            ? [
-                { href: "/hub", label: "All Tools" },
-                { href: "/", label: "Home" },
-                ...SUBMIT_LINKS,
-                { href: "/dashboard", label: "Results" },
-                { href: "/roadmap", label: "Roadmap" },
-                ...ACCOUNT_LINKS,
-                ...INFO_LINKS.filter((l) => l.href !== "/hub"),
-              ]
-            : [
-                { href: "/hub", label: "All Tools" },
-                { href: "/login", label: "Log In" },
-                { href: "/signup", label: "Create an Account" },
-                ...INFO_LINKS.filter((l) => l.href !== "/hub"),
-              ]
-          ).map((l) => (
-            <Link
-              key={l.href + l.label}
-              href={l.href}
-              className={`block border-b border-slate-100 py-3 text-[15px] font-semibold ${
-                isActive(l.href) ? "text-brand-dukeblue" : "text-brand-navy"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
-          {signedIn && (
-            <button
-              type="button"
-              onClick={logout}
-              className="block w-full py-3 text-left text-[15px] font-semibold text-slate-700"
-            >
-              Log Out
-            </button>
+          {signedIn ? (
+            <>
+              <MobileLink href="/hub" label="All Tools" active={isActive("/hub")} />
+              <p className="pt-4 text-[0.72rem] font-bold uppercase tracking-[0.1em] text-slate-500">
+                AI Readiness Assessment
+              </p>
+              {ASSESSMENT_PAGES.map((p) => (
+                <MobileLink key={p.href} href={p.href} label={p.label} active={isActive(p.href)} indent />
+              ))}
+              <MobileLink href="/financing-codebook" label="Financing Codebook" active={isActive("/financing-codebook")} />
+              <MobileLink href="/policy-codebook" label="Policy Codebook" active={isActive("/policy-codebook")} />
+              <p className="pt-4 text-[0.72rem] font-bold uppercase tracking-[0.1em] text-slate-500">Account</p>
+              {ACCOUNT_LINKS.map((l) => (
+                <MobileLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} indent />
+              ))}
+              {INFO_LINKS.map((l) => (
+                <MobileLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} />
+              ))}
+              <button
+                type="button"
+                onClick={logout}
+                className="block w-full py-3 text-left text-[15px] font-semibold text-slate-700"
+              >
+                Log Out
+              </button>
+            </>
+          ) : (
+            [
+              { href: "/hub", label: "All Tools" },
+              { href: "/login", label: "Log In" },
+              { href: "/signup", label: "Create an Account" },
+              ...INFO_LINKS,
+            ].map((l) => <MobileLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} />)
           )}
         </nav>
       )}
     </header>
+  );
+}
+
+function MobileLink({
+  href,
+  label,
+  active,
+  indent = false,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+  indent?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`block border-b border-slate-100 py-3 text-[15px] font-semibold ${indent ? "pl-3" : ""} ${
+        active ? "text-brand-dukeblue" : "text-brand-navy"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }
