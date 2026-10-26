@@ -4,7 +4,7 @@ import { SITE } from "@/lib/site";
 // The three tools, in the same order as the All Tools page.
 const PLATFORM = [
   ["/hub", "All Tools"],
-  ["/report/assessment", "AI Readiness Assessment"],
+  ["/ai-readiness", "AI Readiness Assessment"],
   ["/financing-codebook", "Financing Codebook"],
   ["/policy-codebook", "Policy Codebook"],
 ];

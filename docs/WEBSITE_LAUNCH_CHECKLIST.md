@@ -3,7 +3,7 @@
 The landing page is shared by `/hub` and the signed-out `/` route. Signed-in
 users retain their existing overview at `/`. The header now exposes About,
 audience benefits, tools, and data use directly, with a mobile disclosure and
-Escape-to-close behavior. The navigation stays visible while scrolling; the branding strip scrolls away. Tool cards now include one small decorative icon each and the assessment button opens `/report/assessment`. Signed-out visitors are sent to login with a return path to the assessment. No tool processing or assessment prompts changed.
+Escape-to-close behavior. The navigation stays visible while scrolling; the branding strip scrolls away. Tool cards now include one small decorative icon each and the assessment card and menu open the public introduction at `/ai-readiness`; its Begin button opens `/report/assessment`. Signed-out visitors are sent to login with a return path to the assessment. No tool processing or assessment prompts changed.
 
 ## Sources and branding
 

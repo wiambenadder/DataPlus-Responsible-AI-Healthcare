@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SITE } from "@/lib/site";
 import OrgLogo from "./OrgLogo";
+import { WORKSTREAMS } from "@/lib/workstreams";
 
 const PUBLIC_LINKS = [
   { href: "/hub", label: "Home" },
@@ -132,7 +133,9 @@ export default function SiteHeader() {
               aria-label="Main navigation"
               className="ml-auto hidden items-center gap-5 xl:flex"
             >
-              {PUBLIC_LINKS.map((link) => (
+              {PUBLIC_LINKS.map((link) => link.href === "/hub#tools" ? (
+                <ToolsDropdown key={link.href} />
+              ) : (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -175,7 +178,9 @@ export default function SiteHeader() {
                   setMobileOpen(false);
               }}
             >
-              {PUBLIC_LINKS.map((link) => (
+              {PUBLIC_LINKS.map((link) => link.href === "/hub#tools" ? (
+                <ToolsDropdown key={link.href} mobile />
+              ) : (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -247,5 +252,50 @@ export default function SiteHeader() {
         )}
       </header>
     </>
+  );
+}
+
+function ToolsDropdown({ mobile = false }: { mobile?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
+  const id = mobile ? "mobile-tools-links" : "desktop-tools-links";
+
+  useEffect(() => {
+    if (!open) return;
+    const outside = (event: PointerEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [open]);
+
+  return (
+    <div ref={ref} className={mobile ? "border-b" : "relative"}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && open) {
+          event.stopPropagation();
+          setOpen(false);
+          buttonRef.current?.focus();
+        }
+      }}>
+      <button ref={buttonRef} type="button" aria-expanded={open} aria-controls={id}
+        onClick={() => setOpen((value) => !value)}
+        className={mobile ? "flex min-h-12 w-full items-center justify-between py-3 font-semibold text-brand-navy" : "flex min-h-12 items-center gap-1 border-b-2 border-transparent px-1 text-sm font-semibold text-slate-600 hover:text-brand-navy"}>
+        Our tools <ChevronDown size={16} aria-hidden className={open ? "rotate-180" : ""} />
+      </button>
+      {open && <ul id={id} className={mobile ? "pb-3 pl-4" : "absolute left-0 top-full z-10 w-72 border border-t-4 border-t-brand-navy bg-white py-2 shadow-lg"}>
+        {WORKSTREAMS.map((tool) => <li key={tool.id}><Link href={tool.href}
+          aria-current={pathname === tool.href ? "page" : undefined}
+          onClick={() => setOpen(false)}
+          className="block px-4 py-3 text-sm font-semibold text-brand-navy hover:bg-blue-50">
+          {tool.title}
+        </Link></li>)}
+      </ul>}
+    </div>
   );
 }
