@@ -1,340 +1,251 @@
 "use client";
 
-/*
- * Site header, in the pattern of Duke websites: a thin dark utility bar,
- * then a navy bar with the Innovations in Healthcare logo and the
- * "Innovator Insights" wordmark on the left and the main navigation on the
- * right. Labels are title case.
- *
- * The platform has three tools (AI Readiness, Financing, Policy), so the
- * main menu names the tools, and each tool gets its own row of links
- * underneath when you're inside it. Today only the AI Readiness
- * Assessment has pages of its own (Overview, Submit Evidence, Results,
- * Roadmap); when a codebook grows pages, give it a section in TOOL_SECTIONS
- * the same way.
- *
- * From innovator feedback: "Report" was unclear, so the page is called
- * "Submit Evidence", and the old logo "did not look clickable", so there
- * are plain-text links to every page.
- */
-
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SITE } from "@/lib/site";
 import OrgLogo from "./OrgLogo";
 
-/** The tools, in the main menu for signed-in users. */
-const TOOLS = [
-  { href: "/", label: "AI Readiness", match: ["/", "/report", "/dashboard", "/roadmap"] },
-  { href: "/financing-codebook", label: "Financing", match: ["/financing-codebook"] },
-  { href: "/policy-codebook", label: "Policy", match: ["/policy-codebook"] },
+const PUBLIC_LINKS = [
+  { href: "/hub", label: "Home" },
+  { href: "/about", label: "About us" },
+  { href: "/hub#audiences", label: "Who this helps" },
+  { href: "/hub#tools", label: "Our tools" },
+  { href: "/data-use", label: "Data & trust" },
 ];
-
-/** The pages inside the AI Readiness Assessment (the second row). */
-const ASSESSMENT_PAGES = [
-  { href: "/", label: "Overview" },
-  { href: "/report/assessment", label: "Submit Evidence" },
-  { href: "/report/history", label: "Your Submissions" },
+const WORKSPACE_LINKS = [
+  { href: "/", label: "Your overview" },
+  { href: "/report/assessment", label: "Submit evidence" },
+  { href: "/report/history", label: "Submissions" },
   { href: "/dashboard", label: "Results" },
   { href: "/roadmap", label: "Roadmap" },
+  { href: "/company", label: "Company & team" },
+  { href: "/user", label: "Profile" },
 ];
-
-const ACCOUNT_LINKS = [
-  { href: "/user", label: "Your Profile" },
-  { href: "/company", label: "Company and Team" },
-];
-
-const INFO_LINKS = [
-  { href: "/about", label: "About" },
-  { href: "/framework", label: "The Framework" },
-  { href: "/data-use", label: "How We Use Your Data" },
-];
-
-/** Closes a dropdown on outside click or Escape. */
-function useDismiss(open: boolean, close: () => void) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) close();
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, close]);
-  return ref;
-}
 
 export default function SiteHeader() {
+  const pathname = usePathname();
   const router = useRouter();
-  const pathname = usePathname() ?? "/";
-
   const [signedIn, setSignedIn] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
-  const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const accountRef = useDismiss(accountOpen, () => setAccountOpen(false));
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    async function checkUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setSignedIn(!!user);
-      setEmail(user?.email ?? null);
-    }
-    checkUser();
-    const { data: listener } = supabase.auth.onAuthStateChange(() => checkUser());
-    return () => listener.subscription.unsubscribe();
+    let active = true;
+    supabase.auth
+      .getUser()
+      .then(({ data: { user } }) => {
+        if (active) setSignedIn(Boolean(user));
+      })
+      .catch(() => {
+        if (active) setSignedIn(false);
+      });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(Boolean(session?.user));
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Close menus on navigation (adjusting state during render rather than
-  // in an effect, as React recommends).
-  const [lastPath, setLastPath] = useState(pathname);
-  if (lastPath !== pathname) {
-    setLastPath(pathname);
-    setAccountOpen(false);
-    setMobileOpen(false);
-  }
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    const outside = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node))
+        setMobileOpen(false);
+    };
+    document.addEventListener("keydown", dismiss);
+    document.addEventListener("pointerdown", outside);
+    return () => {
+      document.removeEventListener("keydown", dismiss);
+      document.removeEventListener("pointerdown", outside);
+    };
+  }, [mobileOpen]);
 
   async function logout() {
     await supabase.auth.signOut();
     setSignedIn(false);
-    router.push("/");
+    setMobileOpen(false);
+    router.push("/hub");
   }
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
-  const inTool = (match: string[]) => match.some((m) => isActive(m));
-  const inAssessment = signedIn && inTool(TOOLS[0].match);
-
-  const navLink = (active: boolean) =>
-    `relative flex h-full items-center whitespace-nowrap text-[15px] font-semibold text-white ${
-      active
-        ? "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-white"
-        : "text-white/90 hover:text-white"
-    }`;
+  const active = (href: string) => !href.includes("#") && pathname === href;
+  const linkClass = (href: string) =>
+    `inline-flex min-h-12 items-center border-b-2 px-1 text-sm font-semibold ${active(href) ? "border-brand-navy text-brand-navy" : "border-transparent text-slate-600 hover:border-brand-dukeblue hover:text-brand-navy"}`;
 
   return (
-    <header id="top" className="relative z-50">
-      {/* Utility bar */}
-      <div className="bg-brand-darkblue text-[13px] text-white/85">
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-end gap-6 px-4 sm:px-6 lg:px-8">
-          <nav aria-label="Information" className="hidden items-center gap-6 sm:flex">
-            {INFO_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="hover:text-white hover:underline">
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-          <span className="hidden h-4 w-px bg-white/25 sm:block" aria-hidden />
-          {signedIn ? (
-            <span className="flex items-center gap-5">
-              <span className="hidden max-w-[16rem] truncate text-white/65 md:inline">{email}</span>
-              <button type="button" onClick={logout} className="hover:text-white hover:underline">
-                Log Out
-              </button>
-            </span>
-          ) : (
-            <span className="flex items-center gap-5">
-              <Link href="/login" className="hover:text-white hover:underline">
-                Log In
-              </Link>
-              <Link href="/signup" className="hover:text-white hover:underline">
-                Create an Account
-              </Link>
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Main bar */}
-      <div className="bg-brand-navy">
-        <div className="mx-auto flex h-[78px] max-w-7xl items-stretch gap-6 px-4 sm:px-6 lg:px-8">
-          {/* The logo always leads to All Tools, the front door to all three tools. */}
-          <Link href="/hub" className="group flex items-center gap-4" aria-label={`${SITE.name}: All Tools`}>
-            <OrgLogo className="h-7 sm:h-9" />
-            <span className="h-9 w-px bg-white/40" aria-hidden />
-            <span className="whitespace-nowrap font-serif text-[21px] font-medium leading-none text-white group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4 sm:text-[25px]">
-              {SITE.name}
-            </span>
-          </Link>
-
-          {signedIn ? (
-            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-6 lg:flex xl:gap-8">
-              <Link href="/hub" className={navLink(isActive("/hub"))}>
-                All Tools
-              </Link>
-              {TOOLS.map((t) => (
-                <Link key={t.href} href={t.href} className={navLink(inTool(t.match))}>
-                  {t.label}
-                </Link>
-              ))}
-
-              <div ref={accountRef} className="relative flex items-stretch">
-                <button
-                  type="button"
-                  aria-expanded={accountOpen}
-                  onClick={() => setAccountOpen((o) => !o)}
-                  className={`${navLink(isActive("/user") || isActive("/company"))} gap-1`}
-                >
-                  Account
-                  <ChevronDown className="h-4 w-4" aria-hidden />
-                </button>
-                {accountOpen && (
-                  <div className="absolute right-0 top-full z-10 w-56 border border-slate-200 border-t-4 border-t-brand-navy bg-white py-2 shadow-lg">
-                    {ACCOUNT_LINKS.map((l) => (
-                      <Link
-                        key={l.href}
-                        href={l.href}
-                        className="block px-4 py-2 text-[15px] text-brand-navy hover:bg-slate-50"
-                      >
-                        {l.label}
-                      </Link>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={logout}
-                      className="block w-full border-t border-slate-100 px-4 py-2 text-left text-[15px] text-slate-700 hover:bg-slate-50"
-                    >
-                      Log Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            </nav>
-          ) : (
-            <nav aria-label="Main" className="ml-auto hidden items-stretch gap-7 lg:flex">
-              <Link href="/hub" className={navLink(isActive("/hub") || pathname === "/")}>
-                All Tools
-              </Link>
-              <Link href="/about" className={navLink(isActive("/about"))}>
-                About
-              </Link>
-              <Link href="/login" className={navLink(isActive("/login"))}>
-                Log In
-              </Link>
-              <span className="flex items-center">
-                <Link href="/signup" className="btn btn-outline-light py-1.5 text-[15px]">
-                  Create an Account
-                </Link>
-              </span>
-            </nav>
-          )}
-
-          <button
-            type="button"
-            className="ml-auto self-center p-2 text-white lg:hidden"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((o) => !o)}
+    <>
+      <div id="top" className="bg-brand-navy text-white">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-10 gap-y-5 px-6 py-6 sm:px-8">
+          <a
+            href={SITE.dukeUrl}
+            className="block p-1"
+            aria-label="Duke Global Health Innovation Center website"
           >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+            {/* Official source asset, kept at its original proportions. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={SITE.dukeLogo}
+              alt="Duke Global Health Innovation Center"
+              width={768}
+              height={141}
+              className="h-auto w-56 sm:w-64"
+            />
+          </a>
+          <a
+            href={SITE.orgUrl}
+            className="block p-1"
+            aria-label="Innovations in Healthcare website"
+          >
+            <OrgLogo className="h-auto max-h-12 w-48 sm:w-56" />
+          </a>
+          <p className="ml-auto hidden max-w-44 border-l border-white/30 pl-6 text-xs leading-relaxed text-blue-100 xl:block">
+            Supporting responsible innovation in global health
+          </p>
         </div>
       </div>
-
-      {/* Second row: the pages of the tool you're in. */}
-      {inAssessment && (
-        <nav aria-label="AI Readiness Assessment" className="border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-7xl items-stretch gap-6 overflow-x-auto px-4 sm:px-6 lg:px-8">
-            <span className="hidden shrink-0 items-center py-3 font-serif text-[1.15rem] text-brand-navy md:flex">
-              AI Readiness Assessment
-            </span>
-            <span className="my-3 hidden w-px shrink-0 bg-slate-200 md:block" aria-hidden />
-            <ul className="flex items-stretch gap-6">
-              {ASSESSMENT_PAGES.map((p) => {
-                const active = isActive(p.href);
-                return (
-                  <li key={p.href} className="flex">
-                    <Link
-                      href={p.href}
-                      aria-current={active ? "page" : undefined}
-                      className={`flex items-center whitespace-nowrap border-b-[3px] py-3 text-[14.5px] font-semibold ${
-                        active
-                          ? "border-brand-navy text-brand-navy"
-                          : "border-transparent text-slate-600 hover:text-brand-navy"
-                      }`}
-                    >
-                      {p.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+      <header ref={headerRef} className="sticky top-0 z-50 bg-white shadow-md">
+        <div className="border-b bg-white">
+          <div className="mx-auto flex min-h-20 max-w-7xl items-center gap-6 px-6 sm:px-8">
+            <Link
+              href="/hub"
+              className="flex shrink-0 items-center gap-3"
+              onClick={() => setMobileOpen(false)}
+            >
+              <span className="font-serif text-2xl text-brand-navy sm:text-3xl">
+                {SITE.name}
+              </span>
+            </Link>
+            <nav
+              aria-label="Main navigation"
+              className="ml-auto hidden items-center gap-5 xl:flex"
+            >
+              {PUBLIC_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active(link.href) ? "page" : undefined}
+                  className={linkClass(link.href)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Link
+                href={signedIn ? "/" : "/login"}
+                className="btn btn-secondary px-4 py-2 text-sm"
+              >
+                {signedIn ? "Your workspace" : "Log in"}
+              </Link>
+            </nav>
+            <button
+              ref={toggleRef}
+              type="button"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-navigation"
+              onClick={() => setMobileOpen((open) => !open)}
+              className="ml-auto inline-flex min-h-12 items-center gap-2 px-2 text-sm font-bold text-brand-navy xl:hidden"
+            >
+              {mobileOpen ? (
+                <X size={22} aria-hidden />
+              ) : (
+                <Menu size={22} aria-hidden />
+              )}
+              <span>{mobileOpen ? "Close" : "Menu"}</span>
+            </button>
           </div>
-        </nav>
-      )}
-
-      {mobileOpen && (
-        <nav aria-label="Main" className="border-b border-slate-200 bg-white px-4 pb-4 lg:hidden">
-          {signedIn ? (
-            <>
-              <MobileLink href="/hub" label="All Tools" active={isActive("/hub")} />
-              <p className="pt-4 text-[0.72rem] font-bold uppercase tracking-[0.1em] text-slate-500">
-                AI Readiness Assessment
-              </p>
-              {ASSESSMENT_PAGES.map((p) => (
-                <MobileLink key={p.href} href={p.href} label={p.label} active={isActive(p.href)} indent />
+          {mobileOpen && (
+            <nav
+              id="mobile-navigation"
+              aria-label="Mobile navigation"
+              className="max-h-[calc(100dvh-5rem)] overflow-y-auto border-t px-6 pb-6 xl:hidden"
+              onClick={(event) => {
+                if ((event.target as Element).closest("a"))
+                  setMobileOpen(false);
+              }}
+            >
+              {PUBLIC_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active(link.href) ? "page" : undefined}
+                  className="block border-b py-3 font-semibold text-brand-navy"
+                >
+                  {link.label}
+                </Link>
               ))}
-              <MobileLink href="/financing-codebook" label="Financing Codebook" active={isActive("/financing-codebook")} />
-              <MobileLink href="/policy-codebook" label="Policy Codebook" active={isActive("/policy-codebook")} />
-              <p className="pt-4 text-[0.72rem] font-bold uppercase tracking-[0.1em] text-slate-500">Account</p>
-              {ACCOUNT_LINKS.map((l) => (
-                <MobileLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} indent />
-              ))}
-              {INFO_LINKS.map((l) => (
-                <MobileLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} />
+              {signedIn ? (
+                <>
+                  <p className="label-caps mt-5">Your workspace</p>
+                  {WORKSPACE_LINKS.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      aria-current={active(link.href) ? "page" : undefined}
+                      className="block py-3 text-brand-navy"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  <button
+                    type="button"
+                    className="min-h-12 font-bold text-brand-navy"
+                    onClick={logout}
+                  >
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <div className="mt-5 flex flex-wrap gap-4">
+                  <Link href="/login" className="btn btn-primary">
+                    Log in
+                  </Link>
+                  <Link href="/signup" className="btn btn-secondary">
+                    Create an account
+                  </Link>
+                </div>
+              )}
+            </nav>
+          )}
+        </div>
+        {signedIn && (
+          <nav
+            aria-label="Your workspace"
+            className="hidden border-b bg-slate-50 xl:block"
+          >
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 px-8">
+              {WORKSPACE_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active(link.href) ? "page" : undefined}
+                  className={linkClass(link.href)}
+                >
+                  {link.label}
+                </Link>
               ))}
               <button
                 type="button"
                 onClick={logout}
-                className="block w-full py-3 text-left text-[15px] font-semibold text-slate-700"
+                className="ml-auto min-h-12 text-sm font-semibold text-brand-navy"
               >
-                Log Out
+                Log out
               </button>
-            </>
-          ) : (
-            [
-              { href: "/hub", label: "All Tools" },
-              { href: "/login", label: "Log In" },
-              { href: "/signup", label: "Create an Account" },
-              ...INFO_LINKS,
-            ].map((l) => <MobileLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} />)
-          )}
-        </nav>
-      )}
-    </header>
-  );
-}
-
-function MobileLink({
-  href,
-  label,
-  active,
-  indent = false,
-}: {
-  href: string;
-  label: string;
-  active: boolean;
-  indent?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`block border-b border-slate-100 py-3 text-[15px] font-semibold ${indent ? "pl-3" : ""} ${
-        active ? "text-brand-dukeblue" : "text-brand-navy"
-      }`}
-    >
-      {label}
-    </Link>
+            </div>
+          </nav>
+        )}
+      </header>
+    </>
   );
 }

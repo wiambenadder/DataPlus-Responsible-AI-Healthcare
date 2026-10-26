@@ -25,7 +25,7 @@ export default function OrgLogo({ className = "h-9" }: { className?: string }) {
     <img
       src={SITE.orgLogo}
       alt={SITE.org}
-      className={`${className} w-auto`}
+      className={className}
       // If the image already failed before React attached onError (e.g.
       // during hydration), catch it here.
       ref={(el) => {
