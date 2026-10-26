@@ -1,5 +1,6 @@
 "use client";
 
+import UploadNotice from "@/components/UploadNotice";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -220,7 +221,7 @@ export default function ReportPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      router.push("/login");
+      router.push("/login?next=/report/assessment");
       return;
     }
 
@@ -604,6 +605,7 @@ export default function ReportPage() {
               </div>
             </div>
 
+            <UploadNotice />
             <label className="mt-6 block border-2 border-dashed border-slate-300 bg-white p-6 text-center hover:border-brand-dukeblue">
               <span className="block font-semibold text-brand-navy">Choose PDF files</span>
               <span className="mt-1 block text-sm text-slate-600">You can select several at once.</span>

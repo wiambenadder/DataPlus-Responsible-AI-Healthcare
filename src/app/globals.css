@@ -143,6 +143,7 @@
 
   /* Buttons: Open Sans bold, title case, squared corners. */
   .btn {
+    min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -238,3 +239,6 @@
     scroll-behavior: auto;
   }
 }
+
+/* Keep anchored sections clear of the persistent navigation. */
+main section[id] { scroll-margin-top: 9rem; }

@@ -30,7 +30,7 @@ type Photo = {
 export const PHOTOS: Record<PhotoKey, Photo> = {
   hero: {
     id: "photo-1666886573440-16ac24f89e31",
-    alt: "A doctor and a patient looking at a tablet together",
+    alt: "Two health professionals reviewing a tablet together",
     photographer: "Nappy",
     page: "https://unsplash.com/photos/DbCfSrTnflA",
   },

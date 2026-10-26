@@ -3,6 +3,7 @@
 
 "use client";
 
+import UploadNotice from "@/components/UploadNotice";
 import { supabase } from "@/lib/supabase";
 
 export default function UploadPage() {
@@ -90,6 +91,7 @@ export default function UploadPage() {
         Upload Report
       </h1>
 
+      <UploadNotice />
       <input
   type="file"
   multiple
