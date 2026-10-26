@@ -184,18 +184,11 @@ export default function HubView() {
                   className={`btn mt-auto self-start ${stream.status === "live" ? "btn-primary" : "btn-secondary"}`}
                 >
                   {stream.status === "live"
-                    ? "Start the assessment"
+                    ? "Explore the assessment"
                     : `About the ${stream.id} codebook`}{" "}
                   →
                 </Link>
-                {stream.status === "live" && (
-                  <Link
-                    href="/framework"
-                    className="link-more mt-4 self-start text-sm"
-                  >
-                    How the assessment works
-                  </Link>
-                )}
+
               </article>
             ))}
           </div>

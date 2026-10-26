@@ -45,7 +45,7 @@ export const WORKSTREAMS: Workstream[] = [
       "A six-stage roadmap of next steps",
     ],
     why: [],
-    href: "/report/assessment",
+    href: "/ai-readiness",
     cta: "Start the Assessment",
     status: "live",
     photo: "aiReadiness",
