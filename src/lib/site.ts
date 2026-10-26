@@ -14,7 +14,7 @@ export const SITE = {
   orgUrl: "https://www.innovationsinhealthcare.org/",
   /** One line in the footer about who runs the platform. */
   about:
-    "A Duke Data+ platform for responsible AI in global health, supported by Duke GHIC and Innovations in Healthcare.",
+    "A platform for responsible AI in global health, supported by Duke GHIC and Innovations in Healthcare.",
   /**
    * Address shown as "Contact Us" in the footer and on the data page.
    * Left empty on purpose: add the team inbox here and the links appear.
