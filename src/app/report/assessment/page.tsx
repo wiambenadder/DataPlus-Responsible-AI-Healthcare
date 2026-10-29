@@ -1,5 +1,6 @@
 "use client";
 
+import { authedFetch } from "@/lib/authedFetch";
 import UploadNotice from "@/components/UploadNotice";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -175,7 +176,7 @@ export default function ReportPage() {
         prev.map((f, i) => (i === index ? { ...f, status: "processing" } : f))
       );
 
-      const response = await fetch("/api/process-upload", {
+      const response = await authedFetch("/api/process-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uploadId: upload.id }),
@@ -192,7 +193,7 @@ export default function ReportPage() {
         prev.map((f, i) => (i === index ? { ...f, status: "mapping" } : f))
       );
 
-      const mappingResponse = await fetch("/api/map-domains", {
+      const mappingResponse = await authedFetch("/api/map-domains", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uploadId: upload.id }),
@@ -395,7 +396,7 @@ export default function ReportPage() {
         }));
 
         await Promise.all([
-          fetch("/api/run-ai-assessment", {
+          authedFetch("/api/run-ai-assessment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -404,7 +405,7 @@ export default function ReportPage() {
               subtopics: changedTopics,
             }),
           }),
-          fetch("/api/bullet-points", {
+          authedFetch("/api/bullet-points", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -445,7 +446,7 @@ export default function ReportPage() {
       }
 
       // Copy mapped evidence into qualitative_responses.
-      const transferResponse = await fetch("/api/transfer-map", {
+      const transferResponse = await authedFetch("/api/transfer-map", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -463,7 +464,7 @@ export default function ReportPage() {
 
       // Fresh submission always gets a full assessment run.
       await Promise.all([
-        fetch("/api/run-ai-assessment", {
+        authedFetch("/api/run-ai-assessment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -471,7 +472,7 @@ export default function ReportPage() {
             company_id: companyId,
           }),
         }),
-        fetch("/api/bullet-points", {
+        authedFetch("/api/bullet-points", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

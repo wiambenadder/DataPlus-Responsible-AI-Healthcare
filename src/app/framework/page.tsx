@@ -33,12 +33,12 @@ export default function FrameworkPage() {
 
   return (
     <InfoLayout
-      label="Help"
+      label="About"
       title="The Framework"
       lede={
         <p>
           Innovator Insights uses the AI readiness framework that Innovations in
-          Healthcare developed through research with health innovators: {total}
+          Healthcare developed through research with health innovators: {total}{" "}
           practices in five domains that follow an AI tool from
           the data it learns from to its long-term future. This page explains what
           each part means and how results are worked out.

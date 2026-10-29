@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { requireUploadAccess } from "@/lib/requireMember";
 
 export async function POST(request: NextRequest) {
+  // Set once the caller is confirmed, so the error handler below can only
+  // touch uploads the caller is allowed to change.
+  let supabase: SupabaseClient | null = null;
   try {
     const { uploadId } = await request.json();
 
@@ -11,6 +15,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Only a logged-in member of the upload's company may process it.
+    // From here on we act as that user, so the database's rules apply.
+    const access = await requireUploadAccess(request, uploadId);
+    if (!access.ok) return access.response;
+    supabase = access.db;
 
     const { data: upload, error: uploadError } = await supabase
       .from("uploads")
@@ -106,7 +116,7 @@ export async function POST(request: NextRequest) {
     // Mark this upload as failed so it doesn't sit stuck on "processing"
     try {
       const { uploadId } = await request.clone().json();
-      if (uploadId) {
+      if (uploadId && supabase) {
         await supabase
           .from("uploads")
           .update({ extraction_status: "failed" })

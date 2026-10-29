@@ -3,6 +3,7 @@
 
 "use client";
 
+import { authedFetch } from "@/lib/authedFetch";
 import UploadNotice from "@/components/UploadNotice";
 import { supabase } from "@/lib/supabase";
 
@@ -72,7 +73,7 @@ export default function UploadPage() {
       continue;
     }
 
-    await fetch("/api/process-upload", {
+    await authedFetch("/api/process-upload", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -33,7 +33,7 @@ const ebGaramond = localFont({
 export const metadata: Metadata = {
   title: "Innovator Insights",
   description:
-    "Understand AI readiness, examine evidence, and plan next steps for responsible innovation in global health. A Duke Data+ project supported by Duke GHIC and Innovations in Healthcare.",
+    "A free platform that shows how ready a health AI tool is for real-world use. Built by Duke students through Data+ and Bass Connections, with support from the Duke Global Health Innovation Center and Innovations in Healthcare.",
 };
 
 export default function RootLayout({

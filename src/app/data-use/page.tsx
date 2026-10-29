@@ -24,7 +24,7 @@ const SECTIONS = [
 export default function DataUsePage() {
   return (
     <InfoLayout
-      label="Help"
+      label="About"
       title="How We Use Your Data"
       lede={
         <p>
@@ -145,7 +145,7 @@ export default function DataUsePage() {
             To remove documents, your organization&apos;s data or your account,
             contact the platform team through{" "}
             <a href="mailto:dukeghic@duke.edu" className="link-more">
-              Duke GHIC general inquiries
+              Duke Global Health Innovation Center general inquiries
             </a>
             {SITE.contactEmail ? (
               <>

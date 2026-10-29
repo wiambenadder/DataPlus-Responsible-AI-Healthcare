@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Photo from "@/components/Photo";
 import { slugify } from "@/lib/assessment";
 import { countryFlag } from "@/lib/countryFlag";
 import { domainStyle } from "@/lib/domain-info";
@@ -244,7 +243,7 @@ export default function HomeView({ company, summary }: { company: any; summary: 
             missing, and check that each rating is right.
           </p>
           <div className="mt-8 grid gap-8 lg:grid-cols-[1.8fr_1fr_1fr]">
-            <div className="grid bg-brand-navy text-white sm:grid-cols-[1fr_190px]">
+            <div className="bg-brand-navy text-white">
               <div className="p-6 sm:p-7">
                 <p className="text-[0.75rem] font-bold uppercase tracking-[0.1em] text-blue-200">
                   Your Roadmap
@@ -272,9 +271,6 @@ export default function HomeView({ company, summary }: { company: any; summary: 
                 >
                   {hasData ? "Open your roadmap ›" : "Start the assessment ›"}
                 </Link>
-              </div>
-              <div className="hidden h-full min-h-[200px] sm:block">
-                <Photo name="aiReadinessAlt" width={500} />
               </div>
             </div>
 

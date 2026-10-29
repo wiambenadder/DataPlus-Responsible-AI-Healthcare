@@ -14,7 +14,7 @@ import HubView from "@/_components/hub/HubView";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Home page. Signed out: the All Tools page. Signed in: the company's
+ * Home page. Signed out: the public home page (HubView). Signed in: the company's
  * overview — progress by domain, the roadmap's next step, and the team.
  *
  * Data flow: auth check → profile → company redirect → company, answers,

@@ -31,17 +31,26 @@ links to its source; it is labeled illustrative. No new regional imagery or
 permission has been invented. Obtain and retain written website-use permission
 and agreed credits, and review future images for representation including Asia.
 
-Three placeholder cards are visible only outside production. Each says
-“Testimonial pending approval”; they are prompts, not invented quotations.
-Production renders no unfilled testimonial section. Add actual testimonials
-only with permission, approved attribution, and an explicit approval record.
-Confirm organization listing permissions; participation is distinct from endorsement.
+Innovator testimonials appear in a carousel on the home page (one at a time,
+with arrows), each with a small event photo, the organization's name and a
+link to what it does. Entries live in `src/lib/testimonials.ts`, which is
+empty for now, so the live site shows nothing. In development, draft slides
+marked “quote pending approval” show the layout; they are not quotations.
+Add an entry only with written permission for the quote, name, organization
+and photo, and keep the approval. Participation is distinct from endorsement.
 
 ## Data verification before wider launch
 
 Beta badges, the pilot page, and pilot promotion have been removed from the website. General data inquiries link directly to Duke GHIC’s published email address.
 
 The new pre-upload notice covers the PDF assessment and legacy upload page.
+
+Done (Oct 29): the five upload/AI processing routes (`process-upload`,
+`map-domains`, `transfer-map`, `run-ai-assessment`, `bullet-points`) now
+require a logged-in member of the company and act as that user
+(`src/lib/requireMember.ts`). Next: run `docs/SUPABASE_ACCESS_RULES.sql` in
+Supabase after that code is live, then work through its test checklist.
+Keep the “still confirming” notices until that is done and tested.
 Verify deployed Supabase database/storage access rules, organization membership,
 admin access, authorization of upload and AI endpoints, storage visibility,
 AI provider configuration/terms, logging, retention, backups, and deletion.

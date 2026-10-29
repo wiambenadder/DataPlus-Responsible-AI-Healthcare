@@ -72,8 +72,10 @@ export default function AuthCard({
           <p className="font-bold text-ink">About This Platform</p>
           <p className="mt-1">
             {SITE.name} is open to anyone building or deploying an AI tool for health. You can
-            create an account with any email address. Your documents and answers are only
-            visible to your own team and the platform team.{" "}
+            create an account with any email address. Before you share any documents, please
+            read how we handle them.{" "}
+            {/* Don't promise who can see the data until the Supabase access
+                rules (docs/SUPABASE_ACCESS_RULES.sql) are live and tested. */}
             <Link href="/data-use" className="link-more">
               How we use your data
             </Link>

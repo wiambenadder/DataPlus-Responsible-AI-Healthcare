@@ -1,5 +1,6 @@
 "use client";
 
+import { authedFetch } from "@/lib/authedFetch";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -134,7 +135,7 @@ export default function EditEvidencePage() {
       }));
 
       await Promise.all([
-        fetch("/api/run-ai-assessment", {
+        authedFetch("/api/run-ai-assessment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -143,7 +144,7 @@ export default function EditEvidencePage() {
             subtopics: changedTopics,
           }),
         }),
-        fetch("/api/bullet-points", {
+        authedFetch("/api/bullet-points", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

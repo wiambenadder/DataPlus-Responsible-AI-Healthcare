@@ -28,7 +28,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireUploadAccess } from "@/lib/requireMember";
 import OpenAI from "openai";
 
 function cleanDomain(domain: string) {
@@ -49,10 +49,11 @@ export async function POST(request: NextRequest) {
 
     const uploadId = body.uploadId;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
+    // Only a logged-in member of the upload's company may run this step.
+    // We then act as that user rather than with a master key.
+    const access = await requireUploadAccess(request, uploadId);
+    if (!access.ok) return access.response;
+    const supabase = access.db;
 
     const openai = new OpenAI({
       apiKey: process.env.LITELLM_TOKEN,

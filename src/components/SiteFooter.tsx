@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
 
-// The three tools, in the same order as the All Tools page.
-const PLATFORM = [
-  ["/hub", "All Tools"],
+// The three tools, in the same order as on the home page.
+const TOOLS = [
   ["/ai-readiness", "AI Readiness Assessment"],
   ["/financing-codebook", "Financing Codebook"],
   ["/policy-codebook", "Policy Codebook"],
@@ -19,22 +18,31 @@ export default function SiteFooter() {
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-white/80">
             {SITE.about}
           </p>
-          <a
-            href={SITE.orgUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-block text-[15px] text-white/90 hover:text-white hover:underline"
-          >
-            {SITE.org}
-          </a>
+          <ul className="mt-3 space-y-1 text-[15px]">
+            {[
+              [SITE.dukeUrl, "Duke Global Health Innovation Center"],
+              [SITE.orgUrl, SITE.org],
+            ].map(([href, label]) => (
+              <li key={href}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-white/90 hover:text-white hover:underline"
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <nav aria-label="Platform">
+        <nav aria-label="Tools">
           <p className="text-xs font-bold uppercase tracking-[0.1em] text-white/60">
-            Platform
+            Tools
           </p>
           <ul className="mt-3 space-y-2 text-[15px]">
-            {PLATFORM.map(([href, label]) => (
+            {TOOLS.map(([href, label]) => (
               <li key={href}>
                 <Link
                   href={href}
@@ -47,9 +55,9 @@ export default function SiteFooter() {
           </ul>
         </nav>
 
-        <nav aria-label="Help">
+        <nav aria-label="About">
           <p className="text-xs font-bold uppercase tracking-[0.1em] text-white/60">
-            Help
+            About
           </p>
           <ul className="mt-3 space-y-2 text-[15px]">
             <li>
@@ -57,7 +65,7 @@ export default function SiteFooter() {
                 href="/about"
                 className="text-white/90 hover:text-white hover:underline"
               >
-                About
+                About Us
               </Link>
             </li>
             <li>
@@ -87,12 +95,12 @@ export default function SiteFooter() {
               </li>
             )}
             <li>
-              <a
-                href="#top"
+              <Link
+                href="/about#acknowledgments"
                 className="text-white/90 hover:text-white hover:underline"
               >
-                Back to Top
-              </a>
+                Acknowledgments and Credits
+              </Link>
             </li>
           </ul>
         </nav>
@@ -104,9 +112,6 @@ export default function SiteFooter() {
             © {new Date().getFullYear()} {SITE.name}. Results are a decision
             aid, not a certification or ranking.
           </p>
-          <Link href="/about#acknowledgments" className="underline">
-            Acknowledgments and photo credits
-          </Link>
         </div>
       </div>
     </footer>

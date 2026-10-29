@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+/*
+ * Shown above every upload. Keep the "still confirming" sentence until the
+ * Supabase access rules in docs/SUPABASE_ACCESS_RULES.sql have been run and
+ * tested; only then is it accurate to say data is limited to the
+ * organization's members.
+ */
 export default function UploadNotice() {
   return (
     <aside
@@ -8,28 +14,22 @@ export default function UploadNotice() {
     >
       <p className="font-bold text-brand-navy">Before you upload</p>
       <p className="mt-2">
-        Share only organization-level reports you have permission to use.
-        Documents and answers are stored to support your assessment, and
-        document text is sent to AI services to extract and evaluate evidence.
+        Share only organization-level reports you have permission to use, with
+        no patient records or personal information. Your documents and answers
+        are stored for your assessment, and their text is sent to AI services
+        to find and rate evidence.
       </p>
       <p className="mt-2">
-        The intended audience is your organization’s members and the platform
-        team. Uploading is not permission to publish your material. Access
-        controls, retention, and provider terms still require team verification;
-        do not submit sensitive or confidential information while verification
-        is pending.
-      </p>
-      <p className="mt-2">
-        For access questions or a deletion request, contact the project team
-        through{" "}
-        <a href="mailto:dukeghic@duke.edu" className="underline font-semibold">
-          Duke GHIC general inquiries
-        </a>
-        . Include your account email and organization name, not the documents
-        themselves.
+        We are still confirming access controls and how long data is kept, so
+        please don&apos;t upload anything confidential yet. For access or
+        deletion questions, email{" "}
+        <a href="mailto:dukeghic@duke.edu" className="font-semibold underline">
+          Duke Global Health Innovation Center general inquiries
+        </a>{" "}
+        with your account email and organization name.
       </p>
       <Link href="/data-use" className="link-more mt-3 inline-block">
-        Read the full data-use explanation →
+        How we handle your data →
       </Link>
     </aside>
   );
