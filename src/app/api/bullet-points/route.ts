@@ -12,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireMember } from "@/lib/requireMember";
 import OpenAI from "openai";
 
 export async function POST(request: NextRequest) {
@@ -22,10 +22,11 @@ export async function POST(request: NextRequest) {
     const companyId = body.company_id;
     const reportingPeriod = body.reporting_period;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
+    // Only a logged-in member of this company may summarize its answers.
+    // We then act as that user rather than with a master key.
+    const access = await requireMember(request, companyId);
+    if (!access.ok) return access.response;
+    const supabase = access.db;
 
     const openai = new OpenAI({
       apiKey: process.env.LITELLM_TOKEN,

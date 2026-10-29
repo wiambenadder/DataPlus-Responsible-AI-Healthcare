@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { supabase } from "@/lib/supabase";
+import { requireMember } from "@/lib/requireMember";
 
 
 export async function POST(request: NextRequest) {
@@ -21,6 +21,11 @@ return NextResponse.json(
 );
 
 }
+
+// Only a logged-in member of this company may run this step.
+const access = await requireMember(request, company_id);
+if (!access.ok) return access.response;
+const supabase = access.db;
 
 
 const { data: mappings, error: mappingError } = await supabase
