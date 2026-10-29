@@ -9,20 +9,21 @@ import { SITE } from "@/lib/site";
 import OrgLogo from "./OrgLogo";
 import { WORKSTREAMS } from "@/lib/workstreams";
 
+// About comes before the tools so first-time visitors learn what the
+// platform is before choosing a tool. "Our Tools" opens a dropdown.
 const PUBLIC_LINKS = [
   { href: "/hub", label: "Home" },
-  { href: "/about", label: "About us" },
-  { href: "/hub#audiences", label: "Who this helps" },
-  { href: "/hub#tools", label: "Our tools" },
-  { href: "/data-use", label: "Data & trust" },
+  { href: "/about", label: "About Us" },
+  { href: "/hub#tools", label: "Our Tools" },
+  { href: "/data-use", label: "Your Data" },
 ];
 const WORKSPACE_LINKS = [
-  { href: "/", label: "Your overview" },
-  { href: "/report/assessment", label: "Submit evidence" },
+  { href: "/", label: "Your Overview" },
+  { href: "/report/assessment", label: "Submit Evidence" },
   { href: "/report/history", label: "Submissions" },
   { href: "/dashboard", label: "Results" },
   { href: "/roadmap", label: "Roadmap" },
-  { href: "/company", label: "Company & team" },
+  { href: "/company", label: "Company & Team" },
   { href: "/user", label: "Profile" },
 ];
 
@@ -145,12 +146,12 @@ export default function SiteHeader() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href={signedIn ? "/" : "/login"}
-                className="btn btn-secondary px-4 py-2 text-sm"
-              >
-                {signedIn ? "Your workspace" : "Log in"}
-              </Link>
+              {/* Signed-in users get the workspace bar below instead. */}
+              {!signedIn && (
+                <Link href="/login" className="btn btn-secondary px-4 py-2 text-sm">
+                  Log In
+                </Link>
+              )}
             </nav>
             <button
               ref={toggleRef}
@@ -192,7 +193,7 @@ export default function SiteHeader() {
               ))}
               {signedIn ? (
                 <>
-                  <p className="label-caps mt-5">Your workspace</p>
+                  <p className="label-caps mt-5">Your Workspace</p>
                   {WORKSPACE_LINKS.map((link) => (
                     <Link
                       key={link.href}
@@ -208,16 +209,16 @@ export default function SiteHeader() {
                     className="min-h-12 font-bold text-brand-navy"
                     onClick={logout}
                   >
-                    Log out
+                    Log Out
                   </button>
                 </>
               ) : (
                 <div className="mt-5 flex flex-wrap gap-4">
                   <Link href="/login" className="btn btn-primary">
-                    Log in
+                    Log In
                   </Link>
                   <Link href="/signup" className="btn btn-secondary">
-                    Create an account
+                    Create an Account
                   </Link>
                 </div>
               )}
@@ -245,7 +246,7 @@ export default function SiteHeader() {
                 onClick={logout}
                 className="ml-auto min-h-12 text-sm font-semibold text-brand-navy"
               >
-                Log out
+                Log Out
               </button>
             </div>
           </nav>
@@ -286,7 +287,7 @@ function ToolsDropdown({ mobile = false }: { mobile?: boolean }) {
       <button ref={buttonRef} type="button" aria-expanded={open} aria-controls={id}
         onClick={() => setOpen((value) => !value)}
         className={mobile ? "flex min-h-12 w-full items-center justify-between py-3 font-semibold text-brand-navy" : "flex min-h-12 items-center gap-1 border-b-2 border-transparent px-1 text-sm font-semibold text-slate-600 hover:text-brand-navy"}>
-        Our tools <ChevronDown size={16} aria-hidden className={open ? "rotate-180" : ""} />
+        Our Tools <ChevronDown size={16} aria-hidden className={open ? "rotate-180" : ""} />
       </button>
       {open && <ul id={id} className={mobile ? "pb-3 pl-4" : "absolute left-0 top-full z-10 w-72 border border-t-4 border-t-brand-navy bg-white py-2 shadow-lg"}>
         {WORKSTREAMS.map((tool) => <li key={tool.id}><Link href={tool.href}

@@ -21,8 +21,8 @@ export default function CodebookPlaceholder({
       <section className="grid border-b border-slate-200 lg:grid-cols-2">
         <div className="flex flex-col justify-center bg-whisper px-4 py-14 sm:px-10 lg:py-20 lg:pl-[max(2rem,calc((100vw-80rem)/2+2rem))] lg:pr-14">
           <nav aria-label="Breadcrumb" className="label-caps">
-            <Link href="/hub" className="hover:underline">
-              All Tools
+            <Link href="/hub#tools" className="hover:underline">
+              Our Tools
             </Link>
             <span className="mx-2" aria-hidden>
               ›
@@ -64,27 +64,24 @@ export default function CodebookPlaceholder({
               This codebook is being built. This page will be updated as the work develops.
             </p>
             <p className="mt-4">
-              <Link href="/hub" className="link-more">
-                Back to All Tools ›
+              <Link href="/hub#tools" className="link-more">
+                Back to Our Tools ›
               </Link>
             </p>
           </aside>
         </div>
 
-        <section className="mt-20 grid items-center gap-6 bg-whisper md:grid-cols-[260px_1fr_auto] md:pr-8">
-          <div className="h-44">
-            <Photo name="aiReadiness" width={600} />
-          </div>
-          <div className="px-6 md:px-0">
+        <section className="mt-20 grid items-center gap-6 bg-whisper px-6 py-8 md:grid-cols-[1fr_auto] md:px-8">
+          <div>
             <h2 className="text-[1.75rem]">Available Now: AI Readiness Assessment</h2>
             <p className="mt-1 text-[15px] text-slate-600">
               Free and open to anyone. Upload what you have and get a rating for each of 31
               practices, with the evidence behind it and a roadmap of next steps.
             </p>
           </div>
-          <p className="px-6 pb-6 md:p-0">
-            <Link href="/report/assessment" className="btn btn-primary">
-              Start the Assessment
+          <p>
+            <Link href="/ai-readiness" className="btn btn-primary">
+              Try the Assessment
             </Link>
           </p>
         </section>
