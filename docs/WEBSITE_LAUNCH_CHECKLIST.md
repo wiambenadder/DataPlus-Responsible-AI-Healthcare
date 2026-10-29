@@ -34,8 +34,8 @@ and agreed credits, and review future images for representation including Asia.
 Innovator testimonials appear in a carousel on the home page (one at a time,
 with arrows), each with a small event photo, the organization's name and a
 link to what it does. Entries live in `src/lib/testimonials.ts`, which is
-empty for now, so the live site shows nothing. In development, draft slides
-marked “quote pending approval” show the layout; they are not quotations.
+empty for now, so the carousel shows “story coming soon” slides that say
+what each story will cover; they are not quotations and name no one.
 Add an entry only with written permission for the quote, name, organization
 and photo, and keep the approval. Participation is distinct from endorsement.
 

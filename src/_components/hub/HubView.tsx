@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Lightbulb, ClipboardCheck, Landmark } from "lucide-react";
 import TestimonialCarousel from "./TestimonialCarousel";
-import { TESTIMONIALS, type Testimonial } from "@/lib/testimonials";
+import { TESTIMONIALS } from "@/lib/testimonials";
 import Photo from "@/components/Photo";
 import { SITE, LINKS } from "@/lib/site";
 import { WORKSTREAMS } from "@/lib/workstreams";
@@ -13,30 +13,35 @@ const AUDIENCES = [
   {
     title: "Innovators",
     icon: Lightbulb,
-    text: "See where your tool stands, what evidence backs it up, and what to work on next.",
+    text: "Check your tool's readiness today and see what to work on next. Soon, learn how similar tools were funded and which rules apply where you work.",
   },
   {
     title: "Funders",
     icon: ClipboardCheck,
-    text: "Use the same 31 practices to structure your review of a tool and decide what to ask the team.",
+    text: "Use the same 31 practices to review a tool and decide what to ask the team. Soon, see how similar tools have been funded over time.",
   },
   {
     title: "Ministries of health",
     icon: Landmark,
-    text: "Use a shared framework to discuss whether a tool is ready for your health system.",
+    text: "Use a shared framework to discuss whether a tool is ready for your health system. Soon, compare AI and health policies across countries.",
   },
 ];
 
-// Draft slides for development only: placeholders, never real quotes.
-const DRAFT_SLIDES: Testimonial[] = [1, 2, 3].map((n) => ({
-  quote: "An innovator's words about using the platform will appear here once approved.",
-  name: `Innovator ${n}`,
-  role: "Role",
-  organization: "Organization name",
-  organizationUrl: "https://www.example.org/",
-  photo: "",
-  photoAlt: "",
-}));
+// Shown until real, approved testimonials are added to
+// src/lib/testimonials.ts. They describe what each story will cover and
+// are never presented as quotes from real people.
+const PLACEHOLDER_STORIES = [
+  "How an innovator used the assessment to find their next step toward scaling.",
+  "What a team learned from the evidence behind its ratings.",
+  "How an innovator shared their roadmap with partners and funders.",
+];
+
+// The question each tool answers, shown in the hero.
+const TOOL_QUESTIONS: Record<string, string> = {
+  "ai-readiness": "Is it ready for real-world care?",
+  financing: "How could it be funded for the long term?",
+  policy: "Which rules apply where you work?",
+};
 
 /** Underlined link to an outside site, opening in a new tab. */
 function Ext({ href, children }: { href: string; children: React.ReactNode }) {
@@ -70,18 +75,40 @@ export default function HubView() {
             id="hero-title"
             className="max-w-xl text-5xl text-white sm:text-6xl"
           >
-            Is Your Health AI Tool Ready for the Real World?
+            Helping Health AI Tools Work in the Real World
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-blue-50">
             {SITE.name} is a free platform for teams building AI for health
             care, and for the funders and ministries of health who work with
-            them. Share the reports you already have and see how your tool
-            measures up on 31 practices, with the evidence behind each rating
-            and a roadmap of next steps.
+            them. It brings together three tools for the questions every AI
+            health tool faces:
           </p>
-          <Link href="/ai-readiness" className="btn btn-light mt-8">
-            Try the Assessment <ArrowRight size={18} aria-hidden />
-          </Link>
+          {/* One line per tool, from src/lib/workstreams.ts, so the hero
+              always matches the tools section below. */}
+          <ul className="mt-5 max-w-xl space-y-3">
+            {WORKSTREAMS.map((tool) => (
+              <li key={tool.id} className="border-l-2 border-blue-200/60 pl-4">
+                <p className="text-[17px] font-semibold text-white">
+                  {TOOL_QUESTIONS[tool.id]}
+                </p>
+                <p className="text-[15px] text-blue-100">
+                  <Link href={tool.href} className="underline underline-offset-4 hover:text-white">
+                    {tool.title}
+                  </Link>
+                  {" · "}
+                  {tool.status === "live" ? "Available now" : "Coming soon"}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 flex flex-wrap gap-3">
+            <Link href="/ai-readiness" className="btn btn-light">
+              Try the Assessment <ArrowRight size={18} aria-hidden />
+            </Link>
+            <Link href="/hub#tools" className="btn btn-outline-light">
+              Explore All Tools
+            </Link>
+          </p>
           <p className="mt-4 text-sm text-blue-100">
             <Link href="/data-use" className="underline underline-offset-4 hover:text-white">
               How we handle your data
@@ -178,7 +205,7 @@ export default function HubView() {
                 style={{ borderTopColor: stream.accent }}
               >
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                  {stream.status === "live" ? "Available now" : "In development"}
+                  {stream.status === "live" ? "Available now" : "Coming soon"}
                 </p>
                 <h3 className="mt-3 font-serif text-3xl leading-tight text-brand-navy">
                   {stream.title}
@@ -199,28 +226,23 @@ export default function HubView() {
         </div>
       </section>
 
-      {/* Innovator testimonials. Hidden on the live site until real,
-          approved entries are added to src/lib/testimonials.ts; draft
-          slides show in development so the layout can be reviewed. */}
-      {(TESTIMONIALS.length > 0 || process.env.NODE_ENV !== "production") && (
-        <section
-          className="mx-auto max-w-7xl px-6 py-16 sm:px-8"
-          aria-labelledby="experiences-heading"
-        >
-          <p className="label-caps">
-            {TESTIMONIALS.length > 0 ? "In their words" : "In their words · Draft only"}
-          </p>
-          <h2 id="experiences-heading" className="mt-3 text-4xl">
-            From Innovators Who Have Used It
-          </h2>
-          <div className="mt-8">
-            <TestimonialCarousel
-              items={TESTIMONIALS.length > 0 ? TESTIMONIALS : DRAFT_SLIDES}
-              draft={TESTIMONIALS.length === 0}
-            />
-          </div>
-        </section>
-      )}
+      {/* Innovator testimonials. Until approved entries are added to
+          src/lib/testimonials.ts, the carousel shows "coming soon" slides
+          that say what each story will cover (no invented quotes). */}
+      <section
+        className="mx-auto max-w-7xl px-6 py-16 sm:px-8"
+        aria-labelledby="experiences-heading"
+      >
+        <p className="label-caps">
+          {TESTIMONIALS.length > 0 ? "In their words" : "In their words · Coming soon"}
+        </p>
+        <h2 id="experiences-heading" className="mt-3 text-4xl">
+          Stories From Innovators
+        </h2>
+        <div className="mt-8">
+          <TestimonialCarousel items={TESTIMONIALS} placeholders={PLACEHOLDER_STORIES} />
+        </div>
+      </section>
 
       <section
         className="mx-auto grid max-w-7xl gap-8 px-6 py-16 sm:px-8 md:grid-cols-[1fr_1.6fr]"

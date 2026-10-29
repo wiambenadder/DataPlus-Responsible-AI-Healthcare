@@ -6,8 +6,8 @@
  * name and link, and the photo. Keep that approval (an email is fine)
  * with the team's records.
  *
- * The carousel stays hidden on the live site until at least one entry is
- * here. In development it shows draft slides so you can see the layout.
+ * While the list is empty, the carousel shows "story coming soon" slides
+ * (set in HubView.tsx). Once you add an entry, real stories replace them.
  *
  * Photos: save the event photo in /public/testimonials/ (for example
  * /public/testimonials/acme-health.jpg) and set `photo` to
