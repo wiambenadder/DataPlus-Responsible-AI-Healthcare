@@ -17,6 +17,9 @@ change the version number of the wider Innovator Insights application.
   illustrative and not an official source.
 - Kept the Duke/Innovator Insights typography, colors, buttons and overall
   application shell so the three MVP workstreams remain visually cohesive.
+- Added no-install macOS and Windows offline packages under
+  `Working Demos/Prototypes/v0.3`. These use browser-native HTML, CSS and
+  JavaScript, so they do not start a local server or leave a background process.
 
 ## v0.2 — Native Next.js prototype
 
