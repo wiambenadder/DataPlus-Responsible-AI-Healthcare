@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { ExternalLink, FileText, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { FileSearch, FileText, X } from "lucide-react";
 import type { PolicyDocument } from "@/lib/policy/types";
 import { DepthBadge, DocumentBadges } from "./PolicyBadge";
+import PolicySourceViewer from "./PolicySourceViewer";
 
 export default function PolicyDocumentDrawer({
   document,
@@ -13,6 +14,7 @@ export default function PolicyDocumentDrawer({
   onClose: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [viewerPage, setViewerPage] = useState<number | null>(null);
 
   useEffect(() => {
     if (!document) return;
@@ -20,14 +22,17 @@ export default function PolicyDocumentDrawer({
     window.document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     const dismiss = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        if (viewerPage !== null) setViewerPage(null);
+        else onClose();
+      }
     };
     window.document.addEventListener("keydown", dismiss);
     return () => {
       window.document.body.style.overflow = previousOverflow;
       window.document.removeEventListener("keydown", dismiss);
     };
-  }, [document, onClose]);
+  }, [document, onClose, viewerPage]);
 
   if (!document) return null;
 
@@ -80,9 +85,9 @@ export default function PolicyDocumentDrawer({
             <p className="mt-1 text-sm leading-relaxed text-slate-700">{document.summary}</p>
           </section>
 
-          <a href={document.sourceUrl} target="_blank" rel="noreferrer" className="btn btn-primary mt-4 w-full">
-            View illustrative source <ExternalLink size={16} aria-hidden />
-          </a>
+          <button type="button" onClick={() => setViewerPage(primaryPage(document))} className="btn btn-primary mt-4 w-full">
+            View illustrative source <FileSearch size={16} aria-hidden />
+          </button>
 
           <section className="mt-9" aria-labelledby="analysis-heading">
             <div className="section-head"><h2 id="analysis-heading" className="text-2xl">Codebook Content Analysis</h2></div>
@@ -95,9 +100,7 @@ export default function PolicyDocumentDrawer({
                     <DepthBadge rating={finding.depthRating} label={finding.ratingLabel} />
                   </div>
                   <blockquote className="mt-3 border-l-4 border-blue-200 pl-4 text-sm italic text-slate-700">“{finding.excerpt}”</blockquote>
-                  <p className="mt-3 text-xs font-bold text-brand-dukeblue">
-                    {finding.page ? `Page ${finding.page}` : "No page reference"}{finding.article ? `, Article ${finding.article}` : ""}
-                  </p>
+                  {finding.page ? <button type="button" onClick={() => setViewerPage(finding.page!)} className="mt-3 min-h-10 border px-3 text-xs font-bold text-brand-dukeblue hover:bg-blue-50">Page {finding.page}{finding.article ? `, Article ${finding.article}` : ""} →</button> : <p className="mt-3 text-xs font-bold text-slate-500">No page reference</p>}
                 </article>
               ))}
             </div>
@@ -108,8 +111,13 @@ export default function PolicyDocumentDrawer({
           </p>
         </div>
       </aside>
+      {viewerPage !== null && <PolicySourceViewer document={document} initialPage={viewerPage} onClose={() => setViewerPage(null)} />}
     </div>
   );
+}
+
+function primaryPage(document: PolicyDocument) {
+  return document.findings.find((finding) => finding.page)?.page ?? 1;
 }
 
 function formatDate(value: string) {

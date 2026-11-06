@@ -33,6 +33,7 @@ export default function PolicyNav() {
               ✚
             </span>
             Health AI Policy Dashboard
+            <span className="hidden bg-white/15 px-2 py-1 font-sans text-[10px] font-bold uppercase tracking-wider text-blue-100 sm:inline">Prototype v0.3</span>
           </Link>
           <Link
             href="/hub"
