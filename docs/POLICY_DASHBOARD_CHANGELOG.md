@@ -3,6 +3,25 @@
 The version labels below describe the Policy Codebook prototype and do not
 change the version number of the wider Innovator Insights application.
 
+## v0.3.1 — Innovator Insights visual alignment
+
+- Preserved all v0.3 content, information architecture, routes, filters,
+  drawers, document-viewer behavior and placeholder data.
+- Restyled the portable demo against the actual Innovator Insights `main`
+  branch design system rather than the older v0.1 wireframe aesthetic.
+- Added self-hosted EB Garamond headings alongside Open Sans body text.
+- Adopted Duke Navy and Royal Blue, Whisper Gray section bands, official
+  secondary accents, thin rules, small squared corners and restrained shadows.
+- Increased editorial whitespace and replaced gradient or pill-heavy treatments
+  with the main site's flat buttons, border-top cards and typography hierarchy.
+- Retained v0.3 as an unchanged portable and source reference.
+- Preserved the native `/policy-codebook` entry route, `/hub` return link,
+  live Policy Codebook tools-card status, typed repository abstraction and all
+  three country/document API endpoints introduced in v0.2.
+- Mirrored the entry page, Available Now status, reverse Innovator Insights
+  link and repository interactions in the offline demo; its fixtures remain
+  browser-local because a no-server package cannot execute Next.js API routes.
+
 ## v0.3 — Integrated source viewer
 
 - Replaced the analysis drawer's link back to the standalone HTML prototype
