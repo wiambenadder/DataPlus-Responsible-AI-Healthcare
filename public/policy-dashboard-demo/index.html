@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Navigable front-end prototype for the Health AI Policy Dashboard."
+    />
+    <title>Health AI Policy Dashboard — Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="site-header">
+      <a class="brand" href="#about" data-route="about" aria-label="Health AI Policy Dashboard home">
+        <span class="brand-mark" aria-hidden="true">✚</span>
+        <span>Health AI Policy Dashboard</span>
+      </a>
+
+      <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="primary-navigation">
+        <span aria-hidden="true">☰</span> Menu
+      </button>
+
+      <nav id="primary-navigation" class="primary-navigation" aria-label="Dashboard modules">
+        <a href="#about" data-route="about">Module A: About the Tool</a>
+        <a href="#map" data-route="map">Module B: Interactive Map</a>
+        <a href="#search" data-route="search">Module C: Advanced Search</a>
+      </nav>
+
+      <a class="main-site-link" href="https://data-plus-responsible-ai-healthcare.vercel.app/" target="_blank" rel="noreferrer">
+        Innovator Insights <span aria-hidden="true">↗</span>
+      </a>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section class="screen" data-screen="about" aria-labelledby="about-title">
+        <div class="documentation-layout">
+          <aside class="documentation-index" aria-label="Documentation index">
+            <div class="aside-heading">
+              <span class="icon-box" aria-hidden="true">▤</span>
+              <div>
+                <strong>Documentation Index</strong>
+                <p>Navigate through the platform documentation and methodology.</p>
+              </div>
+            </div>
+            <ol class="index-list">
+              <li class="active"><button type="button"><span>1</span> Project Mission &amp; Target Audience <b>›</b></button></li>
+              <li><button type="button"><span>2</span> Dual-Layer Analytical Framework <b>›</b></button></li>
+              <li><button type="button"><span>3</span> Research Codebook &amp; 4-Level Depth Rubric <b>›</b></button></li>
+              <li><button type="button"><span>4</span> Governance, Academic Leadership &amp; Partners <b>›</b></button></li>
+              <li><button type="button"><span>5</span> Legal Disclaimer &amp; Educational Scope <b>›</b></button></li>
+              <li><button type="button"><span>6</span> Version History &amp; Downloads <b>›</b></button></li>
+            </ol>
+            <div class="mission-card">
+              <strong>◎ &nbsp;Building safer, more equitable AI health systems worldwide.</strong>
+              <p>This prototype demonstrates how users could explore policy intelligence for responsible AI adoption in health.</p>
+            </div>
+          </aside>
+
+          <div class="documentation-content">
+            <div class="page-title-row">
+              <span class="large-icon" aria-hidden="true">▤</span>
+              <div>
+                <div class="title-with-tag">
+                  <h1 id="about-title">Methodology &amp; Framework</h1>
+                  <span class="tag">Academic &amp; Institutional</span>
+                </div>
+                <p>Our methodology combines systematic document screening, structured codebook analysis, and a four-level depth rubric to evaluate AI health policies across countries and regulatory domains.</p>
+              </div>
+            </div>
+
+            <div class="process-card" aria-label="Policy analysis process">
+              <article>
+                <span class="step-number">1</span>
+                <div><h2>Document Collection &amp; Screening</h2><p>Official legislative texts, decrees, regulations, and policy documents.</p><div class="process-visual">▤<small>Government and regulatory sources</small></div></div>
+              </article>
+              <span class="process-arrow" aria-hidden="true">→</span>
+              <article>
+                <span class="step-number">2</span>
+                <div><h2>Policy Classification</h2><p>Each document is tagged across format, stage, and policy type.</p><div class="mini-pills"><span>Format</span><span>Stage</span><span>Type</span></div></div>
+              </article>
+              <span class="process-arrow" aria-hidden="true">→</span>
+              <article>
+                <span class="step-number">3</span>
+                <div><h2>Codebook Analysis</h2><p>Content is evaluated using a four-level depth rubric.</p><div class="depth-stack"><span>Level 3 — Actionable</span><span>Level 2 — Voluntary</span><span>Level 1 — Aspirational</span><span>Level 0 — Not mentioned</span></div></div>
+              </article>
+              <span class="process-arrow" aria-hidden="true">→</span>
+              <article>
+                <span class="step-number">4</span>
+                <div><h2>Structured Output</h2><p>Documents are annotated and made searchable for multi-country comparison.</p><div class="process-visual">⌕<small>Policy intelligence</small></div></div>
+              </article>
+            </div>
+
+            <div class="notice"><span aria-hidden="true">◆</span><div><strong>Verified External Sources</strong><p>Prototype links and excerpts are illustrative. Production content should be verified against official documents.</p></div></div>
+
+            <div class="section-heading-row">
+              <div><p class="eyebrow">START EXPLORING</p><h2>Choose a policy view</h2></div>
+              <a class="button primary" href="#map" data-route="map">Explore Interactive Map <span aria-hidden="true">→</span></a>
+            </div>
+            <div class="resource-grid">
+              <button class="resource-card" type="button" data-go="map"><span class="resource-icon">◎</span><span><strong>Explore country policy landscapes</strong><small>Start with the world map, then open a country assessment.</small></span><b>→</b></button>
+              <button class="resource-card" type="button" data-go="search"><span class="resource-icon">⌕</span><span><strong>Search the policy repository</strong><small>Filter sample instruments and review codebook analysis.</small></span><b>→</b></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="map" aria-labelledby="map-title" hidden>
+        <div class="map-page">
+          <div class="hero-copy">
+            <div><p class="eyebrow">MODULE B · INTERACTIVE MAP</p><h1 id="map-title">Global Health AI Policy Landscape</h1><p>Explore the status of AI governance, regulation, and policy across countries, with a focus on low- and middle-income countries.</p></div>
+            <div class="stat-row" aria-label="Country tracking summary">
+              <div class="stat"><span>◎</span><div><small>Total countries</small><strong>195</strong></div></div>
+              <div class="stat"><span class="dot cyan"></span><div><small>Tracked LMICs</small><strong>42</strong></div></div>
+              <div class="stat"><span class="dot gray"></span><div><small>Not tracked</small><strong>153</strong></div></div>
+            </div>
+          </div>
+
+          <div class="map-layout">
+            <aside class="map-legend">
+              <h2>View</h2>
+              <div class="segmented"><button class="selected" type="button">◎ Global View</button><button type="button">⌖ By Region</button></div>
+              <hr />
+              <h2>Country Status</h2>
+              <p><span class="dot cyan"></span> Tracked LMIC <b>42</b></p>
+              <p><span class="dot gray"></span> Not tracked <b>153</b></p>
+              <hr />
+              <h2>Governance Status</h2>
+              <p><span class="dot green"></span> Established <b>24</b></p>
+              <p><span class="dot yellow"></span> Proposed <b>12</b></p>
+              <p><span class="dot red"></span> Not established <b>6</b></p>
+              <p><span class="dot gray"></span> Unknown <b>0</b></p>
+              <div class="legend-note">ⓘ Tracked LMICs include countries with policy documents represented in the repository.</div>
+            </aside>
+
+            <div class="world-map" aria-describedby="map-description">
+              <p id="map-description" class="sr-only">World map with country boundaries from Natural Earth. Tracked demonstration countries are highlighted. Select Rwanda to open its country workspace.</p>
+              <img class="world-map-image" src="assets/world-map.svg" alt="" width="1100" height="570" />
+              <button class="map-marker mexico" type="button" aria-label="Mexico, tracked country"><span></span>Mexico</button>
+              <button class="map-marker kenya" type="button" aria-label="Kenya, tracked country"><span></span>Kenya</button>
+              <button class="map-marker rwanda" type="button" id="rwanda-marker" aria-describedby="rwanda-card"><span></span>Rwanda</button>
+              <div id="rwanda-card" class="map-popover">
+                <div class="country-identity"><span class="flag rwanda-flag" aria-hidden="true"></span><div><strong>Rwanda <small>(RWA)</small></strong><small>14 policy documents</small></div></div>
+                <hr />
+                <strong>Governance summary</strong>
+                <p>Explore the sample assessment and document repository for Rwanda.</p>
+                <button class="text-button" type="button" data-go="country-ai">View details <span aria-hidden="true">→</span></button>
+              </div>
+              <div class="zoom-controls" aria-label="Map zoom controls"><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="country" aria-labelledby="country-title" hidden>
+        <div class="country-page">
+          <button class="back-link" type="button" data-go="map">← Back to World Map</button>
+          <div class="country-header">
+            <div class="country-overview">
+              <span class="flag rwanda-flag large" aria-hidden="true"></span>
+              <div><div class="country-name-row"><h1 id="country-title">Rwanda</h1><span class="tag">ISO: RWA</span></div><p>◷ Last updated: 24 October 2026</p><div class="agency-pills"><span>▥ Ministry of Health</span><span>◇ Rwanda FDA</span><span>▣ National Cyber Security Authority</span></div></div>
+            </div>
+            <div class="country-stats">
+              <div><span>♟</span><small>Total population</small><strong>14.1M</strong></div>
+              <div><span>▦</span><small>Income level</small><strong>Low income</strong></div>
+              <div><span>♥</span><small>Health spending</small><strong>6.8%</strong><small>of GDP</small></div>
+              <div><span>⌁</span><small>Internet connectivity</small><strong>34.5%</strong></div>
+            </div>
+          </div>
+
+          <div class="section-tabs" role="tablist" aria-label="Rwanda policy sections">
+            <button id="summary-tab" type="button" role="tab" aria-selected="true" data-country-view="ai">▤ Section 1: Summary Assessment</button>
+            <button id="repository-tab" type="button" role="tab" aria-selected="false" data-country-view="repository">▤ Section 2: Document Repository <span>14 documents</span></button>
+          </div>
+
+          <div id="summary-panel" class="country-panel">
+            <div class="level-tabs" role="tablist" aria-label="Assessment levels">
+              <button type="button" role="tab" aria-selected="true" data-level="ai">◉ Level 1: AI in Health</button>
+              <button type="button" role="tab" aria-selected="false" data-level="baseline">▦ Level 2: Baseline Health Tech</button>
+            </div>
+            <div id="assessment-list" class="assessment-list" aria-live="polite"></div>
+          </div>
+
+          <div id="repository-panel" class="country-panel" hidden>
+            <div class="repository-tools">
+              <label><span class="sr-only">Search documents</span><input id="repository-search" type="search" placeholder="⌕  Search documents by title, type, or keyword…" /></label>
+              <select id="repository-sort" aria-label="Sort documents"><option value="newest">Sort: Newest to Oldest</option><option value="oldest">Sort: Oldest to Newest</option></select>
+            </div>
+            <div class="category-pills" aria-label="Document categories"><button class="selected" type="button" data-category="governance">◇ Governance &amp; Oversight</button><button type="button" data-category="software">▦ Medical Software / SaMD</button><button type="button" data-category="privacy">▣ Clinical Data &amp; Privacy</button><button type="button" data-category="validation">⚖ Validation &amp; Bias</button><button type="button" data-category="cybersecurity">◇ Liability &amp; Cybersecurity</button></div>
+            <div id="repository-list" class="repository-list" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="search" aria-labelledby="search-title" hidden>
+        <div class="search-page">
+          <div class="search-topline"><button type="button" class="back-link" data-go="map">← Switch to World Map View</button><h1 id="search-title" class="sr-only">Advanced Policy Search</h1></div>
+          <div class="search-layout">
+            <aside class="filter-panel">
+              <div class="filter-title"><strong>☷ &nbsp;Filters</strong><button id="clear-filters" type="button">Clear Filters</button></div>
+              <fieldset><legend>A–Z Country Picker</legend><input id="country-filter-search" type="search" placeholder="⌕  Search countries…" /><label><input type="checkbox" checked data-filter="Rwanda" /> Rwanda (RWA) <b>4</b></label><label><input type="checkbox" checked data-filter="Kenya" /> Kenya (KEN) <b>6</b></label><label><input type="checkbox" checked data-filter="Mexico" /> Mexico (MEX) <b>5</b></label><label><input type="checkbox" data-filter="Other" /> Other countries <b>69</b></label></fieldset>
+              <fieldset><legend>Geographic Region</legend><label><input type="checkbox" checked /> Africa <b>11</b></label><label><input type="checkbox" /> Asia <b>6</b></label><label><input type="checkbox" checked /> Latin America &amp; Caribbean <b>8</b></label><label><input type="checkbox" /> Europe <b>4</b></label></fieldset>
+              <fieldset><legend>Policy Typology</legend><label><input type="checkbox" checked /> Guidelines <b>18</b></label><label><input type="checkbox" checked /> Regulation <b>14</b></label><label><input type="checkbox" /> Strategy <b>7</b></label><label><input type="checkbox" /> Law <b>5</b></label></fieldset>
+              <button class="collapsed-filter" type="button">Thematic Pillars <span>3 selected ›</span></button><button class="collapsed-filter" type="button">Codebook Subdomain <span>All selected ›</span></button><button class="collapsed-filter" type="button">Depth Rating <span>All selected ›</span></button>
+            </aside>
+            <div class="search-results-area">
+              <div class="global-search"><label><span class="sr-only">Search policy instruments</span><input id="global-search" type="search" placeholder="⌕  Search laws, keywords, technical terms, or OCR text…" /></label><span id="result-count">Showing 6 sample instruments</span></div>
+              <div id="search-results" class="search-results" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
+    <aside id="analysis-drawer" class="analysis-drawer" aria-labelledby="drawer-title" aria-hidden="true">
+      <div class="drawer-topbar"><button id="drawer-back" type="button">← Back to results</button><button id="drawer-close" type="button" aria-label="Close analysis drawer">× Close drawer <kbd>Esc</kbd></button></div>
+      <div class="drawer-body">
+        <div class="drawer-heading"><span class="large-icon">▤</span><div><h2 id="drawer-title">National Guidelines for the Validation and Certification of Software as a Medical Device (SaMD)</h2><p>Amabwiriza y’Igihugu yo Kwemeza Porogaramu z’Ubuvuzi</p></div></div>
+        <div class="drawer-metadata"><div><small>Publication year</small><strong>2024</strong></div><div><small>Issuing body</small><strong>Rwanda Food and Drugs Authority</strong></div><div><small>Decree no.</small><strong>No. 004/2024/FDA</strong></div></div>
+        <div class="policy-badges"><span>⚙ Operational</span><span>● Implementation stage</span><span>▤ Normative policy</span></div>
+        <div class="executive-summary"><strong>ⓘ &nbsp; Executive Summary</strong><p>Establishes technical guidelines for the validation and certification of software as a medical device, including classification pathways, local clinical evidence requirements, and post-market surveillance obligations for safety and efficacy.</p></div>
+        <button class="button primary full-width" type="button">↗ View Official Source <small>(Demo only)</small></button>
+        <hr />
+        <h3>▤ &nbsp;Detailed Codebook Analysis</h3>
+        <div class="analysis-table-wrap"><table class="analysis-table"><thead><tr><th>Subdomain</th><th>Depth rating</th><th>Key excerpt</th><th>Source reference</th></tr></thead><tbody><tr><td>Local Clinical Validation Mandates</td><td><span class="rating level3">Level 3: Actionable</span></td><td><em>“Validation of representative local clinical trials is required prior to market authorization.”</em></td><td><button type="button">Page 14 →</button></td></tr><tr><td>Algorithmic Bias &amp; Representative Datasets</td><td><span class="rating level1">Level 1: Aspirational</span></td><td><em>“Ensure dataset validation to mitigate bias in AI models and algorithms.”</em></td><td><button type="button">Page 18 →</button></td></tr><tr><td>Adverse Event &amp; Model Drift Reporting</td><td><span class="rating level2">Level 2: Voluntary</span></td><td><em>“Adverse event oversight and model drift monitoring shall be established.”</em></td><td><button type="button">Page 22 →</button></td></tr><tr><td>Regulatory Sandboxing &amp; Fast-Track</td><td><span class="rating level0">Level 0: Not mentioned</span></td><td><em>“No specific provisions found in current framework.”</em></td><td>N/A</td></tr></tbody></table></div>
+      </div>
+    </aside>
+
+    <div id="viewer-backdrop" class="drawer-backdrop viewer-backdrop" hidden></div>
+    <section id="document-viewer" class="document-viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden>
+      <div class="viewer-topbar">
+        <div><strong id="viewer-title">Policy document viewer</strong><small>Prototype passage preview · Page 14</small></div>
+        <div class="viewer-actions"><button type="button" id="viewer-search">⌕ Find in document</button><button type="button" id="viewer-close" aria-label="Close document viewer">× Close</button></div>
+      </div>
+      <div class="viewer-layout">
+        <aside class="viewer-sidebar">
+          <strong>National Guidelines for the Validation and Certification of Software as a Medical Device</strong>
+          <p>Rwanda FDA · 2024</p>
+          <hr />
+          <button type="button" class="viewer-page">Page 13</button>
+          <button type="button" class="viewer-page selected">Page 14 <span>Current citation</span></button>
+          <button type="button" class="viewer-page">Page 15</button>
+        </aside>
+        <div class="document-canvas">
+          <article class="document-page" aria-label="Illustrative document page 14">
+            <div class="document-letterhead"><span class="flag rwanda-flag" aria-hidden="true"></span><div><strong>Rwanda Food and Drugs Authority</strong><small>Medical Device Regulatory Guidance</small></div></div>
+            <p class="page-number">14</p>
+            <h2>4.2 Local clinical validation requirements</h2>
+            <p>Manufacturers shall document the intended use, risk classification, and clinical performance of software presented for authorization as a medical device.</p>
+            <p class="highlighted-passage"><mark>Validation of representative local clinical trials is required prior to market authorization.</mark> The evidence submitted should reflect the intended patient population and clinical setting.</p>
+            <p>The authority may request additional evidence when the available study population does not sufficiently represent the proposed context of use.</p>
+            <h3>4.2.1 Evidence submission</h3>
+            <p>The applicant should provide the study protocol, analytical plan, summary results, limitations, and documentation of material deviations.</p>
+            <p class="prototype-stamp">ILLUSTRATIVE PROTOTYPE PAGE · NOT AN OFFICIAL DOCUMENT</p>
+          </article>
+          <div class="viewer-controls" aria-label="Document controls"><button type="button">−</button><span>100%</span><button type="button">+</button><button type="button">Download demo</button></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="demo-banner" role="status">Interactive prototype · Sample content only</div>
+    <script src="app.js"></script>
+  </body>
+</html>

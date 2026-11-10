@@ -1,0 +1,570 @@
+import type {
+  AssessmentItem,
+  PolicyCountry,
+  PolicyDocument,
+} from "./types";
+
+const findings: PolicyDocument["findings"] = [
+  {
+    subdomain: "Local clinical validation mandates",
+    depthRating: 3,
+    ratingLabel: "Actionable requirement",
+    excerpt:
+      "Validation of representative local clinical trials is required prior to market authorization.",
+    page: 14,
+    article: "4.2",
+  },
+  {
+    subdomain: "Algorithmic bias and representative datasets",
+    depthRating: 1,
+    ratingLabel: "Aspirational",
+    excerpt:
+      "Dataset validation should be used to mitigate bias in AI models and algorithms.",
+    page: 18,
+    article: "7",
+  },
+  {
+    subdomain: "Adverse event and model-drift reporting",
+    depthRating: 2,
+    ratingLabel: "Voluntary guidance",
+    excerpt:
+      "Adverse-event oversight and model-drift monitoring should be established.",
+    page: 22,
+    article: "9",
+  },
+  {
+    subdomain: "Regulatory sandboxing and fast-track pathways",
+    depthRating: 0,
+    ratingLabel: "Not mentioned",
+    excerpt: "No specific provisions were identified in the illustrative framework.",
+  },
+];
+
+const mexicoFindings: PolicyDocument["findings"] = [
+  {
+    subdomain: "Risk classification for AI-enabled medical software",
+    depthRating: 3,
+    ratingLabel: "Actionable requirement",
+    excerpt:
+      "El expediente técnico deberá describir el nivel de riesgo, el uso previsto y las medidas de control del software médico.",
+    page: 11,
+    article: "5.3",
+  },
+  {
+    subdomain: "Health-data consent and secondary use",
+    depthRating: 2,
+    ratingLabel: "Operational guidance",
+    excerpt:
+      "El tratamiento secundario de datos de salud deberá documentar su finalidad y las salvaguardas aplicables.",
+    page: 16,
+    article: "8.1",
+  },
+  {
+    subdomain: "Performance monitoring after deployment",
+    depthRating: 2,
+    ratingLabel: "Voluntary guidance",
+    excerpt:
+      "Los responsables podrán establecer revisiones periódicas del desempeño y mecanismos de notificación de incidentes.",
+    page: 24,
+    article: "12.4",
+  },
+  {
+    subdomain: "Independent algorithmic audit",
+    depthRating: 0,
+    ratingLabel: "Not mentioned",
+    excerpt: "No dedicated independent audit requirement appears in this illustrative instrument.",
+  },
+];
+
+export const POLICY_DOCUMENTS: PolicyDocument[] = [
+  {
+    id: "rwa-samd-2024",
+    country: "Rwanda",
+    countryCode: "RWA",
+    publicationDate: "2024-10-26",
+    year: 2024,
+    title:
+      "National Guidelines for the Validation and Certification of Software as a Medical Device (SaMD)",
+    localTitle: "Amabwiriza y’Igihugu yo Kwemeza Porogaramu z’Ubuvuzi",
+    agency: "Rwanda Food and Drugs Authority (Rwanda FDA)",
+    decreeNumber: "No. 004/2024/FDA",
+    categories: ["governance", "software", "validation"],
+    format: "Guideline",
+    policyStage: "Operational",
+    policyType: "Normative",
+    summary:
+      "Illustrative technical guidance for validating and certifying software as a medical device, including classification, local evidence and post-market surveillance.",
+    sourceUrl: "/policy-dashboard-demo/index.html#country-repository",
+    findings,
+  },
+  {
+    id: "rwa-privacy-2023",
+    country: "Rwanda",
+    countryCode: "RWA",
+    publicationDate: "2023-03-15",
+    year: 2023,
+    title: "National Health Data Protection and Privacy Regulations",
+    localTitle: "Amabwiriza y’Igihugu ku Kurinda Amakuru y’Ubuzima",
+    agency: "Rwanda Data Protection Authority",
+    categories: ["governance", "privacy"],
+    format: "Regulation",
+    policyStage: "Operational",
+    policyType: "Normative",
+    summary:
+      "Illustrative privacy rules covering consent, data minimization and safeguards for health information.",
+    sourceUrl: "/policy-dashboard-demo/index.html#country-repository",
+    findings: findings.slice(0, 2),
+  },
+  {
+    id: "rwa-device-2022",
+    country: "Rwanda",
+    countryCode: "RWA",
+    publicationDate: "2022-11-08",
+    year: 2022,
+    title: "Medical Device Regulatory Framework",
+    localTitle: "Itegeko rigena ibikoresho by’ubuvuzi",
+    agency: "Rwanda FDA",
+    categories: ["governance", "software"],
+    format: "Regulation",
+    policyStage: "Implementation",
+    policyType: "Normative",
+    summary:
+      "Illustrative registration, classification and monitoring requirements for medical devices and software.",
+    sourceUrl: "/policy-dashboard-demo/index.html#country-repository",
+    findings: findings.slice(0, 3),
+  },
+  {
+    id: "rwa-cyber-2021",
+    country: "Rwanda",
+    countryCode: "RWA",
+    publicationDate: "2021-06-30",
+    year: 2021,
+    title: "National Cybersecurity Strategy for Health Information Systems",
+    localTitle: "Ingamba z’Umutekano ku Makuru y’Ubuzima",
+    agency: "National Cyber Security Authority",
+    categories: ["governance", "cybersecurity"],
+    format: "Strategy",
+    policyStage: "Implementation",
+    policyType: "Strategic",
+    summary:
+      "Illustrative cybersecurity expectations for connected health systems, incident response and breach notification.",
+    sourceUrl: "/policy-dashboard-demo/index.html#country-repository",
+    findings: findings.slice(1, 4),
+  },
+  {
+    id: "ken-device-2024",
+    country: "Kenya",
+    countryCode: "KEN",
+    publicationDate: "2024-10-26",
+    year: 2024,
+    title: "National Guidelines for Software as a Medical Device",
+    localTitle: "Mwongozo wa Kitaifa wa Programu za Matibabu",
+    agency: "Kenya Medical Devices Authority",
+    categories: ["software", "validation"],
+    format: "Guideline",
+    policyStage: "Implementation",
+    policyType: "Normative",
+    summary:
+      "Illustrative classification and validation guidance for medical software.",
+    sourceUrl: "/policy-dashboard-demo/index.html#search",
+    findings: findings.slice(0, 3),
+  },
+  {
+    id: "mex-privacy-2023",
+    country: "Mexico",
+    countryCode: "MEX",
+    publicationDate: "2023-03-15",
+    year: 2023,
+    title: "National Health Data Protection and Privacy Regulations",
+    localTitle: "Reglamento nacional de protección de datos de salud",
+    agency: "National Institute for Transparency and Data Protection (illustrative)",
+    categories: ["privacy", "governance"],
+    format: "Regulation",
+    policyStage: "Operational",
+    policyType: "Normative",
+    summary:
+      "Illustrative safeguards for health data access, processing and accountability.",
+    sourceUrl: "/policy-dashboard-demo/index.html#search",
+    findings: mexicoFindings.slice(1, 4),
+  },
+  {
+    id: "mex-samd-2024",
+    country: "Mexico",
+    countryCode: "MEX",
+    publicationDate: "2024-08-12",
+    year: 2024,
+    title: "Technical Guidance for AI-Enabled Software as a Medical Device",
+    localTitle: "Guía técnica para software como dispositivo médico habilitado por inteligencia artificial",
+    agency: "Federal Health Products Authority (illustrative)",
+    decreeNumber: "Demo No. MEX-SAMD-2024",
+    categories: ["governance", "software", "validation"],
+    format: "Guideline",
+    policyStage: "Implementation",
+    policyType: "Normative",
+    summary:
+      "Illustrative Mexico-specific guidance for risk classification, technical evidence and lifecycle monitoring of AI-enabled medical software.",
+    sourceUrl: "/policy-dashboard-demo/index.html#search",
+    findings: mexicoFindings,
+  },
+  {
+    id: "mex-ai-health-2022",
+    country: "Mexico",
+    countryCode: "MEX",
+    publicationDate: "2022-09-05",
+    year: 2022,
+    title: "National Strategy for Responsible AI in Public Health",
+    localTitle: "Estrategia nacional para la inteligencia artificial responsable en salud pública",
+    agency: "Secretariat of Health (illustrative)",
+    categories: ["governance", "validation"],
+    format: "Strategy",
+    policyStage: "Proposed",
+    policyType: "Strategic",
+    summary:
+      "Illustrative strategic direction for ethics review, representative evaluation and accountable public-sector use of health AI.",
+    sourceUrl: "/policy-dashboard-demo/index.html#search",
+    findings: [mexicoFindings[1], mexicoFindings[2], mexicoFindings[3]],
+  },
+  {
+    id: "mex-cyber-2021",
+    country: "Mexico",
+    countryCode: "MEX",
+    publicationDate: "2021-04-19",
+    year: 2021,
+    title: "Cybersecurity and Incident Response Standard for Digital Health Services",
+    localTitle: "Norma de ciberseguridad y respuesta a incidentes para servicios de salud digital",
+    agency: "National Digital Health Directorate (illustrative)",
+    categories: ["privacy", "cybersecurity"],
+    format: "Regulation",
+    policyStage: "Operational",
+    policyType: "Normative",
+    summary:
+      "Illustrative safeguards for access control, breach response and continuity planning in connected health services.",
+    sourceUrl: "/policy-dashboard-demo/index.html#search",
+    findings: mexicoFindings.slice(1, 3),
+  },
+  {
+    id: "zaf-cyber-2021",
+    country: "South Africa",
+    countryCode: "ZAF",
+    publicationDate: "2021-06-30",
+    year: 2021,
+    title: "National Cybersecurity Strategy for Health Information Systems",
+    localTitle: "National policy instrument",
+    agency: "Department of Health",
+    categories: ["cybersecurity", "governance"],
+    format: "Strategy",
+    policyStage: "Implementation",
+    policyType: "Strategic",
+    summary:
+      "Illustrative national direction for securing health information infrastructure.",
+    sourceUrl: "/policy-dashboard-demo/index.html#search",
+    findings: findings.slice(2, 4),
+  },
+  {
+    id: "col-liability-2020",
+    country: "Colombia",
+    countryCode: "COL",
+    publicationDate: "2020-12-12",
+    year: 2020,
+    title: "AI Liability and Accountability in Healthcare",
+    localTitle: "Responsabilidad de la IA en la atención médica",
+    agency: "Ministry of Health and Social Protection",
+    categories: ["governance", "validation"],
+    format: "Law",
+    policyStage: "Proposed",
+    policyType: "Normative",
+    summary:
+      "Illustrative accountability provisions for developers and deployers of AI-enabled health tools.",
+    sourceUrl: "/policy-dashboard-demo/index.html#search",
+    findings: findings,
+  },
+];
+
+export const POLICY_COUNTRIES: PolicyCountry[] = [
+  {
+    name: "Rwanda",
+    iso3: "RWA",
+    region: "Africa",
+    incomeLevel: "Low income",
+    population: "14.1M",
+    healthSpending: "6.8% of GDP",
+    internetConnectivity: "34.5%",
+    updatedAt: "24 October 2026",
+    agencies: [
+      "Ministry of Health",
+      "Rwanda FDA",
+      "National Cyber Security Authority",
+    ],
+    governanceSummary:
+      "Explore an illustrative assessment and policy-document repository for Rwanda.",
+    documentCount: 4,
+  },
+  {
+    name: "Kenya",
+    iso3: "KEN",
+    region: "Africa",
+    incomeLevel: "Lower middle income",
+    population: "Illustrative",
+    healthSpending: "Illustrative",
+    internetConnectivity: "Illustrative",
+    updatedAt: "24 October 2026",
+    agencies: ["Ministry of Health", "Kenya Medical Devices Authority"],
+    governanceSummary: "A sample tracked country in the prototype repository.",
+    documentCount: 1,
+  },
+  {
+    name: "Mexico",
+    iso3: "MEX",
+    region: "Latin America & Caribbean",
+    incomeLevel: "Upper middle income",
+    population: "Illustrative demo",
+    healthSpending: "Illustrative demo",
+    internetConnectivity: "Illustrative demo",
+    updatedAt: "10 November 2026",
+    agencies: [
+      "Secretariat of Health (illustrative)",
+      "Federal Health Products Authority (illustrative)",
+      "National Data Protection Institute (illustrative)",
+    ],
+    governanceSummary:
+      "Explore a distinct illustrative assessment and policy-document repository for Mexico.",
+    documentCount: 4,
+  },
+];
+
+const AI_ASSESSMENTS: AssessmentItem[] = [
+  {
+    id: "ai-governance",
+    title: "National AI Health Strategy & Governance",
+    status: "In formulation / draft",
+    statusTone: "draft",
+    details: [
+      { label: "Design", text: "A draft strategy exists; its detailed implementation roadmap is still developing." },
+      { label: "Deployment", text: "No nationwide deployment is represented in this illustrative dataset." },
+    ],
+    sourceDocumentId: "rwa-samd-2024",
+  },
+  {
+    id: "ai-ethics",
+    title: "Dedicated Health AI Ethics & Review Committees",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Design", text: "Illustrative ethical guidance is aligned with international standards." },
+      { label: "Deployment", text: "Review procedures for AI health projects are represented." },
+    ],
+    sourceDocumentId: "rwa-privacy-2023",
+  },
+  {
+    id: "ai-validation",
+    title: "Clinical Algorithm Validation & Local Evidence Rules",
+    status: "No dedicated policy",
+    statusTone: "none",
+    details: [
+      { label: "Design", text: "No dedicated national validation framework is represented in this demo." },
+      { label: "Development", text: "Local testing capacity remains an illustrative gap." },
+    ],
+    sourceDocumentId: "rwa-samd-2024",
+  },
+  {
+    id: "ai-data",
+    title: "Health Data Access & Algorithmic Training Clearances",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Design", text: "A sample legal framework for data access and protection is represented." },
+      { label: "Deployment", text: "Operational access mechanisms and audit trails are described." },
+    ],
+    sourceDocumentId: "rwa-privacy-2023",
+  },
+  {
+    id: "ai-liability",
+    title: "AI Liability, Transparency & Adverse Event Auditing",
+    status: "In formulation / draft",
+    statusTone: "draft",
+    details: [
+      { label: "Design", text: "Illustrative liability and transparency rules remain under review." },
+      { label: "Deployment", text: "No full-scale auditing system is represented yet." },
+    ],
+    sourceDocumentId: "rwa-device-2022",
+  },
+];
+
+const BASELINE_ASSESSMENTS: AssessmentItem[] = [
+  {
+    id: "base-samd",
+    title: "Medical Device & SaMD Classification Pathways",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Operational guidance", text: "Class I–III classification and local review pathways are represented." },
+      { label: "Key operators", text: "Rwanda FDA and Ministry of Health." },
+    ],
+    sourceDocumentId: "rwa-samd-2024",
+  },
+  {
+    id: "base-privacy",
+    title: "Personal Data Protection & Health Privacy Baselines",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Operational guidance", text: "Apply sample safeguards and consent requirements for health data." },
+      { label: "Key operators", text: "NCSA, Ministry of Health and RDB." },
+    ],
+    sourceDocumentId: "rwa-privacy-2023",
+  },
+  {
+    id: "base-interoperability",
+    title: "Electronic Health Record & Clinical Data Interoperability",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Operational guidance", text: "Use open standards and support exchange between facilities." },
+      { label: "Timeline", text: "Illustrative phased implementation, 2024–2027." },
+    ],
+    sourceDocumentId: "rwa-device-2022",
+  },
+  {
+    id: "base-registration",
+    title: "Medical Software Registration & Post-Market Surveillance",
+    status: "Baseline applies / extension",
+    statusTone: "extension",
+    details: [
+      { label: "Operational guidance", text: "Register software and plan post-market monitoring." },
+      { label: "Timeline", text: "Illustratively in force, with periodic review." },
+    ],
+    sourceDocumentId: "rwa-samd-2024",
+  },
+  {
+    id: "base-cyber",
+    title: "Healthcare Cybersecurity & Breach Notification Mandates",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Operational guidance", text: "Maintain cybersecurity and incident-response plans." },
+      { label: "Key operators", text: "NCSA, Ministry of Health and healthcare institutions." },
+    ],
+    sourceDocumentId: "rwa-cyber-2021",
+  },
+];
+
+const MEXICO_AI_ASSESSMENTS: AssessmentItem[] = [
+  {
+    id: "mex-ai-governance",
+    title: "National AI Health Strategy & Governance",
+    status: "In formulation / draft",
+    statusTone: "draft",
+    details: [
+      { label: "Design", text: "A sample national direction for responsible public-health AI is represented." },
+      { label: "Deployment", text: "Detailed implementation roles remain illustrative and incomplete." },
+    ],
+    sourceDocumentId: "mex-ai-health-2022",
+  },
+  {
+    id: "mex-ai-ethics",
+    title: "Dedicated Health AI Ethics & Review Committees",
+    status: "Baseline applies / extension",
+    statusTone: "extension",
+    details: [
+      { label: "Design", text: "Existing research and clinical-review structures are extended to AI in this demo." },
+      { label: "Deployment", text: "No single nationwide AI-health committee is represented." },
+    ],
+    sourceDocumentId: "mex-ai-health-2022",
+  },
+  {
+    id: "mex-ai-validation",
+    title: "Clinical Algorithm Validation & Local Evidence Rules",
+    status: "In formulation / draft",
+    statusTone: "draft",
+    details: [
+      { label: "Design", text: "The sample guidance requests intended-use, risk and performance evidence." },
+      { label: "Development", text: "Local representativeness expectations are described as emerging guidance." },
+    ],
+    sourceDocumentId: "mex-samd-2024",
+  },
+  {
+    id: "mex-ai-data",
+    title: "Health Data Access & Algorithmic Training Clearances",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Design", text: "The illustrative privacy instrument covers purpose, consent and safeguards." },
+      { label: "Deployment", text: "Secondary-use documentation and access controls are represented." },
+    ],
+    sourceDocumentId: "mex-privacy-2023",
+  },
+  {
+    id: "mex-ai-liability",
+    title: "AI Liability, Transparency & Adverse Event Auditing",
+    status: "No dedicated policy",
+    statusTone: "none",
+    details: [
+      { label: "Design", text: "The demo includes incident reporting but no dedicated AI-liability regime." },
+      { label: "Deployment", text: "Independent algorithmic audit requirements are not represented." },
+    ],
+    sourceDocumentId: "mex-cyber-2021",
+  },
+];
+
+const MEXICO_BASELINE_ASSESSMENTS: AssessmentItem[] = [
+  {
+    id: "mex-base-samd",
+    title: "Medical Device & SaMD Classification Pathways",
+    status: "In formulation / draft",
+    statusTone: "draft",
+    details: [
+      { label: "Operational guidance", text: "A sample risk-based pathway for AI-enabled medical software is represented." },
+      { label: "Key operators", text: "Federal health-products authority and Secretariat of Health (illustrative)." },
+    ],
+    sourceDocumentId: "mex-samd-2024",
+  },
+  {
+    id: "mex-base-privacy",
+    title: "Personal Data Protection & Health Privacy Baselines",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Operational guidance", text: "Apply purpose, consent, security and accountability safeguards." },
+      { label: "Key operators", text: "National data-protection institute and health-sector controllers (illustrative)." },
+    ],
+    sourceDocumentId: "mex-privacy-2023",
+  },
+  {
+    id: "mex-base-interoperability",
+    title: "Electronic Health Record & Clinical Data Interoperability",
+    status: "Baseline applies / extension",
+    statusTone: "extension",
+    details: [
+      { label: "Operational guidance", text: "The demo assumes existing digital-health standards apply to AI integrations." },
+      { label: "Timeline", text: "No AI-specific national timeline is represented." },
+    ],
+    sourceDocumentId: "mex-ai-health-2022",
+  },
+  {
+    id: "mex-base-registration",
+    title: "Medical Software Registration & Post-Market Surveillance",
+    status: "In formulation / draft",
+    statusTone: "draft",
+    details: [
+      { label: "Operational guidance", text: "Submit technical evidence and plan performance monitoring after deployment." },
+      { label: "Timeline", text: "Illustrative staged implementation beginning in 2024." },
+    ],
+    sourceDocumentId: "mex-samd-2024",
+  },
+  {
+    id: "mex-base-cyber",
+    title: "Healthcare Cybersecurity & Breach Notification Mandates",
+    status: "Formalized / binding",
+    statusTone: "binding",
+    details: [
+      { label: "Operational guidance", text: "Maintain access controls, incident response and service-continuity plans." },
+      { label: "Key operators", text: "Digital-health operators and health institutions (illustrative)." },
+    ],
+    sourceDocumentId: "mex-cyber-2021",
+  },
+];
+
+export const POLICY_ASSESSMENTS = {
+  RWA: { ai: AI_ASSESSMENTS, baseline: BASELINE_ASSESSMENTS },
+  MEX: { ai: MEXICO_AI_ASSESSMENTS, baseline: MEXICO_BASELINE_ASSESSMENTS },
+};
