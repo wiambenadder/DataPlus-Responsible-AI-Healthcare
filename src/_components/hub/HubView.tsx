@@ -234,7 +234,7 @@ export default function HubView() {
         aria-labelledby="experiences-heading"
       >
         <p className="label-caps">
-          {TESTIMONIALS.length > 0 ? "In their words" : "In their words · Coming soon"}
+          {TESTIMONIALS.length > 0 ? "In their words · Alpha test, 2026" : "In their words · Coming soon"}
         </p>
         <h2 id="experiences-heading" className="mt-3 text-4xl">
           Stories From Innovators
