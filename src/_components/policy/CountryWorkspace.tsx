@@ -43,7 +43,7 @@ export default function CountryWorkspace({ country }: { country: PolicyCountryDe
       <div className="border bg-white">
         <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[1.15fr_1fr]">
           <div>
-            <div className="flex flex-wrap items-center gap-3"><span className="text-5xl" aria-hidden>🇷🇼</span><div><div className="flex items-center gap-3"><h1 className="text-4xl uppercase">{country.name}</h1><PolicyBadge>ISO: {country.iso3}</PolicyBadge></div><p className="text-sm text-slate-600">Last updated: {country.updatedAt}</p></div></div>
+            <div className="flex flex-wrap items-center gap-3"><span className="text-5xl" aria-hidden>{flagFor(country.iso3)}</span><div><div className="flex items-center gap-3"><h1 className="text-4xl uppercase">{country.name}</h1><PolicyBadge>ISO: {country.iso3}</PolicyBadge></div><p className="text-sm text-slate-600">Last updated: {country.updatedAt}</p></div></div>
             <div className="mt-5 flex flex-wrap gap-2">{country.agencies.map((agency) => <span key={agency} className="border px-3 py-1.5 text-xs font-bold text-brand-navy">{agency}</span>)}</div>
           </div>
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -84,6 +84,10 @@ export default function CountryWorkspace({ country }: { country: PolicyCountryDe
       <PolicyDocumentDrawer document={selectedDocument} onClose={() => setSelectedDocument(null)} />
     </>
   );
+}
+
+function flagFor(code: string) {
+  return ({ RWA: "🇷🇼", MEX: "🇲🇽" } as Record<string, string>)[code] ?? "🌐";
 }
 
 function Tab({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {

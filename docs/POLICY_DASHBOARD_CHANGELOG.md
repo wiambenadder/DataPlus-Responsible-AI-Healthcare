@@ -3,6 +3,19 @@
 The version labels below describe the Policy Codebook prototype and do not
 change the version number of the wider Innovator Insights application.
 
+## v0.3.2 — Mexico demonstration flow
+
+- Added Mexico as the second country with a complete demonstration workspace.
+- Made Mexico selectable from the Module B map and connected it to the same
+  summary, baseline, repository, analysis-drawer and source-viewer flow used by
+  Rwanda.
+- Added four distinct, explicitly illustrative Mexico policy instruments with
+  Mexico-specific agencies, Spanish placeholder excerpts, citations and
+  assessments; none reuse Rwanda's sample documents.
+- Made the Mexico instruments and country filter fully available in Module C.
+- Added matching native Next.js and portable offline implementations while
+  preserving v0.3.1 as the previous release reference.
+
 ## v0.3.1 — Innovator Insights visual alignment
 
 - Preserved all v0.3 content, information architecture, routes, filters,

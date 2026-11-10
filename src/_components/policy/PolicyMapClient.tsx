@@ -64,8 +64,8 @@ export default function PolicyMapClient({ countries }: { countries: PolicyCountr
           <p className="label-caps">{country.iso3} · {country.documentCount} sample documents</p>
           <h2 className="mt-1 text-2xl">{country.name}</h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-600">{country.governanceSummary}</p>
-          {country.iso3 === "RWA" ? (
-            <Link href="/policy-codebook/countries/rwa" className="mt-4 inline-flex items-center gap-2 font-bold text-brand-dukeblue hover:underline">
+          {country.iso3 === "RWA" || country.iso3 === "MEX" ? (
+            <Link href={`/policy-codebook/countries/${country.iso3.toLowerCase()}`} className="mt-4 inline-flex items-center gap-2 font-bold text-brand-dukeblue hover:underline">
               Open country workspace <ArrowRight size={16} aria-hidden />
             </Link>
           ) : (

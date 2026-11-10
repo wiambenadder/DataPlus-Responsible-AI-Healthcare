@@ -1,0 +1,717 @@
+/*
+ * Policy Dashboard portable v0.3.2 visual layer.
+ * Mirrors the Innovator Insights main-branch design system while leaving the
+ * v0.3 document structure, content, and interaction code unchanged.
+ */
+@font-face {
+  font-family: "EB Garamond";
+  src: url("assets/fonts/eb-garamond-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "EB Garamond";
+  src: url("assets/fonts/eb-garamond-latin-wght-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400 800;
+  font-display: swap;
+}
+
+:root {
+  --navy: #012169;
+  --duke: #00539b;
+  --blue: #012169;
+  --cyan: #0577b1;
+  --ink: #262626;
+  --muted: #666d76;
+  --line: #dcdfe3;
+  --pale: #f3f2f1;
+  --green: #1d6363;
+  --green-bg: #e4f1ef;
+  --purple: #7a287d;
+  --purple-bg: #f4eaf4;
+  --yellow: #a86600;
+  --yellow-bg: #fcf7e5;
+  --red: #a03f00;
+  --gray: #8e959e;
+  --shadow: 0 10px 28px -12px rgba(1, 33, 105, 0.3);
+}
+
+body {
+  background: #fff;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+.page-title-row h1,
+.hero-copy h1,
+.country-name-row h1,
+.drawer-heading h2,
+.document-page h2,
+.document-page h3 {
+  color: var(--navy);
+  font-family: "EB Garamond", Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.12;
+}
+
+button,
+input,
+select,
+.tag,
+.status,
+.policy-badges span {
+  border-radius: 2px;
+}
+
+.site-header {
+  min-height: 84px;
+  padding: 0 max(24px, calc((100vw - 1280px) / 2));
+  gap: 30px;
+  background: #fff;
+  color: var(--ink);
+  border-top: 9px solid var(--navy);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(1, 33, 105, 0.08);
+}
+
+.brand {
+  color: var(--navy);
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  background: var(--navy);
+  color: #fff;
+  clip-path: none;
+  font-family: "Open Sans", Arial, sans-serif;
+}
+
+.version-badge {
+  background: #eef3fa;
+  color: var(--duke);
+  font-family: "Open Sans", Arial, sans-serif;
+  padding: 4px 7px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.primary-navigation a {
+  padding: 0 14px;
+  color: #4f5660;
+  border-bottom: 3px solid transparent;
+  font-size: 14px;
+}
+
+.primary-navigation a:hover,
+.primary-navigation a.active {
+  background: transparent;
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.main-site-link {
+  color: var(--navy);
+  border: 2px solid var(--navy);
+  border-radius: 2px;
+  padding: 10px 15px;
+}
+
+.main-site-link:hover {
+  background: var(--navy);
+  color: #fff;
+}
+
+.menu-button {
+  color: var(--navy);
+}
+
+.screen {
+  min-height: calc(100vh - 84px);
+}
+
+.documentation-layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  grid-template-columns: 260px minmax(0, 1fr);
+  background: #fff;
+}
+
+.documentation-index {
+  padding: 46px 28px 80px 0;
+  background: #fff;
+  border-right: 1px solid var(--line);
+}
+
+.documentation-content {
+  padding: 54px 0 80px 48px;
+}
+
+.aside-heading p,
+.page-title-row p,
+.mission-card p,
+.process-card p,
+.resource-card small {
+  color: var(--muted);
+}
+
+.index-list {
+  margin-top: 28px;
+}
+
+.index-list li button {
+  border-radius: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 15px 8px;
+}
+
+.index-list li.active button {
+  background: var(--pale);
+  color: var(--navy);
+  border-left: 4px solid var(--navy);
+}
+
+.index-list li button span,
+.step-number {
+  background: transparent;
+  color: var(--duke);
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 27px;
+  font-weight: 500;
+}
+
+.mission-card {
+  border: 0;
+  border-top: 4px solid var(--duke);
+  border-radius: 0;
+  background: var(--pale);
+  padding: 20px;
+}
+
+.page-title-row {
+  padding-bottom: 34px;
+}
+
+.page-title-row h1,
+.hero-copy h1 {
+  font-size: clamp(42px, 4vw, 58px);
+}
+
+.large-icon,
+.icon-box,
+.resource-icon {
+  color: var(--duke);
+}
+
+.tag {
+  background: #eef3fa;
+  color: var(--duke);
+}
+
+.process-card {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 34px 0;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.process-arrow {
+  display: none;
+}
+
+.process-card article {
+  padding: 26px 22px;
+}
+
+.process-card article + article {
+  border-left: 1px solid var(--line);
+}
+
+.process-card h2 {
+  margin-top: 5px;
+  font-size: 25px;
+}
+
+.process-visual,
+.mini-pills span,
+.depth-stack span {
+  border-radius: 0;
+}
+
+.notice,
+.executive-summary,
+.legend-note {
+  border-radius: 0;
+  background: #eef3fa;
+  border-color: #b4c9e4;
+}
+
+.section-heading-row {
+  margin-top: 42px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-heading-row h2 {
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--navy);
+}
+
+.eyebrow {
+  color: var(--duke);
+}
+
+.button,
+.source-button,
+.open-drawer {
+  min-height: 44px;
+  border: 2px solid var(--navy);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.button.primary,
+.open-drawer,
+.segmented button.selected {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.button.primary:hover,
+.open-drawer:hover,
+.source-button:hover {
+  background: var(--duke);
+  border-color: var(--duke);
+  color: #fff;
+}
+
+.resource-grid {
+  gap: 24px;
+}
+
+.resource-card {
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--duke);
+  border-radius: 0;
+  padding: 24px;
+  box-shadow: none;
+}
+
+.resource-card:nth-child(2) {
+  border-top-color: #993399;
+}
+
+.resource-card:hover {
+  background: var(--pale);
+}
+
+.map-page,
+.country-page,
+.search-page {
+  max-width: 1400px;
+  padding: 54px 32px 90px;
+}
+
+.hero-copy {
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 30px;
+}
+
+.hero-copy p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.stat-row {
+  gap: 22px;
+}
+
+.stat {
+  min-width: 165px;
+  padding: 15px 0 10px;
+  border: 0;
+  border-top: 4px solid var(--duke);
+  border-radius: 0;
+  background: #fff;
+}
+
+.stat:nth-child(2) {
+  border-top-color: #339898;
+}
+
+.stat:nth-child(3) {
+  border-top-color: #8e959e;
+}
+
+.stat strong {
+  color: var(--navy);
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 29px;
+  font-weight: 500;
+}
+
+.map-layout {
+  grid-template-columns: 245px 1fr;
+  gap: 30px;
+  margin-top: 34px;
+}
+
+.map-legend,
+.filter-panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--navy);
+  border-radius: 0;
+  background: #fff;
+}
+
+.world-map {
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: #f8f9fa;
+}
+
+.map-popover {
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--duke);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+}
+
+.map-marker {
+  color: var(--navy);
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(1, 33, 105, 0.18);
+}
+
+.country-header {
+  gap: 40px;
+  padding: 30px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--pale);
+}
+
+.country-name-row h1 {
+  font-size: 48px;
+}
+
+.agency-pills span,
+.category-pills button {
+  border-radius: 2px;
+}
+
+.country-stats {
+  gap: 18px;
+}
+
+.country-stats > div {
+  padding: 14px 0;
+  border: 0;
+  border-top: 3px solid var(--duke);
+  border-radius: 0;
+  background: transparent;
+}
+
+.country-stats strong {
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 27px;
+  font-weight: 500;
+}
+
+.section-tabs {
+  margin-top: 0;
+  background: #fff;
+}
+
+.section-tabs button {
+  padding: 18px 24px;
+  border-bottom-width: 3px;
+}
+
+.country-panel {
+  padding-top: 34px;
+}
+
+.level-tabs {
+  margin-bottom: 26px;
+}
+
+.level-tabs button,
+.category-pills button {
+  border-radius: 2px;
+}
+
+.level-tabs button[aria-selected="true"],
+.category-pills button.selected {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.assessment-list,
+.repository-list,
+.search-results {
+  gap: 0;
+}
+
+.assessment-row,
+.repository-row,
+.search-result {
+  padding: 22px 18px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+}
+
+.assessment-row:last-child,
+.repository-row:last-child,
+.search-result:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.row-number {
+  background: transparent;
+  color: var(--navy);
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 27px;
+  font-weight: 500;
+}
+
+.assessment-title > span:first-child {
+  border-radius: 2px;
+  background: #eef3fa;
+}
+
+.status,
+.policy-badges span {
+  padding: 4px 8px;
+}
+
+.repository-tools input,
+.repository-tools select,
+.global-search input,
+.filter-panel fieldset input[type="search"] {
+  border-radius: 2px;
+}
+
+.search-layout {
+  grid-template-columns: 285px minmax(0, 1fr);
+  gap: 30px;
+}
+
+.global-search {
+  padding: 12px;
+  border-radius: 0;
+}
+
+.global-search > span {
+  border-radius: 2px;
+}
+
+.analysis-drawer {
+  width: min(760px, 96vw);
+  box-shadow: -10px 0 30px rgba(1, 33, 105, 0.2);
+}
+
+.drawer-topbar {
+  padding: 18px 24px;
+}
+
+.drawer-body {
+  padding: 30px;
+}
+
+.drawer-heading h2 {
+  font-size: 29px;
+}
+
+.analysis-table-wrap {
+  border-radius: 0;
+}
+
+.analysis-table th {
+  background: var(--pale);
+  color: var(--navy);
+}
+
+.analysis-table th,
+.analysis-table td {
+  padding: 14px;
+}
+
+.analysis-table button {
+  border-radius: 2px;
+  color: var(--duke);
+}
+
+.rating,
+.demo-banner {
+  border-radius: 2px;
+}
+
+.document-viewer {
+  inset: 3vh 3vw;
+  border-radius: 0;
+  background: #f3f2f1;
+}
+
+.viewer-topbar {
+  height: 74px;
+  padding: 12px 24px;
+}
+
+.viewer-sidebar {
+  padding: 26px;
+}
+
+.viewer-page {
+  border-radius: 0;
+}
+
+.viewer-page.selected {
+  border-left: 4px solid var(--navy);
+  background: #eef3fa;
+  color: var(--navy);
+}
+
+.document-canvas {
+  padding: 38px;
+}
+
+.document-page {
+  box-shadow: 0 8px 24px rgba(1, 33, 105, 0.14);
+}
+
+.document-letterhead {
+  border-bottom-color: var(--green);
+  color: var(--green);
+}
+
+.viewer-controls {
+  border-radius: 2px;
+  background: var(--navy);
+}
+
+.demo-banner {
+  background: var(--navy);
+  padding: 8px 14px;
+  left: auto;
+  right: 12px;
+  transform: none;
+}
+
+@media (max-width: 1180px) {
+  .site-header {
+    padding: 0 24px;
+  }
+
+  .primary-navigation.open {
+    background: #fff;
+  }
+
+  .documentation-layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+    padding: 0 24px;
+  }
+
+  .documentation-index {
+    padding-right: 22px;
+  }
+
+  .documentation-content {
+    padding-left: 34px;
+  }
+
+  .process-card article + article {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 800px) {
+  .site-header {
+    min-height: 72px;
+    border-top-width: 6px;
+  }
+
+  .brand {
+    font-size: 22px;
+  }
+
+  .version-badge {
+    display: none;
+  }
+
+  .documentation-layout {
+    display: block;
+    padding: 0;
+  }
+
+  .documentation-content,
+  .map-page,
+  .country-page,
+  .search-page {
+    padding: 34px 20px 80px;
+  }
+
+  .hero-copy {
+    padding-bottom: 24px;
+  }
+
+  .page-title-row h1,
+  .hero-copy h1 {
+    font-size: 39px;
+  }
+
+  .stat {
+    padding-right: 15px;
+  }
+
+  .map-legend {
+    margin-top: 10px;
+  }
+
+  .document-canvas {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 500px) {
+  .brand {
+    gap: 8px;
+    font-size: 18px;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .country-header {
+    padding: 22px;
+  }
+
+  .country-name-row h1 {
+    font-size: 38px;
+  }
+}
