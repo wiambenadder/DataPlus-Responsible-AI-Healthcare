@@ -4,6 +4,8 @@ import { countryFlag } from "@/lib/countryFlag";
 import { domainStyle } from "@/lib/domain-info";
 import { ADVANCE_THRESHOLD, type DomainId } from "@/lib/roadmap/framework";
 import type { RoadmapModel } from "@/lib/roadmap/types";
+import { helpContextFromModel } from "@/lib/help-context";
+import RoadmapAssistant from "@/_components/roadmap/RoadmapAssistant";
 
 export interface DomainProgress {
   domainId: DomainId;
@@ -289,6 +291,31 @@ export default function HomeView({ company, summary }: { company: any; summary: 
               text="Ratings are produced by AI from your evidence, so they can be wrong. Tell us when one is, or when it cites another organization's work, so the team can correct it."
               href="/dashboard"
               cta="Open results"
+            />
+          </div>
+
+          {/* The same Roadmap Assistant as on the Roadmap page, so people
+              can ask about next steps without leaving the overview. */}
+          <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.5fr]">
+            <div>
+              <h3 className="font-serif text-[1.75rem] font-medium leading-tight text-brand-navy">
+                Questions About What to Do Next?
+              </h3>
+              <p className="mt-3 text-[15.5px] leading-relaxed text-slate-700">
+                Ask the Roadmap Assistant. It knows where you are on your roadmap and how the site
+                works. When the team&apos;s resource library covers your question, it lists the papers
+                and guidance behind its advice so you can read further.
+              </p>
+              <p className="mt-3 text-[15px] text-slate-600">
+                You can also find it on your{" "}
+                <Link href="/roadmap" className="link-more">
+                  Roadmap
+                </Link>{" "}
+                page.
+              </p>
+            </div>
+            <RoadmapAssistant
+              context={hasData && summary.roadmap ? helpContextFromModel(summary.roadmap, name) : null}
             />
           </div>
         </section>

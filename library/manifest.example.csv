@@ -1,0 +1,3 @@
+slug,kind,title,authors,year,publisher,url,license,file,practices,published
+example-guidance,guidance,"Example: title of a guidance document","Organization name",2024,"Publisher",https://example.org/guidance.pdf,"CC BY 4.0",example-guidance.pdf,"Governance & Stewardship; Privacy & Security",yes
+example-paper,paper,"Example: title of a paper","Last, F.; Other, A.",2023,"Journal name",https://doi.org/10.0000/example,"Duke Library access",example-paper.pdf,"Bias & Fairness Assessment; Cross-Population Performance",yes

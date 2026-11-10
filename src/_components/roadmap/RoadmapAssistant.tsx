@@ -7,12 +7,18 @@ import {
   type HelpContext,
   type HelpMessage,
 } from "@/lib/help-guide";
+import type { Source } from "@/lib/library/search";
+
+// An answer can carry the library sources it cites (see /api/roadmap-help).
+type ChatMessage = HelpMessage & { sources?: Source[]; related?: boolean };
 
 export type AssistantHandle = { ask: (question: string) => void };
 
 /**
  * Roadmap Assistant: a small chat panel for questions about the roadmap
- * and about using the site. Answers come from /api/roadmap-help.
+ * and about using the site. Answers come from /api/roadmap-help, which
+ * searches the team's resource library and lists the sources it used.
+ * Used on the Roadmap page and in Next Steps on the overview.
  */
 export default function RoadmapAssistant({
   context,
@@ -21,7 +27,7 @@ export default function RoadmapAssistant({
   context: HelpContext | null;
   ref?: Ref<AssistantHandle>;
 }) {
-  const [messages, setMessages] = useState<HelpMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +43,7 @@ export default function RoadmapAssistant({
   async function send(text: string) {
     const question = text.trim();
     if (!question || busy) return;
-    const next: HelpMessage[] = [...messages, { role: "user", content: question }];
+    const next: ChatMessage[] = [...messages, { role: "user", content: question }];
     setMessages(next);
     setInput("");
     setError(null);
@@ -54,11 +60,20 @@ export default function RoadmapAssistant({
           "Content-Type": "application/json",
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({ messages: next, context }),
+        // Only the words go back to the server, not the source lists.
+        body: JSON.stringify({ messages: next.map(({ role, content }) => ({ role, content })), context }),
       });
-      const data = (await res.json().catch(() => ({}))) as { reply?: string; error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        reply?: string;
+        error?: string;
+        source?: "ai" | "guide";
+        sources?: Source[];
+      };
       if (!res.ok || !data.reply) throw new Error(data.error || "The assistant didn't respond.");
-      setMessages((m) => [...m, { role: "assistant", content: data.reply! }]);
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: data.reply!, sources: data.sources ?? [], related: data.source === "guide" },
+      ]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       // Put the question back so it can be sent again.
@@ -112,9 +127,10 @@ export default function RoadmapAssistant({
               {m.content}
             </p>
           ) : (
-            <p key={i} className="whitespace-pre-line border-l-4 border-brand-navy pl-3.5 text-slate-800">
-              {m.content}
-            </p>
+            <div key={i} className="border-l-4 border-brand-navy pl-3.5 text-slate-800">
+              <p className="whitespace-pre-line">{m.content}</p>
+              {m.sources && m.sources.length > 0 && <SourceList sources={m.sources} related={m.related} />}
+            </div>
           )
         )}
 
@@ -181,5 +197,37 @@ export default function RoadmapAssistant({
         </div>
       </form>
     </section>
+  );
+}
+
+/** The library documents behind an answer, numbered as in the answer. */
+function SourceList({ sources, related }: { sources: Source[]; related?: boolean }) {
+  return (
+    <div className="mt-2.5 border-t border-slate-200 pt-2 text-[13.5px]">
+      <p className="font-bold text-slate-600">{related ? "Related reading" : "Sources"}</p>
+      <ol className="mt-1 space-y-1">
+        {sources.map((s) => {
+          const detail = [s.kind === "note" ? "Innovator Insights team note" : [s.authors, s.year].filter(Boolean).join(", "), s.page ? `p. ${s.page}` : ""]
+            .filter(Boolean)
+            .join(" · ");
+          return (
+            <li key={`${s.n}-${s.title}`} className="flex gap-1.5">
+              {!related && <span className="text-slate-500">[{s.n}]</span>}
+              <span>
+                {s.url ? (
+                  <a href={s.url} target="_blank" rel="noreferrer" className="font-semibold text-brand-dukeblue underline underline-offset-2">
+                    {s.title}
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                ) : (
+                  <span className="font-semibold text-ink">{s.title}</span>
+                )}
+                {detail && <span className="text-slate-500"> · {detail}</span>}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }

@@ -1,0 +1,5 @@
+# PDFs of the library documents go here.
+# They are not committed to GitHub (copyright): each person who runs the
+# loading script keeps their own copy. See library/README.md.
+*
+!.gitignore
