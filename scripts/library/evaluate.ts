@@ -28,7 +28,7 @@ async function main() {
   for (const row of rows) {
     const expected = list(row.expected);
     // Same practice detection as the website, without a roadmap context.
-    const practices = list(row.practices).length ? list(row.practices) : detectPractices(row.question, null);
+    const practices = list(row.practices).length ? list(row.practices) : detectPractices(row.question, null).practices;
     const passages = await searchLibrary(db, row.question, practices);
     const slugs = [...new Set(passages.map((p) => p.slug))];
     const hit = expected.length === 0 || expected.some((s) => slugs.includes(s));

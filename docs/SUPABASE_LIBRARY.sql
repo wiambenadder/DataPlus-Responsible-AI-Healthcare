@@ -100,8 +100,11 @@ alter table public.library_chunks enable row level security;
 --   1. keeps documents tagged with any of `practice_filter` (if given),
 --   2. ranks passages by keywords and, if an embedding is given, meaning,
 --      and combines the two rankings (reciprocal rank fusion),
---   3. always includes the team's notes for the filtered practices,
---      ranked first, because they are written for innovators.
+--   3. includes up to two of the team's notes for the filtered practices,
+--      ranked first, because they are written for innovators,
+--   4. without a practice filter, keeps keyword matches only when they
+--      share at least two words with the question, so one common word
+--      ("model", "data") doesn't pull in unrelated passages.
 create or replace function public.search_library(
   query_text text,
   query_embedding extensions.vector(1536) default null,
@@ -144,12 +147,20 @@ as $$
   ),
   -- Any of the question's words (not all of them), stemmed.
   q as (
-    select nullif(replace(plainto_tsquery('english', coalesce(query_text, ''))::text, '&', '|'), '')::tsquery as tsq
+    select nullif(replace(plainto_tsquery('english', coalesce(query_text, ''))::text, '&', '|'), '')::tsquery as tsq,
+           array(select distinct w from unnest(tsvector_to_array(to_tsvector('english', coalesce(query_text, '')))) w) as words
   ),
-  by_text as (
-    select c.id, row_number() over (order by ts_rank_cd(c.fts, q.tsq) desc) as r
+  text_hits as (
+    select c.id, ts_rank_cd(c.fts, q.tsq) as rank,
+           (select count(*) from unnest(q.words) w where c.fts @@ quote_literal(w)::tsquery) as shared
     from candidates c, q
     where q.tsq is not null and c.fts @@ q.tsq
+  ),
+  by_text as (
+    select t.id, row_number() over (order by t.rank desc) as r
+    from text_hits t, q
+    where practice_filter is not null
+       or t.shared >= least(2, coalesce(array_length(q.words, 1), 0))
     order by r
     limit 50
   ),
@@ -160,10 +171,14 @@ as $$
     order by r
     limit 50
   ),
+  -- The team's notes for the filtered practices: the two that best match
+  -- the question's words come first.
   notes as (
-    select c.id, 1::bigint as r
-    from candidates c
+    select c.id, row_number() over (order by ts_rank_cd(c.fts, q.tsq) desc nulls last, c.id) as r
+    from candidates c, q
     where c.kind = 'note' and practice_filter is not null
+    order by r
+    limit 2
   ),
   fused as (
     select id, sum(1.0 / (60 + r)) as score

@@ -23,7 +23,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { requireLogin } from "@/lib/requireMember";
-import { detectPractices } from "@/lib/library/practices";
+import { detectPractices, isSiteQuestion } from "@/lib/library/practices";
 import { gateway, citedSources, passagesForPrompt, searchLibrary, type Passage } from "@/lib/library/search";
 import {
   buildSystemPrompt,
@@ -58,11 +58,23 @@ export async function POST(request: NextRequest) {
 
   // Find library passages for the practices this question is about. If
   // the library isn't set up yet or the search fails, carry on without.
+  // The last two questions together, so a follow-up such as "tell me
+  // more" still searches the topic it follows on from.
+  const recent = messages
+    .filter((m) => m.role === "user")
+    .slice(-2)
+    .map((m) => m.content)
+    .join("\n");
+  const found = detectPractices(recent, context);
+  // Questions about using the site are answered from the site guide.
+  const skipLibrary = found.from !== "question" && isSiteQuestion(last.content);
   let passages: Passage[] = [];
-  try {
-    passages = await searchLibrary(auth.db, last.content, detectPractices(last.content, context));
-  } catch (err) {
-    console.error("Roadmap assistant: library search failed", err);
+  if (!skipLibrary) {
+    try {
+      passages = await searchLibrary(auth.db, recent, found.practices);
+    } catch (err) {
+      console.error("Roadmap assistant: library search failed", err);
+    }
   }
 
   if (process.env.LITELLM_TOKEN) {

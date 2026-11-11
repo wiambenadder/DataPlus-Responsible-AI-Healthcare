@@ -35,7 +35,7 @@ const KEYWORDS: Record<string, string[]> = Object.fromEntries(
     name,
     norm(name)
       .split(" ")
-      .filter((w) => w.length >= 5 && w !== "and" && !COMMON.has(w)),
+      .filter((w) => w.length >= 4 && w !== "and" && !COMMON.has(w)),
   ])
 );
 
@@ -46,7 +46,7 @@ const EXTRA: Record<string, string[]> = {
   "Cross-Population Performance": ["subgroup", "subgroups", "women", "children", "elderly", "populations"],
   "Transparency & Explainability": ["explain", "explainable", "transparent"],
   "Cost-Effectiveness": ["cost", "costs", "economic"],
-  "Financial Viability": ["revenue", "funding", "grant", "grants", "money"],
+  "Financial Viability": ["revenue", "funding", "grant", "grants", "money", "affordable"],
   "Business Model Clarity": ["pricing", "customers", "customer"],
   "Protocol & Safety Monitoring": ["safety", "adverse", "incident", "incidents"],
   "Local Ownership & Capacity": ["ownership", "handover", "training staff"],
@@ -59,28 +59,47 @@ function mentioned(q: string, words: string[]) {
   return words.some((w) => new RegExp(`(^| )${norm(w)}( |$)`).test(q));
 }
 
-export function detectPractices(question: string, ctx: Ctx): string[] | null {
+export type Detected = {
+  practices: string[] | null;
+  /** "question": named in the question; "stage": the person's open
+   *  practices (the question named none); "none": no filter. */
+  from: "question" | "stage" | "none";
+};
+
+export function detectPractices(question: string, ctx: Ctx): Detected {
   const q = norm(question);
+  const fromQuestion = (practices: string[]): Detected => ({ practices, from: "question" });
 
   // 1. Practice names written out, or their distinctive words.
   const named = ALL.filter((name) => q.includes(norm(name)));
-  if (named.length) return named;
+  if (named.length) return fromQuestion(named);
   const byWords = ALL.filter((name) => mentioned(q, [...KEYWORDS[name], ...(EXTRA[name] ?? [])]));
-  if (byWords.length) return byWords;
+  if (byWords.length) return fromQuestion(byWords);
 
   // 2. A domain named ("model deployment", "sustainability").
   const domains = DOMAINS.filter((d) => q.includes(norm(d.name)));
-  if (domains.length) return domains.flatMap((d) => d.subdomains);
+  if (domains.length) return fromQuestion(domains.flatMap((d) => d.subdomains));
 
   // 3. "Stage 3" → that stage's practices.
   const stage = q.match(/stage (\d)/);
   if (stage) {
     const placements = STAGE_MAPPING[Number(stage[1]) as StageId];
-    if (placements) return [...new Set(placements.map((p) => p.subdomain))];
+    if (placements) return fromQuestion([...new Set(placements.map((p) => p.subdomain))]);
   }
 
   // 4. Default: what's still open in the current stage.
   const current = ctx?.stages.find((s) => s.id === ctx.currentStage);
   const open = current?.practices.filter((p) => p.status !== "Met").map((p) => p.name) ?? [];
-  return open.length ? open : null;
+  return open.length ? { practices: open, from: "stage" } : { practices: null, from: "none" };
+}
+
+/**
+ * Questions about using the website ("how do I invite my team?",
+ * "where do I upload?") are answered from the site guide; searching the
+ * papers for them only adds noise.
+ */
+export function isSiteQuestion(question: string): boolean {
+  return /\b(log ?in|log ?out|sign ?(in|up)|password|account|profile|invite|colleague|teammate|upload|submit|export|download|print|delete|menu|button|page|link|where (is|do i find|can i find)|how do i (use|find|open|change|add|remove|edit))\b/i.test(
+    question
+  );
 }

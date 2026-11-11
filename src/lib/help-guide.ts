@@ -91,7 +91,7 @@ function describeContext(ctx: HelpContext | null): string {
  */
 export function buildSystemPrompt(ctx: HelpContext | null, library = ""): string {
   const sources = library
-    ? `Resource library: passages selected by the Innovator Insights team that match this question. Base advice on them where they apply, and cite each one you use with its number in square brackets, like [1] or [2][3]. Only cite numbers listed here. Do not quote more than one sentence from a passage. If they don't answer the question, say the library doesn't cover it yet, then answer from the framework.
+    ? `Resource library: passages selected by the Innovator Insights team that match this question. Base advice on them where they apply, and cite each one you use with its number in square brackets, like [1] or [2][3]. Only cite numbers listed here. Do not quote more than one sentence from a passage. If a passage doesn't fit the question, leave it out and don't cite it. If none fit, answer from the framework without citations.
 
 ${library}`
     : `Resource library: no passages matched this question. Answer from the framework and the site guide, and don't cite sources.`;

@@ -29,6 +29,7 @@ import {
   readCsv,
   readPages,
   slugify,
+  downloadPdf,
   type Chunk,
 } from "./lib";
 
@@ -82,6 +83,14 @@ async function main() {
   let loaded = 0;
   let skipped = 0;
   for (const doc of docs) {
+    if (doc.text === undefined && !fs.existsSync(doc.file!)) {
+      const ok = doc.url ? await downloadPdf(doc.url, doc.file!) : false;
+      if (!ok) {
+        console.log(`  ! ${doc.slug}: couldn't download a PDF from its link. Save the PDF as library/papers/${path.basename(doc.file!)} and run again.`);
+        continue;
+      }
+      console.log(`  ↓ ${doc.slug}: downloaded from its link`);
+    }
     const pages = doc.text !== undefined ? [doc.text] : await readPages(doc.file!);
     const chunks = chunkPages(pages, 1200, 200, doc.kind !== "note");
     if (chunks.length === 0) {
@@ -138,11 +147,14 @@ function readLibrary(): { docs: Doc[]; problems: string[] } {
     seen.add(slug);
     const kind = (row.kind || "paper").toLowerCase();
     if (kind !== "paper" && kind !== "guidance") problems.push(`${where}: kind must be "paper" or "guidance".`);
-    const practices = list(row.practices);
+    // "subdomains" is accepted too, in case the team's sheet uses that word.
+    const practices = list(row.practices || row.subdomains);
     checkPractices(where, practices);
-    const file = row.file ? path.join(LIBRARY_DIR, "papers", row.file) : "";
-    if (!file) problems.push(`${where}: add the file name (saved in library/papers/).`);
-    else if (!fs.existsSync(file)) problems.push(`${where}: file library/papers/${row.file} not found.`);
+    // No file? The PDF is downloaded from `url` when loading, if it's an
+    // open-access PDF link. Otherwise save the PDF in library/papers/.
+    const file = path.join(LIBRARY_DIR, "papers", row.file || `${slug}.pdf`);
+    if (!row.file && !row.url) problems.push(`${where}: add the file name (saved in library/papers/) or a link to the PDF.`);
+    else if (row.file && !fs.existsSync(file)) problems.push(`${where}: file library/papers/${row.file} not found.`);
     if (!row.license) problems.push(`${where}: add the license (e.g. "CC BY 4.0", or "Duke Library access").`);
     docs.push({
       slug,
@@ -228,6 +240,12 @@ async function saveDocument(
     const batch = chunks.slice(i, i + 64);
     // Title in front of each passage helps the search find it.
     const vectors = await embed(batch.map((c) => `${doc.title}\n${c.content}`));
+    // The database stores 1536 numbers per passage (docs/SUPABASE_LIBRARY.sql).
+    if (vectors && vectors[0]?.length !== 1536) {
+      throw new Error(
+        `The embedding model returns ${vectors[0]?.length} numbers per passage, but the database expects 1536. Change 1536 in docs/SUPABASE_LIBRARY.sql to ${vectors[0]?.length} (see the note at the top of that file), or use text-embedding-3-small.`
+      );
+    }
     const rows = batch.map((c, j) => ({
       document_id: id,
       chunk_index: c.index,

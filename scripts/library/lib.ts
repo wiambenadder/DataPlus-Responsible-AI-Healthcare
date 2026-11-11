@@ -97,11 +97,32 @@ export function writeCsv(file: string, rows: Record<string, string>[], keys: str
 }
 
 /** "a; b; c" → ["a", "b", "c"] */
+/** "a; b; c" or "a, b" or one per line → ["a", "b", "c"]. Practice
+ *  names contain "&" but never a comma, so commas are safe separators. */
 export const list = (v: string | undefined) =>
   (v ?? "")
-    .split(";")
+    .split(/[;,\n]/)
     .map((s) => s.trim())
     .filter(Boolean);
+
+/**
+ * Downloads an open-access PDF to `dest`. Used when a manifest row has a
+ * link but no file. Returns false if the link isn't a downloadable PDF
+ * (many publisher pages aren't); then save the PDF by hand.
+ */
+export async function downloadPdf(url: string, dest: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { redirect: "follow", headers: { "User-Agent": "InnovatorInsights-library/1.0" } });
+    if (!res.ok) return false;
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.subarray(0, 5).toString() !== "%PDF-") return false;
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, buf);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /* Reading documents                                                   */

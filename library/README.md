@@ -19,6 +19,27 @@ library/
   manifest.example.csv  two example rows
 ```
 
+## For the person building the library
+
+You don't need to touch any code. For each document, fill in one row of
+`manifest.csv` (columns explained under "Adding documents"; a Google Sheet
+with the same column names works, exported as CSV), and keep the PDF.
+Things that make loading go smoothly:
+
+- Use the **exact practice names** listed at the bottom of this page. One
+  document can support several practices: separate them with `;`.
+- Aim for **at least two documents per practice**. The check below lists
+  the practices that are still short.
+- Prefer **open-access** papers and official guidance, and note the
+  **license** of each.
+- If a paper is open access, a direct link to its PDF in `url` is enough;
+  the loading script downloads it. Otherwise save the PDF in
+  `library/papers/` and put its file name in `file`.
+
+The library can grow over time: load what you have, add more later, and
+run the loading script again. Until anything is loaded, the assistant
+simply answers without sources, as it does today.
+
 ## How it works
 
 1. **The team picks the documents** (about two per practice) and lists them
@@ -28,15 +49,20 @@ library/
    embedding model is set up, each passage also gets an "embedding", a list
    of numbers that captures its meaning, so the search can match questions
    worded differently from the paper.
-3. **When someone asks a question**, the website works out which practices
-   it is about (from the words used, or the open practices in the person's
-   current stage), finds the best passages for those practices, and gives
-   them to the AI with the person's roadmap. The AI cites the passages it
-   uses as [1], [2]; the website checks every citation against what the
-   search found and lists those sources under the answer.
-
-The team's notes are always shown first for their practice, because they
-are written for innovators rather than researchers.
+3. **When someone asks a question**, the website:
+   - works out which practices it is about, from the words used (a
+     practice or domain name, "stage 3", or words such as "bias" or
+     "privacy"), or else the practices still open in the person's current
+     stage. A follow-up such as "tell me more" keeps the earlier topic;
+   - skips the library for questions about using the website ("how do I
+     invite my team?"), which the built-in site guide answers;
+   - finds the best passages for those practices (up to six, with at most
+     two team notes, which come first because they are written for
+     innovators);
+   - gives them to the AI with the person's roadmap. The AI cites the
+     passages it uses as [1], [2]; the website removes any citation that
+     doesn't match a passage it found and lists the real sources under the
+     answer.
 
 ## One-time setup
 
@@ -68,7 +94,8 @@ with `npx tsx`, which downloads a small helper the first time.
 
 ## Adding documents
 
-1. Save the PDF in `library/papers/` (or a `.txt` / `.md` file).
+1. Save the PDF in `library/papers/` (or a `.txt` / `.md` file). For an
+   open-access paper you can skip this and give a direct PDF link in `url`.
 2. Add a row to `manifest.csv`. Excel or Google Sheets is fine; export as
    CSV.
 
@@ -79,8 +106,8 @@ with `npx tsx`, which downloads a small helper the first time.
    | `title`, `authors`, `year`, `publisher` | As they should appear in the citation |
    | `url` | Public link where people can read it (DOI or official page) |
    | `license` | e.g. `CC BY 4.0`, `CC BY-NC-SA 3.0 IGO`, or `Duke Library access` |
-   | `file` | File name in `library/papers/`, e.g. `who-ai-ethics-2021.pdf` |
-   | `practices` | Practice names separated by `;` (exact names, listed below) |
+   | `file` | File name in `library/papers/`, e.g. `who-ai-ethics-2021.pdf`. Leave empty if `url` is a direct PDF link |
+   | `practices` | Practice names separated by `;` (exact names, listed below). A column called `subdomains` also works |
    | `published` | `yes`, or `no` to hide it without deleting it |
 
 3. Check the manifest (nothing is changed):
