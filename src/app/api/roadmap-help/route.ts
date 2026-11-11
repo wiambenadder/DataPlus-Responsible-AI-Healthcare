@@ -5,17 +5,26 @@
  * Header: Authorization: Bearer <Supabase access token>
  *
  * Answers questions about the company's roadmap and about using the site.
+ * Before answering, it searches the team's resource library (RAG; see
+ * library/README.md) for passages on the practices the question is about,
+ * and asks the model to cite them.
+ *
  * Uses the Duke LiteLLM gateway (same as the other AI routes) when
  * LITELLM_TOKEN is set; otherwise, or if the model fails, it answers from
  * the built-in guide in src/lib/help-guide.ts so people always get help.
  *
- * Optional env: HELP_CHAT_MODEL (default "gpt-5.2").
+ * Optional env: HELP_CHAT_MODEL (default "gpt-5.2"),
+ * LIBRARY_EMBEDDING_MODEL (search by meaning; keywords only without it).
  *
- * Response: { reply: string, source: "ai" | "guide" }
+ * Response: { reply, source: "ai" | "guide", sources: Source[] }
+ *   sources = library documents the answer cites (or, from the guide,
+ *   related reading), checked against what the search actually found.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
+import { requireLogin } from "@/lib/requireMember";
+import { detectPractices, isSiteQuestion } from "@/lib/library/practices";
+import { gateway, citedSources, passagesForPrompt, searchLibrary, type Passage } from "@/lib/library/search";
 import {
   buildSystemPrompt,
   guideAnswer,
@@ -27,17 +36,9 @@ const MAX_MESSAGES = 12;
 const MAX_CHARS = 1500;
 
 export async function POST(request: NextRequest) {
-  // Signed-in users only.
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) {
-    return NextResponse.json({ error: "Please log in to use the assistant." }, { status: 401 });
-  }
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  const { data: auth, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !auth?.user) {
+  // Signed-in users only. `db` acts as that user.
+  const auth = await requireLogin(request);
+  if (!auth.ok) {
     return NextResponse.json({ error: "Please log in to use the assistant." }, { status: 401 });
   }
 
@@ -55,26 +56,60 @@ export async function POST(request: NextRequest) {
   }
   const context = sanitizeContext(body.context);
 
+  // Find library passages for the practices this question is about. If
+  // the library isn't set up yet or the search fails, carry on without.
+  // The last two questions together, so a follow-up such as "tell me
+  // more" still searches the topic it follows on from.
+  const recent = messages
+    .filter((m) => m.role === "user")
+    .slice(-2)
+    .map((m) => m.content)
+    .join("\n");
+  const found = detectPractices(recent, context);
+  // Questions about using the site are answered from the site guide.
+  const skipLibrary = found.from !== "question" && isSiteQuestion(last.content);
+  let passages: Passage[] = [];
+  if (!skipLibrary) {
+    try {
+      passages = await searchLibrary(auth.db, recent, found.practices);
+    } catch (err) {
+      console.error("Roadmap assistant: library search failed", err);
+    }
+  }
+
   if (process.env.LITELLM_TOKEN) {
     try {
       const openai = new OpenAI({
         apiKey: process.env.LITELLM_TOKEN,
-        baseURL: "https://litellm.oit.duke.edu",
+        baseURL: gateway(),
         timeout: 30_000,
         maxRetries: 1,
       });
       const completion = await openai.chat.completions.create({
         model: process.env.HELP_CHAT_MODEL || "gpt-5.2",
-        messages: [{ role: "system", content: buildSystemPrompt(context) }, ...messages],
+        messages: [
+          { role: "system", content: buildSystemPrompt(context, passagesForPrompt(passages)) },
+          ...messages,
+        ],
       });
-      const reply = completion.choices[0]?.message?.content?.trim();
-      if (reply) return NextResponse.json({ reply, source: "ai" });
+      const raw = completion.choices[0]?.message?.content?.trim();
+      if (raw) {
+        // Only citations that match a passage we found are kept.
+        const { reply, sources } = citedSources(raw, passages);
+        return NextResponse.json({ reply, source: "ai", sources });
+      }
     } catch (err) {
       console.error("Roadmap assistant: model call failed, using the guide", err);
     }
   }
 
-  return NextResponse.json({ reply: guideAnswer(last.content, context), source: "guide" });
+  // Built-in answer, with the library's best matches as related reading.
+  const related = [...new Map(passages.map((p) => [p.slug, p])).values()].slice(0, 3);
+  return NextResponse.json({
+    reply: guideAnswer(last.content, context),
+    source: "guide",
+    sources: related.map(({ n, title, kind, url, page, authors, year }) => ({ n, title, kind, url, page, authors, year })),
+  });
 }
 
 function sanitizeMessages(raw: unknown): HelpMessage[] {

@@ -46,7 +46,8 @@ export default function TestimonialCarousel({
         {showingPlaceholders ? (
           <PlaceholderSlide text={placeholders[index]} />
         ) : (
-          <RealSlide t={items[index]} />
+          // key resets the logo fallback when the slide changes
+          <RealSlide key={index} t={items[index]} />
         )}
       </div>
 
@@ -89,30 +90,51 @@ export default function TestimonialCarousel({
 function RealSlide({ t }: { t: Testimonial }) {
   return (
     <>
-      <div className="aspect-[4/3] bg-slate-200 sm:aspect-auto sm:h-full">
-        {/* Small local photo supplied by the organization. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={t.photo} alt={t.photoAlt} className="h-full w-full object-cover" />
+      <div
+        className={`flex min-h-36 items-center justify-center p-6 sm:h-full ${t.logoOnDark ? "bg-brand-navy" : "bg-whisper"}`}
+      >
+        <OrgMark t={t} />
       </div>
       <figure className="px-6 pb-6 sm:py-8 sm:pl-0 sm:pr-8">
         <blockquote className="font-serif text-2xl leading-snug text-brand-navy">
           “{t.quote}”
         </blockquote>
         <figcaption className="mt-5 text-[15px] text-slate-700">
-          <span className="font-bold text-ink">{t.name}</span>, {t.role}
-          <br />
+          <span className="font-bold text-ink">{t.organization}</span>
+          <span className="block text-slate-600">{t.description}</span>
           <a
-            href={t.organizationUrl}
+            href={t.url}
             target="_blank"
             rel="noreferrer"
-            className="font-semibold text-brand-dukeblue underline underline-offset-4"
+            className="mt-1 inline-block font-semibold text-brand-dukeblue underline underline-offset-4"
           >
-            {t.organization}: what they do
-            <span className="sr-only"> (opens in a new tab)</span>
+            Visit {t.organization}
+            <span className="sr-only"> (opens in a new tab)</span> ↗
           </a>
         </figcaption>
       </figure>
     </>
+  );
+}
+
+/** The organization's logo, or its name in text if the logo can't load. */
+function OrgMark({ t }: { t: Testimonial }) {
+  const [failed, setFailed] = useState(false);
+  const textClass = `text-center font-serif text-2xl ${t.logoOnDark ? "text-white" : "text-brand-navy"}`;
+  if (!t.logo || failed) return <span className={textClass}>{t.organization}</span>;
+  return (
+    // Plain <img>: small logos, some hosted on the organization's site.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={t.logo}
+      alt={`${t.organization} logo`}
+      className="max-h-20 w-auto max-w-full object-contain"
+      // Catch a logo that failed before React attached onError.
+      ref={(el) => {
+        if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+      }}
+      onError={() => setFailed(true)}
+    />
   );
 }
 

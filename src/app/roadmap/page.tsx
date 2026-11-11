@@ -6,24 +6,16 @@ import { supabase } from "@/lib/supabase";
 import { fetchRoadmapData } from "@/lib/roadmap/fetch";
 import { buildRoadmapModel } from "@/lib/roadmap/transform";
 import { applyDisputes } from "@/lib/roadmap/disputes";
-import { ADVANCE_THRESHOLD } from "@/lib/roadmap/framework";
 import { fetchFeedbackSummary } from "@/lib/disputes";
 import type { HelpContext } from "@/lib/help-guide";
+import { helpContextFromModel } from "@/lib/help-context";
 import type {
   DomainMappingRow,
   QualitativeResponseRow,
   RoadmapModel,
-  SubdomainStatus,
 } from "@/lib/roadmap/types";
 import StageStep from "@/_components/roadmap/StageStep";
 import RoadmapAssistant, { type AssistantHandle } from "@/_components/roadmap/RoadmapAssistant";
-
-const STATUS_WORDS: Record<SubdomainStatus, string> = {
-  practiced: "Met",
-  not_practiced: "Not met yet",
-  no_data: "No evidence yet",
-  under_review: "Under review",
-};
 
 type Loaded = {
   companyId: string;
@@ -98,25 +90,10 @@ export default function RoadmapPage() {
     );
   }, [data, period]);
 
-  const context: HelpContext | null = useMemo(() => {
-    if (!model) return null;
-    return {
-      company: data?.companyName ?? null,
-      currentStage: model.currentStageId,
-      overall: { met: model.overall.practiced, total: model.overall.total },
-      stages: model.stages.map((s) => ({
-        id: s.id,
-        name: s.name,
-        practiced: s.practicedCount,
-        total: s.totalCount,
-        needed: Math.ceil(s.totalCount * ADVANCE_THRESHOLD),
-        state: s.state.replace("_", " "),
-        practices: s.domainGroups.flatMap((g) =>
-          g.subdomains.map((p) => ({ name: p.name, domain: p.domainName, status: STATUS_WORDS[p.status] }))
-        ),
-      })),
-    };
-  }, [model, data]);
+  const context: HelpContext | null = useMemo(
+    () => (model ? helpContextFromModel(model, data?.companyName ?? null) : null),
+    [model, data]
+  );
 
   // The current stage starts open; after that, the reader decides.
   const open = openStages ?? new Set(model ? [model.currentStageId] : []);
