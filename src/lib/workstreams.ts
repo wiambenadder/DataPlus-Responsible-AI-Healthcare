@@ -89,7 +89,7 @@ export const WORKSTREAMS: Workstream[] = [
       "Rules for AI in health differ from country to country, and they change. An innovator who knows them early can design for them, rather than discover them at launch.",
       "Linking each rule to its official source lets innovators, funders and ministries check the details for themselves.",
     ],
-    href: "/policy-codebook",
+    href: "/policy-codebook/map",
     cta: "Explore Policy Dashboard",
     status: "live",
     photo: "policy",

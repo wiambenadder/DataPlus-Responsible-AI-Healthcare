@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { SITE } from "@/lib/site";
 import OrgLogo from "./OrgLogo";
 import { WORKSTREAMS } from "@/lib/workstreams";
+
+const supabase = getSupabaseBrowserClient();
 
 // About comes before the tools so first-time visitors learn what the
 // platform is before choosing a tool. "Our Tools" opens a dropdown.
@@ -36,6 +38,8 @@ export default function SiteHeader() {
   const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    if (!supabase) return;
+
     let active = true;
     supabase.auth
       .getUser()
@@ -77,6 +81,8 @@ export default function SiteHeader() {
   }, [mobileOpen]);
 
   async function logout() {
+    if (!supabase) return;
+
     await supabase.auth.signOut();
     setSignedIn(false);
     setMobileOpen(false);

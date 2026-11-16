@@ -40,7 +40,7 @@ export default function PolicyMapClient({ countries }: { countries: PolicyCountr
 
       <div className="relative min-h-[32rem] overflow-hidden border bg-[#f4f8fb]">
         <Image
-          src="/policy-dashboard-demo/assets/world-map.svg"
+          src="/policy/world-map.svg"
           alt=""
           fill
           priority

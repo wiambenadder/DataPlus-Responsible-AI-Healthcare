@@ -1,4 +1,4 @@
-import PolicyMapClient from "@/_components/policy/PolicyMapClient";
+import PolicyMapClient from "@/components/policy/PolicyMapClient";
 import { listPolicyCountries } from "@/lib/policy/repository";
 
 export default async function PolicyMapPage() {

@@ -1,4 +1,4 @@
-import PolicySearchClient from "@/_components/policy/PolicySearchClient";
+import PolicySearchClient from "@/components/policy/PolicySearchClient";
 import { listPolicyCountries, listPolicyDocuments } from "@/lib/policy/repository";
 
 export default async function PolicySearchPage() {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, ExternalLink, FileSearch, Globe2, Info } from "lucide-react";
+import { ArrowLeft, FileSearch, Globe2, Info } from "lucide-react";
 
 const links = [
   { href: "/policy-codebook", label: "About the Tool", icon: Info },
@@ -59,14 +59,6 @@ export default function PolicyNav() {
               </Link>
             ))}
           </nav>
-          <a
-            href="/policy-dashboard-demo/index.html"
-            target="_blank"
-            rel="noreferrer"
-            className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-blue-100 hover:text-white hover:underline"
-          >
-            Open preserved visual reference <ExternalLink size={14} aria-hidden />
-          </a>
         </div>
       </div>
     </header>

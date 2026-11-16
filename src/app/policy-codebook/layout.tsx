@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PolicyNav from "@/_components/policy/PolicyNav";
+import PolicyNav from "@/components/policy/PolicyNav";
 
 export const metadata: Metadata = {
   title: "Health AI Policy Dashboard | Innovator Insights",

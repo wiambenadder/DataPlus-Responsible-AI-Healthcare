@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import CountryWorkspace from "@/_components/policy/CountryWorkspace";
+import CountryWorkspace from "@/components/policy/CountryWorkspace";
 import { getPolicyCountry } from "@/lib/policy/repository";
 
 export default async function CountryPolicyPage({ params }: { params: Promise<{ iso3: string }> }) {
