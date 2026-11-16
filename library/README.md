@@ -94,6 +94,24 @@ with `npx tsx`, which downloads a small helper the first time.
 
 ## Adding documents
 
+The initial mapping of the local `resource library files/` collection is in
+`manifest.csv` as unpublished candidates. See `mapping-review.csv` for the
+original path, selection status, proposed tags, and PDF page leads. Page leads
+are based on term matches in the extracted text unless the review notes give
+a specific page reference; confirm them before relying on them as evidence.
+General business and implementation resources are supporting material, not
+examples of an AI system meeting a practice.
+
+With the original folder present, run
+`python3 scripts/library/stage-reviewed-pdfs.py` to recreate the ignored local
+copies in `library/papers/`. The script verifies the source hashes and will not
+overwrite a different file. Then run the read-only manifest check below. The
+check validates the table and file paths, not extraction quality or rights.
+Before running ingestion, review the candidate tags, verify reuse terms and
+citation details, and check PDFs flagged for parser or OCR follow-up. Do not
+run ingestion on the draft: `published=no` hides a resource from search but
+does not prevent the loader from processing or storing its text.
+
 1. Save the PDF in `library/papers/` (or a `.txt` / `.md` file). For an
    open-access paper you can skip this and give a direct PDF link in `url`.
 2. Add a row to `manifest.csv`. Excel or Google Sheets is fine; export as
