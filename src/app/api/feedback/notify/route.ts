@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendNewFeedbackEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "feedbackId is required" }, { status: 400 });
     }
 
+    const supabaseAdmin = getSupabaseAdmin();
     const { data: feedback, error } = await supabaseAdmin
       .from("feedback")
       .select("*")
