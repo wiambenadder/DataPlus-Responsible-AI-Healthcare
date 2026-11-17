@@ -244,7 +244,7 @@ ${response}
       const aiJson =
         JSON.parse(aiText);
 
-      await supabase
+      const { error: updateError } = await supabase
         .from(
           "qualitative_responses"
         )
@@ -255,6 +255,7 @@ ${response}
             aiJson.ai_reasoning,
         })
         .eq("id", row.id);
+      if (updateError) throw updateError;
     }
 
     return NextResponse.json({

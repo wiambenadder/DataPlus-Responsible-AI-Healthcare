@@ -1,6 +1,7 @@
 "use client";
 
 import { authedFetch } from "@/lib/authedFetch";
+import { prepareAfterAssessment } from "@/lib/roadmap/recommendations-client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -134,7 +135,7 @@ export default function EditEvidencePage() {
         subtopic: rows[i].Subtopic,
       }));
 
-      await Promise.all([
+      const [scored] = await Promise.all([
         authedFetch("/api/run-ai-assessment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -155,6 +156,7 @@ export default function EditEvidencePage() {
         }),
       ]);
 
+      prepareAfterAssessment(scored, reportingPeriod);
       router.push("/dashboard");
     } finally {
       setSaving(false);

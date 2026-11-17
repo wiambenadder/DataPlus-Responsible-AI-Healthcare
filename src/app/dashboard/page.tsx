@@ -426,6 +426,9 @@ export default function DashboardPage() {
             <Link href="/framework#rating" className="link-more">
               How results work ›
             </Link>
+            <Link href="/recommendations" className="link-more">
+              View recommendations ›
+            </Link>
           </div>
         </div>
 

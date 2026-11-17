@@ -21,8 +21,10 @@ const WORKSPACE_LINKS = [
   { href: "/", label: "Your Overview" },
   { href: "/report/assessment", label: "Submit Evidence" },
   { href: "/report/history", label: "Submissions" },
+  { href: "/assessment-overview", label: "Assessment Summary" },
   { href: "/dashboard", label: "Results" },
   { href: "/roadmap", label: "Roadmap" },
+  { href: "/recommendations", label: "Recommendations" },
   { href: "/company", label: "Company & Team" },
   { href: "/user", label: "Profile" },
 ];
@@ -230,7 +232,7 @@ export default function SiteHeader() {
             aria-label="Your workspace"
             className="hidden border-b bg-slate-50 xl:block"
           >
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 px-8">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 px-8 2xl:gap-x-6">
               {WORKSPACE_LINKS.map((link) => (
                 <Link
                   key={link.href}

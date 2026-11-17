@@ -141,7 +141,6 @@ export default function FrameworkPage() {
                 {
                   {
                     meets: "Your material describes something already in place for this practice.",
-                    partial: "Your material covers part of the practice but not all of it. (The rating step doesn't produce this result yet.)",
                     not_met: "There is material on this practice, but it doesn't show it in place, including when you told us you don't do this yet.",
                     not_reported: "Nothing you've submitted covers this practice, so it hasn't been assessed.",
                     needs_verification: "There is evidence that hasn't been rated yet, or someone reported that the result rests on the wrong source or organization.",

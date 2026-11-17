@@ -1,3 +1,4 @@
+import { statusFromRating } from "../assessment";
 import {
   ADVANCE_THRESHOLD,
   STAGES,
@@ -18,12 +19,37 @@ import type {
   SubdomainStatus,
 } from "./types";
 
+/** Older assessment tables may have a reporting period but no row timestamp. */
+export function orderAssessmentResponses<T extends QualitativeResponseRow>(rows: T[]): T[] {
+  return [...rows].sort((a, b) =>
+    (Date.parse(a.created_at ?? "") || 0) - (Date.parse(b.created_at ?? "") || 0)
+  );
+}
+
+export function latestAssessmentPeriod(rows: QualitativeResponseRow[]): string | null {
+  const assessed = rows.filter((row) => row.domain && row.Subtopic && row.reporting_period);
+  const dated = assessed.findLast((row) => Number.isFinite(Date.parse(row.created_at ?? "")));
+  if (dated) return dated.reporting_period;
+
+  const periods = [...new Set(assessed.flatMap((row) => row.reporting_period ? [row.reporting_period] : []))];
+  const datedPeriods = periods.map((period) => {
+    const quarter = /^Q([1-4])\s+(\d{4})$/i.exec(period.trim());
+    const time = quarter ? Date.UTC(Number(quarter[2]), Number(quarter[1]) * 3, 0) : Date.parse(period);
+    return { period, time };
+  });
+  if (datedPeriods.every(({ time }) => Number.isFinite(time))) {
+    return datedPeriods.sort((a, b) => b.time - a.time)[0]?.period ?? null;
+  }
+  return assessed.at(-1)?.reporting_period ?? null;
+}
+
 /** Map the free-text `ai_assessment` value to a typed status. */
 function parseStatus(value: string | null | undefined): SubdomainStatus {
-  const v = (value ?? "").trim().toLowerCase();
-  if (v === "practiced") return "practiced";
-  if (v === "not practiced") return "not_practiced";
-  return "no_data";
+  switch (statusFromRating(value)) {
+    case "meets": return "practiced";
+    case "not_met": return "not_practiced";
+    default: return "under_review";
+  }
 }
 
 /**
@@ -169,14 +195,26 @@ export function buildRoadmapModel(
   const currentStageId = (stages.find((s) => s.state !== "complete")?.id ??
     6) as StageId;
 
-  const overallTotal = stages.reduce((n, s) => n + s.totalCount, 0);
-  const overallPracticed = stages.reduce((n, s) => n + s.practicedCount, 0);
 
   return {
     companyId,
     stages,
     currentStageId,
-    overall: { practiced: overallPracticed, total: overallTotal },
+    overall: uniquePracticeCounts(stages),
     reportingPeriods: [...periods].sort(),
   };
+}
+
+
+/** The overall score counts each practice once, even when a later stage revisits it. */
+export function uniquePracticeCounts(stages: RoadmapStage[]): RoadmapModel["overall"] {
+  const unique = new Map<string, SubdomainStatus>();
+  for (const stage of stages) {
+    for (const group of stage.domainGroups) {
+      for (const practice of group.subdomains) {
+        unique.set(normKey(practice.domainName, practice.name), practice.status);
+      }
+    }
+  }
+  return { practiced: [...unique.values()].filter((status) => status === "practiced").length, total: unique.size };
 }

@@ -59,7 +59,7 @@ export async function searchLibrary(
   db: SupabaseClient,
   question: string,
   practices: string[] | null,
-  options: { count?: number; embedding?: number[] | null } = {}
+  options: { count?: number; embedding?: number[] | null; taggedOnly?: boolean } = {}
 ): Promise<Passage[]> {
   const count = options.count ?? 6;
   let embedding = options.embedding;
@@ -86,7 +86,7 @@ export async function searchLibrary(
   };
 
   let rows = await run(practices);
-  if (rows.length === 0 && practices && practices.length) rows = await run(null);
+  if (rows.length === 0 && practices?.length && !options.taggedOnly) rows = await run(null);
   return rows.map((r, i) => ({ ...r, n: i + 1 }));
 }
 

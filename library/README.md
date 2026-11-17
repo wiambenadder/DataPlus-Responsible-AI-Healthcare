@@ -19,6 +19,23 @@ library/
   manifest.example.csv  two example rows
 ```
 
+## Recommendations tab
+
+The signed-in **Recommendations** page summarizes next steps for the latest
+assessment, then groups the details by domain. The Roadmap Assistant searches
+passages tagged to practices rated **Does not currently meet** and
+returns a suggested action, evidence to collect, and links to cited sources.
+Unreported practices and ratings that need verification are shown in the Assessment Summary.
+If generation is unavailable, matching resources are shown as related reading.
+
+Preparation starts after scoring in the submission flow and resumes when the
+Recommendations page opens. Completed cited suggestions are saved in the
+browser for the assessment that produced them.
+
+The page uses the same search function and Duke gateway settings as the
+Roadmap Assistant. Uploading the PDFs to Storage makes their URLs available;
+the ingestion step below is still needed to make their text searchable.
+
 ## For the person building the library
 
 You don't need to touch any code. For each document, fill in one row of

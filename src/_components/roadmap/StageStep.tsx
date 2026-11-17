@@ -17,6 +17,7 @@ const STATE_TAG: Record<RoadmapStage["state"], { label: string; cls: string }> =
  */
 export default function StageStep({
   stage,
+  inlineEvidence = false,
   isCurrent,
   open,
   onToggle,
@@ -27,6 +28,7 @@ export default function StageStep({
   first: boolean;
   last: boolean;
   stage: RoadmapStage;
+  inlineEvidence?: boolean;
   isCurrent: boolean;
   open: boolean;
   onToggle: () => void;
@@ -36,7 +38,7 @@ export default function StageStep({
   const needed = Math.ceil(stage.totalCount * ADVANCE_THRESHOLD);
   const toGo = Math.max(0, needed - stage.practicedCount);
   const quick =
-    practices.find((p) => p.status === "no_data") ?? practices.find((p) => p.status === "not_practiced");
+    practices.find((p) => p.status === "no_data") ?? practices.find((p) => p.status === "not_practiced" || p.status === "under_review");
   const tag = STATE_TAG[stage.state];
   const bodyId = `stage-${stage.id}-body`;
 
@@ -108,7 +110,7 @@ export default function StageStep({
 
           <ul className="mt-4">
             {practices.map((p) => (
-              <PracticeRow key={`${p.domainId}-${p.name}`} practice={p} />
+              <PracticeRow key={`${p.domainId}-${p.name}`} practice={p} inlineEvidence={inlineEvidence} />
             ))}
           </ul>
 
@@ -125,14 +127,14 @@ export default function StageStep({
                 </>
               ) : (
                 <>
-                  {quick.name} isn&apos;t met yet. See why on the results page, then add evidence of
+                  {quick.name} isn&apos;t met yet. Review the rating and add evidence of
                   anything already in place.{" "}
-                  <Link
-                    href={`/dashboard#${subdomainAnchor(quick.domainName, quick.name)}`}
+                  <a
+                    href={`${inlineEvidence ? "" : "/dashboard"}#${subdomainAnchor(quick.domainName, quick.name)}`}
                     className="link-more"
                   >
                     See why ›
-                  </Link>
+                  </a>
                 </>
               )}
             </div>
@@ -159,16 +161,16 @@ export default function StageStep({
   );
 }
 
-function PracticeRow({ practice: p }: { practice: RoadmapSubdomain }) {
+function PracticeRow({ practice: p, inlineEvidence }: { practice: RoadmapSubdomain; inlineEvidence: boolean }) {
   return (
     <li className="grid grid-cols-1 gap-x-4 gap-y-1 border-t border-slate-100 py-3 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_11rem_9.5rem] sm:items-center">
       <span>
-        <Link
-          href={`/dashboard#${subdomainAnchor(p.domainName, p.name)}`}
+        <a
+          href={`${inlineEvidence ? "" : "/dashboard"}#${subdomainAnchor(p.domainName, p.name)}`}
           className="font-bold text-ink hover:text-brand-dukeblue hover:underline"
         >
           {p.name}
-        </Link>
+        </a>
         {p.revisited && <span className="ml-2 text-xs text-slate-500">(revisited from an earlier stage)</span>}
       </span>
       <span className="text-[13.5px] text-slate-600">{p.domainName}</span>

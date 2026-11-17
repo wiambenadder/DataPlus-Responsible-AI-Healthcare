@@ -21,10 +21,10 @@
  *   related reading), checked against what the search actually found.
  */
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateAssistantReply } from "@/lib/roadmap/assistant";
 import { requireLogin } from "@/lib/requireMember";
 import { detectPractices, isSiteQuestion } from "@/lib/library/practices";
-import { gateway, citedSources, passagesForPrompt, searchLibrary, type Passage } from "@/lib/library/search";
+import { citedSources, passagesForPrompt, searchLibrary, type Passage } from "@/lib/library/search";
 import {
   buildSystemPrompt,
   guideAnswer,
@@ -79,20 +79,11 @@ export async function POST(request: NextRequest) {
 
   if (process.env.LITELLM_TOKEN) {
     try {
-      const openai = new OpenAI({
-        apiKey: process.env.LITELLM_TOKEN,
-        baseURL: gateway(),
-        timeout: 30_000,
-        maxRetries: 1,
-      });
-      const completion = await openai.chat.completions.create({
-        model: process.env.HELP_CHAT_MODEL || "gpt-5.2",
-        messages: [
-          { role: "system", content: buildSystemPrompt(context, passagesForPrompt(passages)) },
-          ...messages,
-        ],
-      });
-      const raw = completion.choices[0]?.message?.content?.trim();
+      const raw = await generateAssistantReply(
+        buildSystemPrompt(context, passagesForPrompt(passages)),
+        messages,
+        request.signal,
+      );
       if (raw) {
         // Only citations that match a passage we found are kept.
         const { reply, sources } = citedSources(raw, passages);
