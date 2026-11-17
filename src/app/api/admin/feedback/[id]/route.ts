@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin } from "@/lib/adminAuth";
 import { sendFeedbackDecisionEmail } from "@/lib/email";
 
@@ -13,6 +13,8 @@ export async function PATCH(
   if (!auth.ok) {
     return NextResponse.json({ error: auth.message }, { status: auth.status });
   }
+
+  const supabaseAdmin = getSupabaseAdmin();
 
   const body = await req.json();
   const { status, admin_notes } = body as {

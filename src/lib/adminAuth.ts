@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .split(",")
@@ -20,6 +20,17 @@ export async function requireAdmin(req: NextRequest) {
 
   if (!token) {
     return { ok: false as const, status: 401, message: "Missing auth token" };
+  }
+
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = getSupabaseAdmin();
+  } catch (error) {
+    return {
+      ok: false as const,
+      status: 503,
+      message: error instanceof Error ? error.message : "Admin service is not configured",
+    };
   }
 
   const {
