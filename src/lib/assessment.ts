@@ -59,7 +59,6 @@ export type UploadRow = {
 
 export type Status =
   | "meets"
-  | "partial"
   | "not_met"
   | "not_reported"
   | "needs_verification";
@@ -78,35 +77,28 @@ export const STATUS_META: Record<
     dot: "bg-brand-teal",
     order: 0,
   },
-  partial: {
-    label: "Partially meets",
-    badge: "bg-[#fbefc9] text-[#6e5200]",
-    dot: "bg-[#F2C14E]",
-    order: 1,
-  },
   not_met: {
     label: "Does not currently meet",
     badge: "bg-[#f8ddd0] text-[#8f3800]",
     dot: "bg-brand-copper",
-    order: 2,
+    order: 1,
   },
   not_reported: {
     label: "Not reported",
     badge: "bg-slate-100 text-slate-700",
     dot: "bg-slate-300",
-    order: 3,
+    order: 2,
   },
   needs_verification: {
     label: "Needs verification",
     badge: "bg-[#dbeaf6] text-[#04477a]",
     dot: "bg-brand-shale",
-    order: 4,
+    order: 3,
   },
 };
 
 export const STATUS_ORDER: Status[] = [
   "meets",
-  "partial",
   "not_met",
   "not_reported",
   "needs_verification",
@@ -114,13 +106,12 @@ export const STATUS_ORDER: Status[] = [
 
 /**
  * The assessment step currently writes "Practiced" / "Not Practiced".
- * "Partial…" is recognized so a three-level rating shows up correctly as
- * soon as the assessment prompt starts producing it.
+ * Older partial values need verification under the current ratings.
  */
 export function statusFromRating(rating: string | null | undefined): Status | null {
   const r = normalizeName(rating);
   if (!r) return null;
-  if (r.includes("partial")) return "partial";
+  if (r.includes("partial")) return null;
   if (r.startsWith("not") || r === "no") return "not_met";
   if (r === "practiced" || r === "yes" || r.startsWith("meets")) return "meets";
   return null;
@@ -442,13 +433,11 @@ export function whyThisResult(
   switch (status) {
     case "meets":
       return "The evidence describes a process, policy or activity that is already in place, so the practice is counted as met. The framework checks that a practice exists, not how mature it is.";
-    case "partial":
-      return "The evidence covers part of this practice but leaves parts of it unaddressed.";
     case "not_met":
       return "The evidence does not describe anything already in place for this practice. This can also mean the relevant work wasn't covered in the material provided; when the evidence is unclear, the platform does not count the practice as met.";
     case "needs_verification":
       return opts.hasEvidence
-        ? "Evidence for this practice is on file but has not been rated yet."
+        ? "Evidence for this practice is on file and its rating needs to be checked."
         : "This result needs to be checked before it is relied on.";
     case "not_reported":
     default:

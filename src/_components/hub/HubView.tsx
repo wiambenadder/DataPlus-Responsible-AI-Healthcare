@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Lightbulb, ClipboardCheck, Landmark } from "lucide-react";
+import { Lightbulb, ClipboardCheck, Landmark } from "lucide-react";
 import TestimonialCarousel from "./TestimonialCarousel";
 import { TESTIMONIALS } from "@/lib/testimonials";
 import Photo from "@/components/Photo";
@@ -78,40 +78,37 @@ export default function HubView() {
             Helping Health AI Tools Work in the Real World
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-blue-50">
-            {SITE.name} is a free platform for teams building AI for health
-            care, and for the funders and ministries of health who work with
-            them. It brings together three tools for the questions every AI
-            health tool faces:
+            {SITE.name} is a decision support platform for innovators, funders,
+            and ministries of health. Our tools help your organization assess
+            AI readiness, explore financing options, and understand policy
+            requirements. Start with one of these three questions:
           </p>
-          {/* One line per tool, from src/lib/workstreams.ts, so the hero
-              always matches the tools section below. */}
-          <ul className="mt-5 max-w-xl space-y-3">
-            {WORKSTREAMS.map((tool) => (
-              <li key={tool.id} className="border-l-2 border-blue-200/60 pl-4">
-                <p className="text-[17px] font-semibold text-white">
-                  {TOOL_QUESTIONS[tool.id]}
-                </p>
-                <p className="text-[15px] text-blue-100">
-                  <Link href={tool.href} className="underline underline-offset-4 hover:text-white">
+          <ol role="list" className="mt-7 max-w-xl space-y-4" aria-label="Three questions and tools">
+            {WORKSTREAMS.map((tool, index) => (
+              <li key={tool.id} className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-x-3">
+                <span
+                  aria-hidden="true"
+                  className="grid size-8 place-items-center rounded-full bg-blue-100 text-sm font-bold text-brand-navy"
+                >
+                  {index + 1}
+                </span>
+                <div>
+                  <p className="text-[17px] font-semibold leading-snug text-white">
+                    {TOOL_QUESTIONS[tool.id]}
+                  </p>
+                  <Link
+                    href={tool.href}
+                    className="mt-1 inline-block text-[15px] leading-snug text-blue-100 underline underline-offset-4 hover:text-white"
+                  >
                     {tool.title}
                   </Link>
-                  {" · "}
-                  {tool.status === "live" ? "Available now" : "Coming soon"}
-                </p>
+                </div>
               </li>
             ))}
-          </ul>
-          <p className="mt-8 flex flex-wrap gap-3">
-            <Link href="/ai-readiness" className="btn btn-light">
-              Try the Assessment <ArrowRight size={18} aria-hidden />
-            </Link>
-            <Link href="/hub#tools" className="btn btn-outline-light">
+          </ol>
+          <p className="mt-8">
+            <Link href="/hub#tools" className="btn btn-light">
               Explore All Tools
-            </Link>
-          </p>
-          <p className="mt-4 text-sm text-blue-100">
-            <Link href="/data-use" className="underline underline-offset-4 hover:text-white">
-              How we handle your data
             </Link>
           </p>
         </div>

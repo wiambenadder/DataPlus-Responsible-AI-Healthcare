@@ -15,6 +15,7 @@ export interface QualitativeResponseRow {
   ai_assessment: string | null; // "Practiced" | "Not Practiced" (free text in DB)
   ai_reasoning: string | null;
   reporting_period: string | null;
+  created_at?: string | null;
   bullet_point_summary: string | null;
 }
 
@@ -35,8 +36,8 @@ export interface DomainMappingRow {
 /* ------------------------------------------------------------------ */
 
 /**
- * `under_review`: rated as practiced, but someone on the team reported the
- * rating rests on the wrong source or company; not counted until reviewed.
+ * `under_review`: a submitted practice needs a rating or has an open source dispute;
+ * it does not count as met until verified.
  */
 export type SubdomainStatus = "practiced" | "not_practiced" | "no_data" | "under_review";
 
@@ -100,6 +101,7 @@ export interface RoadmapModel {
   stages: RoadmapStage[];
   /** First stage that is not complete — highlighted as "current". */
   currentStageId: StageId;
+  /** Counts each framework practice once, even when a stage revisits it. */
   overall: { practiced: number; total: number };
   /** Reporting periods found for this company, for the period filter. */
   reportingPeriods: string[];

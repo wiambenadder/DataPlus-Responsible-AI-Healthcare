@@ -1,4 +1,6 @@
-import type { StageId } from "./framework";
+import { ADVANCE_THRESHOLD, type StageId } from "./framework";
+import { normalizeName } from "../feedback-format";
+import { uniquePracticeCounts } from "./transform";
 import type { RoadmapModel, RoadmapStage } from "./types";
 
 /**
@@ -14,7 +16,7 @@ export function applyDisputes(model: RoadmapModel, disputed: Set<string>): Roadm
     const domainGroups = stage.domainGroups.map((g) => ({
       ...g,
       subdomains: g.subdomains.map((s) =>
-        s.status === "practiced" && disputed.has(s.name.trim().toLowerCase())
+        s.status !== "no_data" && disputed.has(normalizeName(s.name))
           ? { ...s, status: "under_review" as const }
           : s
       ),
@@ -29,7 +31,7 @@ export function applyDisputes(model: RoadmapModel, disputed: Set<string>): Roadm
       domainGroups,
       practicedCount,
       score,
-      canAdvance: stage.canAdvance && score >= 0.5,
+      canAdvance: score >= ADVANCE_THRESHOLD,
       state:
         practicedCount === totalCount && totalCount > 0
           ? "complete"
@@ -43,9 +45,6 @@ export function applyDisputes(model: RoadmapModel, disputed: Set<string>): Roadm
     ...model,
     stages,
     currentStageId: (stages.find((s) => s.state !== "complete")?.id ?? 6) as StageId,
-    overall: {
-      practiced: stages.reduce((n, s) => n + s.practicedCount, 0),
-      total: model.overall.total,
-    },
+    overall: uniquePracticeCounts(stages),
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { authedFetch } from "@/lib/authedFetch";
+import { prepareAfterAssessment } from "@/lib/roadmap/recommendations-client";
 import UploadNotice from "@/components/UploadNotice";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -395,7 +396,7 @@ export default function ReportPage() {
           subtopic: interviewQuestions[i].subtopic,
         }));
 
-        await Promise.all([
+        const [scored] = await Promise.all([
           authedFetch("/api/run-ai-assessment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -416,6 +417,7 @@ export default function ReportPage() {
           }),
         ]);
 
+        prepareAfterAssessment(scored, reportingPeriod);
         router.push("/dashboard");
         return;
       }
@@ -463,7 +465,7 @@ export default function ReportPage() {
       }
 
       // Fresh submission always gets a full assessment run.
-      await Promise.all([
+      const [scored] = await Promise.all([
         authedFetch("/api/run-ai-assessment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -482,6 +484,7 @@ export default function ReportPage() {
         }),
       ]);
 
+      prepareAfterAssessment(scored, reportingPeriod);
       router.push("/dashboard");
     } finally {
       setSaving(false);

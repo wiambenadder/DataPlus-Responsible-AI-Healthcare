@@ -46,13 +46,13 @@ export type HelpMessage = { role: "user" | "assistant"; content: string };
 const SITE_GUIDE = `
 Innovator Insights is a free website built by Duke University students with Innovations in Healthcare and the Duke Global Health Innovation Center. It assesses how ready a health AI tool is for real-world use against 31 practices in five domains: Model Source (the data the model learns from), Model Development (how it is built and tested), Model Deployment (how it runs safely in care), Impact (what changes, and at what cost) and Sustainability (whether it can last).
 
-Menus: the main menu has Home, About Us, Our Tools (AI Readiness Assessment, Financing Codebook, Policy Codebook) and Your Data. When signed in, a workspace menu below it has Your Overview, Submit Evidence, Submissions, Results, Roadmap, Company & Team and Profile.
+Menus: the main menu has Home, About Us, Our Tools (AI Readiness Assessment, Financing Codebook, Policy Codebook) and Your Data. When signed in, a workspace menu below it has Your Overview, Submit Evidence, Submissions, Assessment Summary, Results, Roadmap, Company & Team and Profile.
 
 Pages of the AI Readiness Assessment:
 - Your Overview (/): the company's overview: how the assessment works, practices met, the five domains and next steps, with this assistant.
 - Submit Evidence (/report/assessment): upload PDFs or other documents the team already has (reports, evaluations, policies, decks). The platform reads them and maps passages to practices. Then it asks short questions only about practices the documents did not cover. Answers can be updated later.
 - Submissions (/report/history): every document and answer already sent, with links to open them.
-- Results (/dashboard): every practice with its status, the reason for the rating, a summary, confidence, and the evidence (an exact passage or the answer as typed) with a link to the source document. Each practice has an "Is this right?" choice: "This is accurate", "Needs revision" (with optional reasons) or "Wrong source or company". A comment is optional, and comments can be edited or deleted. A "Wrong source or company" report puts the practice under review, and it is not counted as met until the team reviews it. There is a Download PDF button.
+- Results (/dashboard) and Assessment Summary (/assessment-overview): every practice with its status, the reason for the rating, a summary, confidence, and the evidence (an exact passage or the answer as typed) with a link to the source document. Each practice has an "Is this right?" choice: "This is accurate", "Needs revision" (with optional reasons) or "Wrong source or company". A comment is optional, and comments can be edited or deleted. A "Wrong source or company" report puts the practice under review, and it is not counted as met until the team reviews it. There is a Download PDF button.
 - Roadmap (/roadmap): the practices grouped into six stages in the order an AI tool usually matures. Meeting half the practices in a stage (rounded up) means the team can move on to the next stage; meeting all of them completes the stage.
 - Company & Team (/company): invite colleagues by email, see pending invitations and cancel them.
 - Home (/hub): the public home page with the three tools. The Financing Codebook and Policy Codebook are coming soon.
@@ -60,7 +60,7 @@ Pages of the AI Readiness Assessment:
 - The Framework (/framework): what each domain and practice means and how ratings work.
 - How We Use Your Data (/data-use).
 
-Statuses on the Results page: "Meets criterion", "Partially meets", "Does not currently meet" (evidence does not yet show it in place), "Not reported" (nothing submitted covers it) and "Needs verification" (someone reported a wrong source). On the Roadmap these read "Met", "Not met yet", "No evidence yet" and "Under review".
+Assessment ratings shown on Results, Roadmap, and Recommendations: "Meets criterion", "Does not currently meet" (evidence does not yet show it in place), "Not reported" (nothing submitted covers it) and "Needs verification" (the rating is missing, unsupported, or its source was disputed).
 
 What counts as met: something already in place — a process, policy, team, responsibility, workflow, metric or regular activity. Informal, early-stage or unmeasured practices count. Plans, intentions or awareness without action do not count. If evidence is unclear, the practice is not counted as met.
 
@@ -100,7 +100,7 @@ ${library}`
 Rules:
 - Answer in plain, friendly, professional English, in two to six short sentences or a short list. Use sentence case. Spell out numbers one through nine.
 - Be specific to this company's roadmap when the question is about progress. Name the practices and the page to use (for example "Submit Evidence in your workspace menu").
-- Never invent ratings, evidence, documents or features. You cannot see the company's documents, only the statuses below. You cannot change ratings; to dispute a rating, point to "Is this right?" on the Results page.
+- Never invent ratings, evidence, documents or features. You cannot see the company's documents, only the statuses below. You cannot change ratings; to dispute a rating, point to "Is this right?" on Results or in Assessment Summary.
 - Do not give legal, regulatory or medical advice. For country rules, say the Policy Codebook is coming soon.
 - If you don't know, say so and suggest the Framework page or contacting the Innovations in Healthcare team.
 
@@ -167,10 +167,10 @@ function stageAnswer(ctx: HelpContext | null): string {
     );
   if (notMet.length)
     parts.push(
-      `${list(notMet)} ${notMet.length === 1 ? "is" : "are"} rated not met yet. Open ${notMet.length === 1 ? "it" : "them"} on the Results page to see why, then add evidence of anything already in place.`
+      `${list(notMet)} ${notMet.length === 1 ? "is" : "are"} rated not met yet. Open ${notMet.length === 1 ? "it" : "them"} on Results or in Assessment Summary to see why, then add evidence of anything already in place.`
     );
   if (review.length)
-    parts.push(`${list(review)} ${review.length === 1 ? "is" : "are"} under review after a wrong-source report.`);
+    parts.push(`${list(review)} ${review.length === 1 ? "is" : "are"} awaiting verification.`);
   return parts.join(" ");
 }
 
@@ -183,12 +183,12 @@ const TOPICS: { test: RegExp; answer: string }[] = [
   {
     test: /wrong|incorrect|disagree|dispute|mistake|feedback|comment|revis/i,
     answer:
-      "Open the practice on the Results page and use \"Is this right?\". Choose \"This is accurate\", \"Needs revision\" (you can pick reasons such as \"We answered this, but it wasn't picked up\") or \"Wrong source or company\". A comment is optional, and you can edit or delete your own comments. A wrong-source report marks the practice as under review, and it isn't counted as met until the team reviews it.",
+      "Open the practice on Results or in Assessment Summary and use \"Is this right?\". Choose \"This is accurate\", \"Needs revision\" (you can pick reasons such as \"We answered this, but it wasn't picked up\") or \"Wrong source or company\". A comment is optional, and you can edit or delete your own comments. A wrong-source report marks the practice as under review, and it isn't counted as met until the team reviews it.",
   },
   {
     test: /not reported|no evidence|status|mean|partially|verification|under review|not met/i,
     answer:
-      "\"No evidence yet\" (\"Not reported\" on Results) means nothing you submitted covers the practice. \"Not met yet\" (\"Does not currently meet\") means the evidence doesn't yet show the practice in place. \"Under review\" (\"Needs verification\") means someone reported that the rating rests on the wrong source or company. A practice counts as met when something is already in place; informal practices count, but plans don't.",
+      "\"No evidence yet\" (\"Not reported\" in Assessment details) means nothing you submitted covers the practice. \"Not met yet\" (\"Does not currently meet\") means the evidence doesn't yet show the practice in place. \"Under review\" (\"Needs verification\") means the rating is missing or its source was disputed. A practice counts as met when something is already in place; informal practices count, but plans don't.",
   },
   {
     test: /invite|team|colleague|member|add (a )?user/i,
@@ -198,7 +198,7 @@ const TOPICS: { test: RegExp; answer: string }[] = [
   {
     test: /download|export|print|share/i,
     answer:
-      "On the Results page, use Download PDF to save a copy of every practice with its status and reasoning. You can also copy a link to any domain or practice to share it with your team.",
+      "On Results or Assessment Summary, use Download PDF to save a copy of every practice with its status and reasoning. You can also copy a link to any domain or practice to share it with your team.",
   },
   {
     test: /privacy|data use|who (can )?see|confidential|secure/i,

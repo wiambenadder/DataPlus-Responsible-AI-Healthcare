@@ -10,6 +10,9 @@
 // lib/pdf-parse.js avoids the package's built-in test file lookup.
 // Plain CommonJS on purpose (see above), so require() is needed here.
 /* eslint-disable @typescript-eslint/no-require-imports */
+const { Console } = require("node:console");
+// PDF.js emits some warnings through console.log. Keep stdout reserved for JSON.
+global.console = new Console({ stdout: process.stderr, stderr: process.stderr });
 const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 const fs = require("node:fs");
 
