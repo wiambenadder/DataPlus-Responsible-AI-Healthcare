@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import InfoLayout, { InfoSection } from "@/_components/info/InfoLayout";
+import RoadmapMap from "@/_components/info/RoadmapMap";
 import { DOMAINS, STAGES, STAGE_MAPPING, ADVANCE_THRESHOLD } from "@/lib/roadmap/framework";
 import { DEFINITIONS } from "@/lib/definitions";
 import { DOMAIN_INFO, MEETS_RULE } from "@/lib/domain-info";
@@ -29,6 +30,7 @@ function definitionOf(domain: string, subtopic: string) {
  */
 export default function FrameworkPage() {
   const total = DOMAINS.reduce((n, d) => n + d.subdomains.length, 0);
+  const places = STAGES.reduce((n, s) => n + STAGE_MAPPING[s.id].length, 0);
   const threshold = Math.round(ADVANCE_THRESHOLD * 100);
 
   return (
@@ -163,8 +165,17 @@ export default function FrameworkPage() {
       <InfoSection id="roadmap" title="Roadmap Stages and Thresholds">
         <p>
           The roadmap groups the practices into six stages, roughly in the order an
-          AI tool matures. Some practices appear in more than one stage because they
-          matter again later.
+          AI tool matures.
+        </p>
+        <RoadmapMap />
+        <p>
+          Read the map from left to right. Each row is a domain, and each practice
+          sits in the stage where it is expected. Most practices appear once. Three
+          come back later: Timeliness and Data Interoperability &amp; Reuse in Stage 5,
+          as the tool moves into routine use across health systems, and Equity Effect
+          in Stage 6, as part of long-term oversight. That is why the map has {places}{" "}
+          places for {total} practices. A revisited practice keeps one rating, and it
+          counts in both stages.
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
@@ -172,11 +183,12 @@ export default function FrameworkPage() {
           </li>
           <li>
             You are <strong>ready to move on</strong> from a stage once at least{" "}
-            {threshold}% of its practices are met, while you close the remaining gaps.
+            {threshold} percent of its practices are met, while you close the remaining gaps.
             This threshold is provisional and may change as scoring is finalized.
           </li>
           <li>
-            Your <strong>current stage</strong> is the first stage that isn&apos;t complete.
+            Your <strong>current stage</strong>{" "}
+            is the first stage that isn&apos;t complete.
           </li>
         </ul>
         <ol className="mt-6 space-y-6">
@@ -191,9 +203,6 @@ export default function FrameworkPage() {
                 <p className="mt-2 text-[15px] text-slate-800">
                   <strong>{items.length} practices.</strong> Ready to move on at {needed} met;
                   complete at {items.length} met.
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {items.map((p) => p.subdomain + (p.revisited ? " (revisited)" : "")).join(" · ")}
                 </p>
               </li>
             );
