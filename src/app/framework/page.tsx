@@ -222,8 +222,8 @@ export default function FrameworkPage() {
             a confidence score. Evidence below 50% confidence is left out.
           </li>
           <li>
-            <strong>You&apos;re only asked about the gaps.</strong> Questions are shown
-            only for practices your documents didn&apos;t cover.
+            <strong>You&apos;re only asked about the gaps.</strong>{" "}
+            Questions are shown only for practices your documents didn&apos;t cover.
           </li>
           <li>
             <strong>Each practice is rated.</strong> An AI model applies the rules
