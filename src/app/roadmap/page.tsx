@@ -160,7 +160,10 @@ export default function RoadmapPage() {
             Your roadmap puts the 31 practices in six stages, in the order an AI tool usually
             matures. Meet half the practices in a stage to move on to the next; meet all of them
             to complete it. Start with your current stage, and ask the Roadmap Assistant if
-            anything is unclear.
+            anything is unclear.{" "}
+            <Link href="/framework#roadmap" className="link-more">
+              See how the roadmap is built ›
+            </Link>
           </p>
         </div>
         {model.reportingPeriods.length > 1 && (

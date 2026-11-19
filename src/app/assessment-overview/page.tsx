@@ -301,7 +301,10 @@ export default function AssessmentOverviewPage() {
           )}
           <p className="mt-2 text-sm text-slate-600">
             The roadmap orders practices into six stages. Meet half of a stage’s
-            practices to move on and all of them to complete it.
+            practices to move on and all of them to complete it.{" "}
+            <Link href="/framework#roadmap" className="link-more">
+              See how the roadmap is built ›
+            </Link>
           </p>
 
           {/* Stage tracker */}

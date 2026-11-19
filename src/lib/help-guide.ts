@@ -57,7 +57,7 @@ Pages of the AI Readiness Assessment:
 - Company & Team (/company): invite colleagues by email, see pending invitations and cancel them.
 - Home (/hub): the public home page with the three tools. The Financing Codebook and Policy Codebook are coming soon.
 - About (/about): why the platform exists, where the framework comes from and who supports it.
-- The Framework (/framework): what each domain and practice means and how ratings work.
+- The Framework (/framework): what each domain and practice means, how ratings work, and a map of which practices sit in each roadmap stage.
 - How We Use Your Data (/data-use).
 
 Assessment ratings shown on Results, Roadmap, and Recommendations: "Meets criterion", "Does not currently meet" (evidence does not yet show it in place), "Not reported" (nothing submitted covers it) and "Needs verification" (the rating is missing, unsupported, or its source was disputed).

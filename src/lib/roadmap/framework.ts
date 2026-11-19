@@ -140,37 +140,37 @@ export const STAGES: StageDef[] = [
     id: 1,
     name: "Need & Governance",
     description:
-      "Establish the clinical or operational need, governance structures, and the business case before building.",
+      "Set out the need the tool meets and how it will bring change, with data governance, privacy and standards, an early look at equity, and a clear business model.",
   },
   {
     id: 2,
     name: "Infrastructure Readiness",
     description:
-      "Confirm the data, system design, and fairness groundwork required to develop responsibly.",
+      "Make sure the training data is of good quality, current and reusable, and design the AI system before building it.",
   },
   {
     id: 3,
     name: "Prototype & Validation",
     description:
-      "Build and validate the model — accuracy, reliability, and performance across populations.",
+      "Build and validate the model — accuracy, reliability, performance across populations, bias and fairness, and transparency.",
   },
   {
     id: 4,
     name: "Pilot & User Testing",
     description:
-      "Deploy in a controlled setting with safety monitoring, responsible-use guardrails, and real users.",
+      "Pilot with real users in a controlled setting — integration, safety monitoring, responsible use, system capacity, robustness and first results such as time to action.",
   },
   {
     id: 5,
     name: "Scale & Integration",
     description:
-      "Expand into routine use, integrate with health systems, and demonstrate outcomes at scale.",
+      "Move into routine use — integrate with health systems, build local ownership, keep data timely and interoperable, and show outcomes and cost-effectiveness at scale.",
   },
   {
     id: 6,
     name: "Oversight & Sustainability",
     description:
-      "Sustain the solution long term — financing, policy alignment, equity, and continued oversight.",
+      "Sustain the tool long term — financing, policy alignment, equity and continued oversight.",
   },
 ];
 
