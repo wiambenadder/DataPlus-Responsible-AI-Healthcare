@@ -1,5 +1,3 @@
-// src/lib/standardization/export.ts
-//
 // Turns standardized results into downloadable files IN THE BROWSER (Blobs + a
 // download trigger). No filesystem, no server. SheetJS writes the workbook; CSV
 // is built by hand so quoting stays correct for verbatim narrative text.

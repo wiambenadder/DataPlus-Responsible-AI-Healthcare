@@ -1,5 +1,3 @@
-// src/lib/standardization/aggregate.ts
-//
 // Builds the cross-company "funder view" from standardized files.
 //   - quantitative: one row per (sheet, indicator, metric), one column per company
 //   - qualitative:  long form, one row per company per question, answers VERBATIM

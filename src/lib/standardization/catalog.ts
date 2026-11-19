@@ -1,5 +1,3 @@
-// src/lib/standardization/catalog.ts
-//
 // Fuzzy matching against the canonical schema. Uses `fuzzball` (a JS port of the
 // same algorithm as Python's rapidfuzz/thefuzz), so the thresholds tuned in the
 // original pipeline (88 / 80) transfer with minimal change.

@@ -1,5 +1,3 @@
-// src/lib/standardization/index.ts
-//
 // Public API of the standardization module. Import from "@/lib/standardization".
 //
 // Typical flow in a client component:

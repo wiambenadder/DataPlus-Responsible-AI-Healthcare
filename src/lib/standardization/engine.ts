@@ -1,5 +1,3 @@
-// src/lib/standardization/engine.ts
-//
 // Orchestration. Turns raw workbook bytes into a fully StandardizedFile and an
 // audit log, applying every ground rule along the way. Pure with respect to I/O:
 // it takes bytes in and returns data out, so it runs identically in the browser,

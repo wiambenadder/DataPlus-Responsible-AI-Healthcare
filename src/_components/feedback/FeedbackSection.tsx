@@ -19,7 +19,7 @@ const KIND_TONE: Record<FeedbackKind, string> = {
   wrong_source: "border-transparent bg-[#f8ddd0] text-[#8f3800]",
 };
 
-/** Icon and colour for each choice on the "Is this right?" buttons. */
+/** Icon and color for each choice on the "Is this right?" buttons. */
 const KIND_ICON: Record<FeedbackKind, { icon: LucideIcon; color: string }> = {
   accurate: { icon: Check, color: "#1D6363" },
   needs_revision: { icon: PencilLine, color: "#a86a0c" },
