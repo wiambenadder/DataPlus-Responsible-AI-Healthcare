@@ -28,35 +28,46 @@ export interface HomeSummary {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** The four steps of the assessment, each pointing to the page that does it. */
+/**
+ * The five steps of the assessment, in the same order as the workspace
+ * menu, so a first-time visitor can follow the tabs from left to right.
+ * Each step points to the page that does it.
+ */
 const GUIDE = [
   {
     title: "Share what you have",
-    what: "Upload reports, evaluations or policies you already have, then answer short questions only on what they don't cover.",
+    what: "Upload reports, evaluations or policies you already have, then answer short questions only on what they don't cover. Everything you send is listed under Submissions.",
     why: "No new paperwork, and nothing is rated on guesswork.",
     href: "/report/assessment",
     cta: "Submit Evidence",
   },
   {
+    title: "See where you stand",
+    what: "The Assessment Summary puts your results for all five domains and your roadmap on one page.",
+    why: "A quick picture before you look at each practice in detail.",
+    href: "/assessment-overview",
+    cta: "Assessment Summary",
+  },
+  {
     title: "Check every rating",
-    what: "Each practice shows its rating, the reason for it and the exact passage it came from.",
-    why: "You can see why, correct mistakes, and trust what you show others.",
+    what: "Each practice shows its rating, the reason for it and the exact passage it came from. Download it all as a PDF to share.",
+    why: "You can see why, correct mistakes, and bring a sourced summary to funders, partners and ministries.",
     href: "/dashboard",
     cta: "Results",
   },
   {
-    title: "Plan your next steps",
+    title: "Plan your stages",
     what: "The roadmap orders the practices into six stages and shows which one to strengthen next.",
     why: "You know where to focus first instead of facing 31 practices at once.",
     href: "/roadmap",
     cta: "Roadmap",
   },
   {
-    title: "Share your progress",
-    what: "Download your results as a PDF and invite colleagues to review them with you.",
-    why: "A clear, sourced summary to bring to funders, partners and ministries.",
-    href: "/dashboard",
-    cta: "Download from Results",
+    title: "Get next steps",
+    what: "For each practice not met yet, a suggested next step with readings from the resource library.",
+    why: "You know what to do, not only what is missing.",
+    href: "/recommendations",
+    cta: "Recommendations",
   },
 ];
 
@@ -149,7 +160,7 @@ export default function HomeView({ company, summary }: { company: any; summary: 
             anything new to start: it reads the reports you already have. In return you get an
             evidence-backed picture of your tool that you can act on and share.
           </p>
-          <ol className="mt-8 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+          <ol className="mt-8 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {GUIDE.map((g, i) => (
               <li key={g.title} className="flex flex-col">
                 <p className="font-serif text-5xl leading-none text-brand-navy">{i + 1}</p>

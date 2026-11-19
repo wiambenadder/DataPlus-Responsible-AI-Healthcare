@@ -509,9 +509,9 @@ export default function ReportPage() {
         <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
           <Link href="/" className="hover:underline">Home</Link>
           <span className="mx-2" aria-hidden>›</span>
-          <span>Submit evidence</span>
+          <span>Submit Evidence</span>
         </nav>
-        <p className="label-caps mt-6">Submit evidence</p>
+        <p className="label-caps mt-6">Submit Evidence</p>
         <h1 className="mt-2 text-4xl">{title}</h1>
         <div className="mt-3 text-[16px] text-slate-700">{lede}</div>
       </div>
@@ -552,10 +552,10 @@ export default function ReportPage() {
               Edit Your Answers
             </button>
             <button onClick={() => router.push("/report/history")} className="btn btn-secondary">
-              View Your Submissions
+              View Submissions
             </button>
             <Link href="/dashboard" className="btn btn-secondary">
-              See Your Results
+              See Results
             </Link>
           </div>
 
