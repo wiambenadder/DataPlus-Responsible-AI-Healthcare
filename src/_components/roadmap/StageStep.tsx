@@ -171,7 +171,6 @@ function PracticeRow({ practice: p, inlineEvidence }: { practice: RoadmapSubdoma
         >
           {p.name}
         </a>
-        {p.revisited && <span className="ml-2 text-xs text-slate-500">(revisited from an earlier stage)</span>}
       </span>
       <span className="text-[13.5px] text-slate-600">{p.domainName}</span>
       <span>

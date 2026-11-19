@@ -51,7 +51,6 @@ export default function RoadmapMap() {
                                 style={{ borderColor: st.accent }}
                               >
                                 {p.subdomain}
-                                {p.revisited && <span className="block text-xs text-slate-500">Revisited</span>}
                               </li>
                             ))}
                           </ul>
