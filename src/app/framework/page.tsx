@@ -174,8 +174,8 @@ export default function FrameworkPage() {
           come back later: Timeliness and Data Interoperability &amp; Reuse in Stage 5,
           as the tool moves into routine use across health systems, and Equity Effect
           in Stage 6, as part of long-term oversight. That is why the map has {places}{" "}
-          places for {total} practices. A revisited practice keeps one rating, and it
-          counts in both stages.
+          places for {total} practices. A practice that appears twice keeps one rating,
+          and it counts in both stages.
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>

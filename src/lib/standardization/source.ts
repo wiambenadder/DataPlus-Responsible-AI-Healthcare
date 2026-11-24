@@ -1,5 +1,3 @@
-// src/lib/standardization/source.ts
-//
 // Input abstraction. The engine reads a `WorkbookSource` and never cares where the
 // bytes came from. Today that is a File picked in the browser. Later it can be a
 // file pulled from Supabase storage — only this file changes, not the engine.

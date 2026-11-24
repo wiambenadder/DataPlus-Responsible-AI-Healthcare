@@ -74,7 +74,7 @@ export default function DataUsePage() {
             <strong>People in your organization</strong> who have an account and
             have joined it. You can see and remove members under{" "}
             <Link href="/company" className="link-more">
-              Company and Team
+              Company &amp; Team
             </Link>
             .
           </li>

@@ -1,5 +1,3 @@
-// src/lib/standardization/parse.ts
-//
 // Reads .xlsx bytes into grids (SheetJS) and applies the positional layout defined
 // in schema.json. Indices in the schema are 1-based; here we convert to 0-based.
 //

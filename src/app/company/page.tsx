@@ -220,9 +220,9 @@ export default function CompanyPage() {
       <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
         <Link href="/" className="hover:underline">Home</Link>
         <span className="mx-2" aria-hidden>›</span>
-        <span>Company and Team</span>
+        <span>Company &amp; Team</span>
       </nav>
-      <h1 className="mt-3 text-4xl">Company and Team</h1>
+      <h1 className="mt-3 text-4xl">Company &amp; Team</h1>
       <p className="mt-2 text-[16px] text-slate-700">
         Your organization&apos;s details and who can see your assessment.
       </p>

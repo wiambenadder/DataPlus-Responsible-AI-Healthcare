@@ -1,5 +1,3 @@
-// src/lib/standardization/schema.ts
-//
 // Loads the canonical master schema from schema.json and exposes a typed view.
 //
 // RULE: the schema is DATA, not code. Every canonical indicator, sheet alias,

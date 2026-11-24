@@ -2,3 +2,7 @@ node_modules/
 .env
 .env.local
 .next/
+
+# Mac and build files
+.DS_Store
+*.tsbuildinfo

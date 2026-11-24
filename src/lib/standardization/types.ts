@@ -1,5 +1,3 @@
-// src/lib/standardization/types.ts
-//
 // Shared types for the standardization engine.
 // The types are written so the GROUND RULES are visible in the shape of the data:
 //   - a number is EITHER a real number OR explicitly missing (never silently 0)

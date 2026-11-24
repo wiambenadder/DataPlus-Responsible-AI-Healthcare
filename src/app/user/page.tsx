@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 
 type Note = { tone: "ok" | "error"; text: string } | null;
 
-/** Your Profile: name, email and password. */
+/** Profile: your name, email and password. */
 export default function UserPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -86,14 +86,14 @@ export default function UserPage() {
         <span className="mx-2" aria-hidden>
           ›
         </span>
-        <span>Your Profile</span>
+        <span>Profile</span>
       </nav>
       <p className="label-caps mt-6">Account</p>
-      <h1 className="mt-2 text-4xl">Your Profile</h1>
+      <h1 className="mt-2 text-4xl">Profile</h1>
       <p className="mt-2 text-[16px] text-slate-700">
         Your name is shown to your team next to the comments you leave on results.{" "}
         <Link href="/company" className="link-more">
-          Company and Team
+          Company &amp; Team
         </Link>
       </p>
 

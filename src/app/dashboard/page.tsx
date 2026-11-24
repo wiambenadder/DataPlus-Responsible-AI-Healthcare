@@ -356,7 +356,7 @@ export default function DashboardPage() {
   if (!signedIn || !companyId || loadError) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <h1 className="text-4xl">Your Results</h1>
+        <h1 className="text-4xl">Results</h1>
         {loadError ? (
           <p className="mt-3 text-slate-700">
             We couldn&apos;t load your results ({loadError}).{" "}
@@ -409,7 +409,7 @@ export default function DashboardPage() {
               .filter(Boolean)
               .join(" · ")}
           </p>
-          <h1 className="mt-2 text-4xl sm:text-5xl">Your Results</h1>
+          <h1 className="mt-2 text-4xl sm:text-5xl">Results</h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-700">
             <strong className="font-semibold text-ink">
               {met} of {total} practices met

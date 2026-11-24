@@ -1,5 +1,3 @@
-// src/lib/standardization/normalize.ts
-//
 // Pure, framework-agnostic cleaning functions. These are the heart of the ground
 // rules. They have no side effects and no I/O, so they are trivial to unit-test.
 

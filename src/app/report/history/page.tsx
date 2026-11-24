@@ -201,10 +201,10 @@ export default function HistoryPage() {
           <nav aria-label="Breadcrumb" className="text-sm text-slate-600">
             <Link href="/" className="hover:underline">Home</Link>
             <span className="mx-2" aria-hidden>›</span>
-            <span>Your Submissions</span>
+            <span>Submissions</span>
           </nav>
           <p className="label-caps mt-6">Submit Evidence</p>
-          <h1 className="mt-2 text-4xl">Your Submissions</h1>
+          <h1 className="mt-2 text-4xl">Submissions</h1>
           <p className="mt-3 max-w-2xl text-[16px] text-slate-700">
             Everything your organization has sent so far: your answers by
             reporting period, and the documents you uploaded.{" "}

@@ -46,7 +46,7 @@ export default function SubdomainItem({
   onReportSource: (item: EvidenceItem) => void;
   onCopyLink: () => void;
   copied: boolean;
-  /** Domain colour for the open panel's left rule. */
+  /** Domain color for the open panel's left rule. */
   accent?: string;
   /** The feedback area. */
   children: React.ReactNode;

@@ -46,14 +46,16 @@ export type HelpMessage = { role: "user" | "assistant"; content: string };
 const SITE_GUIDE = `
 Innovator Insights is a free website built by Duke University students with Innovations in Healthcare and the Duke Global Health Innovation Center. It assesses how ready a health AI tool is for real-world use against 31 practices in five domains: Model Source (the data the model learns from), Model Development (how it is built and tested), Model Deployment (how it runs safely in care), Impact (what changes, and at what cost) and Sustainability (whether it can last).
 
-Menus: the main menu has Home, About Us, Our Tools (AI Readiness Assessment, Financing Codebook, Policy Codebook) and Your Data. When signed in, a workspace menu below it has Your Overview, Submit Evidence, Submissions, Assessment Summary, Results, Roadmap, Company & Team and Profile.
+Menus: the main menu has Home, About Us, Our Tools (AI Readiness Assessment, Financing Codebook, Policy Codebook) and Your Data. When signed in, a workspace menu below it has Your Overview, Submit Evidence, Submissions, Assessment Summary, Results, Roadmap, Recommendations, Company & Team and Profile.
 
 Pages of the AI Readiness Assessment:
 - Your Overview (/): the company's overview: how the assessment works, practices met, the five domains and next steps, with this assistant.
 - Submit Evidence (/report/assessment): upload PDFs or other documents the team already has (reports, evaluations, policies, decks). The platform reads them and maps passages to practices. Then it asks short questions only about practices the documents did not cover. Answers can be updated later.
 - Submissions (/report/history): every document and answer already sent, with links to open them.
-- Results (/dashboard) and Assessment Summary (/assessment-overview): every practice with its status, the reason for the rating, a summary, confidence, and the evidence (an exact passage or the answer as typed) with a link to the source document. Each practice has an "Is this right?" choice: "This is accurate", "Needs revision" (with optional reasons) or "Wrong source or company". A comment is optional, and comments can be edited or deleted. A "Wrong source or company" report puts the practice under review, and it is not counted as met until the team reviews it. There is a Download PDF button.
+- Assessment Summary (/assessment-overview): the results for all five domains, the roadmap stages and this assistant on one page.
+- Results (/dashboard): every practice with its status, the reason for the rating, a summary, confidence, and the evidence (an exact passage or the answer as typed) with a link to the source document. Each practice has an "Is this right?" choice: "This is accurate", "Needs revision" (with optional reasons) or "Wrong source or company". A comment is optional, and comments can be edited or deleted. A "Wrong source or company" report puts the practice under review, and it is not counted as met until the team reviews it. There is a Download PDF button.
 - Roadmap (/roadmap): the practices grouped into six stages in the order an AI tool usually matures. Meeting half the practices in a stage (rounded up) means the team can move on to the next stage; meeting all of them completes the stage.
+- Recommendations (/recommendations): for each practice not met yet, a suggested next step with readings from the resource library.
 - Company & Team (/company): invite colleagues by email, see pending invitations and cancel them.
 - Home (/hub): the public home page with the three tools. The Financing Codebook and Policy Codebook are coming soon.
 - About (/about): why the platform exists, where the framework comes from and who supports it.
@@ -178,7 +180,7 @@ const TOPICS: { test: RegExp; answer: string }[] = [
   {
     test: /upload|document|file|pdf|report.*(send|add)|add evidence|submit/i,
     answer:
-      "Go to Submit Evidence in your workspace menu. Upload the documents you already have, such as annual reports, evaluations, policies or pitch decks. The platform reads them and links passages to practices, then asks short questions only about practices they don't cover. You can come back and update your answers at any time; Your Submissions lists everything you have sent.",
+      "Go to Submit Evidence in your workspace menu. Upload the documents you already have, such as annual reports, evaluations, policies or pitch decks. The platform reads them and links passages to practices, then asks short questions only about practices they don't cover. You can come back and update your answers at any time; Submissions lists everything you have sent.",
   },
   {
     test: /wrong|incorrect|disagree|dispute|mistake|feedback|comment|revis/i,

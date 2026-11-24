@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Old and unused files we keep for reference (see archive/README.md).
+    "archive/**",
   ]),
 ]);
 

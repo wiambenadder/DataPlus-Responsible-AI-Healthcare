@@ -79,10 +79,10 @@ async function load(): Promise<Loaded | { error: string }> {
 }
 
 /**
- * Roadmap: the 31 practices in six stages. A flat tracker shows every
- * stage at a glance; below, the stages are listed step by step (as on
- * GOV.UK and university sites), with the current stage open. The Roadmap
- * Assistant answers questions about the roadmap and the site.
+ * Assessment Summary: we put the results for all five domains and the
+ * roadmap on one page, so a team can see where it stands and what to work
+ * on next without switching tabs. The stage tracker, the stages and the
+ * Roadmap Assistant are the same ones used on the Roadmap page.
  */
 export default function AssessmentOverviewPage() {
   const [loading, setLoading] = useState(true);
