@@ -69,26 +69,17 @@ export async function POST(request: NextRequest) {
 
     const extractedText = parsed.text;
 
-    console.log("Extracted text length:", extractedText?.length);
-    console.log("Upload ID:", uploadId);
-
     const updatePayload = {
       extracted_text: extractedText,
       extraction_status: "complete",
       processed_at: new Date().toISOString(),
     };
 
-    console.log("Update payload keys:", Object.keys(updatePayload));
-    console.log("extracted_text sample:", extractedText?.slice(0, 100));
-
     const { data: updateData, error: updateError } = await supabase
       .from("uploads")
       .update(updatePayload)
       .eq("id", uploadId)
       .select();
-
-    console.log("Update result:", updateData);
-    console.log("Update error:", updateError);
 
     if (updateError) {
       return NextResponse.json(

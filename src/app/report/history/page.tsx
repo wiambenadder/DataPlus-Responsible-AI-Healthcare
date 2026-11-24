@@ -135,9 +135,6 @@ export default function HistoryPage() {
       .select("*")
       .eq("company_id", profile.company_id);
 
-    console.log(uploadData);
-    console.log(uploadError);
-
     setUploads(uploadData || []);
 
     const grouped: Record<string, InterviewRow[]> = {};

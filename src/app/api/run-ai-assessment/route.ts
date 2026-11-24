@@ -236,11 +236,6 @@ ${response}
         aiResult.choices[0]
           .message.content ?? "";
 
-      console.log(
-        "AI OUTPUT:",
-        aiText
-      );
-
       const aiJson =
         JSON.parse(aiText);
 
