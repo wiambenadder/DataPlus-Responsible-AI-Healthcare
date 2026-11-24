@@ -9,6 +9,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+/** A pending invitation, as stored in company_invites. */
+type Invite = { company_id: string; email: string; role: string | null; created_at?: string | null };
+
 export default function CompanySetupPage() {
   const router = useRouter();
 
@@ -22,7 +25,7 @@ export default function CompanySetupPage() {
   // Invite-related state
   const [userId, setUserId] = useState<string | null>(null);
   const [checkingInvite, setCheckingInvite] = useState(true);
-  const [invite, setInvite] = useState<any>(null);
+  const [invite, setInvite] = useState<Invite | null>(null);
   const [inviteCompanyName, setInviteCompanyName] = useState("");
   const [acceptingInvite, setAcceptingInvite] = useState(false);
 

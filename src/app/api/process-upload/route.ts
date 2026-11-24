@@ -63,14 +63,11 @@ export async function POST(request: NextRequest) {
     // package's index.js — index.js runs debug code on import that tries
     // to read a sample PDF from the package's own test/ folder, which
     // throws ENOENT under Next.js bundling. lib/pdf-parse.js skips that.
-    // @ts-ignore
+    // @ts-expect-error pdf-parse has no type definitions for this file.
     const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
     const parsed = await pdfParse(buffer);
 
     const extractedText = parsed.text;
-
-    console.log("Extracted text length:", extractedText?.length);
-    console.log("Upload ID:", uploadId);
 
     const updatePayload = {
       extracted_text: extractedText,
@@ -78,17 +75,11 @@ export async function POST(request: NextRequest) {
       processed_at: new Date().toISOString(),
     };
 
-    console.log("Update payload keys:", Object.keys(updatePayload));
-    console.log("extracted_text sample:", extractedText?.slice(0, 100));
-
     const { data: updateData, error: updateError } = await supabase
       .from("uploads")
       .update(updatePayload)
       .eq("id", uploadId)
       .select();
-
-    console.log("Update result:", updateData);
-    console.log("Update error:", updateError);
 
     if (updateError) {
       return NextResponse.json(
@@ -110,7 +101,7 @@ export async function POST(request: NextRequest) {
       characters: extractedText.length,
       written: updateData[0]?.extracted_text?.length ?? 0,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
 
     // Mark this upload as failed so it doesn't sit stuck on "processing"
@@ -127,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: err.message ?? "Unknown error" },
+      { error: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }
     );
   }

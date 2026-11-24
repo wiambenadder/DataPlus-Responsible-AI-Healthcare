@@ -388,21 +388,12 @@ ${upload.extracted_text}
  const aiText =
   aiResult.choices[0].message.content ?? "";
 
-console.log("GPT RESPONSE:");
-console.log(aiText);
-
 const aiJson =
   JSON.parse(aiText);
 
-console.log("AI JSON:");
-console.log(aiJson);
-
-console.log("Matches Found:");
-console.log(aiJson.matches);
-
 for (const match of aiJson.matches) {
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("domain_mapping")
     .insert({
 
@@ -420,16 +411,10 @@ for (const match of aiJson.matches) {
 
       confidence: match.confidence
 
-    })
-    .select();
+    });
 
-  console.log("Inserted Row:");
-  console.log(data);
-
-  if (error) {
-    console.log("INSERT ERROR:");
-    console.log(error);
-  }
+  // We only log the error message, never the document text.
+  if (error) console.error("Could not save a match:", error.message);
 
 }
 
@@ -440,7 +425,7 @@ for (const match of aiJson.matches) {
       documentsProcessed: uploads?.length ?? 0,
     });
 
-} catch (error: any) {
+} catch (error) {
 
   console.error("DOMAIN MAPPING ERROR:");
   console.error(error);
@@ -448,7 +433,7 @@ for (const match of aiJson.matches) {
   return NextResponse.json(
     {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : "Unknown error",
     },
     {
       status: 500,
