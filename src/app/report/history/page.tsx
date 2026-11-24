@@ -127,7 +127,7 @@ export default function HistoryPage() {
       .eq("company_id", profile.company_id);
 
     const filteredInterviewData = (interviewData || []).filter(
-      (row: any) => !row.question?.startsWith("Evidence extracted from")
+      (row: InterviewRow) => !row.question?.startsWith("Evidence extracted from")
     );
 
     const { data: uploadData, error: uploadError } = await supabase
@@ -139,7 +139,7 @@ export default function HistoryPage() {
 
     const grouped: Record<string, InterviewRow[]> = {};
 
-    filteredInterviewData.forEach((row: any) => {
+    filteredInterviewData.forEach((row: InterviewRow) => {
       const period = row.reporting_period || "Unknown Period";
 
       if (!grouped[period]) {

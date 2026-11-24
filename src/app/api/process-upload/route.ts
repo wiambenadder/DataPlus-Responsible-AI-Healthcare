@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     // package's index.js — index.js runs debug code on import that tries
     // to read a sample PDF from the package's own test/ folder, which
     // throws ENOENT under Next.js bundling. lib/pdf-parse.js skips that.
-    // @ts-ignore
+    // @ts-expect-error pdf-parse has no type definitions for this file.
     const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
     const parsed = await pdfParse(buffer);
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       characters: extractedText.length,
       written: updateData[0]?.extracted_text?.length ?? 0,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
 
     // Mark this upload as failed so it doesn't sit stuck on "processing"
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: err.message ?? "Unknown error" },
+      { error: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }
     );
   }

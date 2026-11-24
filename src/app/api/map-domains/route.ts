@@ -425,7 +425,7 @@ for (const match of aiJson.matches) {
       documentsProcessed: uploads?.length ?? 0,
     });
 
-} catch (error: any) {
+} catch (error) {
 
   console.error("DOMAIN MAPPING ERROR:");
   console.error(error);
@@ -433,7 +433,7 @@ for (const match of aiJson.matches) {
   return NextResponse.json(
     {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : "Unknown error",
     },
     {
       status: 500,

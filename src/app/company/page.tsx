@@ -6,6 +6,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+/** A team member row, with the name and email from their profile. */
+type Member = {
+  id: string;
+  user_id: string;
+  role: string | null;
+  profile?: { id: string; full_name: string | null; email: string | null };
+};
+
 export default function CompanyPage() {
   const router = useRouter();
 
@@ -18,7 +26,7 @@ export default function CompanyPage() {
   const [partTimeStaff, setPartTimeStaff] = useState("");
   const [organizationType, setOrganizationType] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<
     { id: string; email: string; created_at?: string | null }[] | null
   >(null);
@@ -177,7 +185,7 @@ export default function CompanyPage() {
     setInviteMsg({ ok: true, text: `Invitation for ${email} cancelled.` });
   }
 
-  async function removeMember(member: any) {
+  async function removeMember(member: Member) {
   const confirmed = window.confirm(
     `Remove ${member.profile?.full_name || member.profile?.email} from this company?`
   );

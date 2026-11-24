@@ -111,7 +111,7 @@ ${response.answer}
       processed: responses?.length ?? 0,
     });
 
-  } catch (error: any) {
+  } catch (error) {
 
     console.error("BULLET POINT SUMMARY ERROR:");
     console.error(error);
@@ -119,7 +119,7 @@ ${response.answer}
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : "Unknown error",
       },
       {
         status: 500,
