@@ -8,37 +8,22 @@ import { domainStyle } from "@/lib/domain-info";
 const DIAGRAM = "/images/ai-implementation-framework.png";
 
 /**
- * Where each practice sits, by domain and stage. Two views for now, so the
- * team can pick one: a table that starts closed, and the slide as an image.
- * The table is built from STAGE_MAPPING. The image is not, so replace it if
- * the stages change.
+ * Shows where each practice sits, in two ways, so the team can pick one.
+ * Delete the option that isn't chosen. The table updates itself from
+ * STAGE_MAPPING; the image doesn't, so replace it if the stages change.
  */
 export default function RoadmapMap() {
-  const [view, setView] = useState<"table" | "diagram">("table");
-
   return (
-    <div className="space-y-3">
-      <div className="flex gap-1 border-b border-slate-200">
-        <ViewButton active={view === "table"} onClick={() => setView("table")}>Table</ViewButton>
-        <ViewButton active={view === "diagram"} onClick={() => setView("diagram")}>Diagram</ViewButton>
+    <div className="space-y-8">
+      <div className="space-y-3">
+        <p className="label-caps">Option A: Table</p>
+        <MapTable />
       </div>
-      {view === "table" ? <MapTable /> : <MapDiagram />}
+      <div className="space-y-3">
+        <p className="label-caps">Option B: Diagram</p>
+        <MapDiagram />
+      </div>
     </div>
-  );
-}
-
-function ViewButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={`-mb-px border-b-2 px-4 py-2 text-sm font-semibold ${
-        active ? "border-brand-navy text-brand-navy" : "border-transparent text-slate-600 hover:text-brand-navy"
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -55,9 +40,7 @@ function MapDiagram() {
           className="h-auto w-full"
         />
       </a>
-      <figcaption className="mt-2 text-sm text-slate-600">
-        Click the diagram to open it full size. The Table view lists the same practices.
-      </figcaption>
+      <figcaption className="mt-2 text-sm text-slate-600">Click the diagram to open it full size.</figcaption>
     </figure>
   );
 }
