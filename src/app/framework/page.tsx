@@ -182,8 +182,8 @@ export default function FrameworkPage() {
             A stage is <strong>complete</strong> when every practice in it is met.
           </li>
           <li>
-            You are <strong>ready to move on</strong> once at least {threshold} percent
-            of its practices are met. This threshold is provisional.
+            You are <strong>ready to move on</strong> from a stage once at least{" "}
+            {threshold} percent of its practices are met. This threshold is provisional.
           </li>
           <li>
             Your <strong>current stage</strong>{" "}
