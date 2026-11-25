@@ -164,7 +164,7 @@ export default function FrameworkPage() {
 
       <InfoSection id="roadmap" title="Roadmap Stages and Thresholds">
         <p>
-          The roadmap groups the practices into six stages, roughly in the order an
+          The roadmap groups the practices into six stages, in the order an
           AI tool matures.
         </p>
         <RoadmapMap />
@@ -183,26 +183,24 @@ export default function FrameworkPage() {
           </li>
           <li>
             You are <strong>ready to move on</strong> from a stage once at least{" "}
-            {threshold} percent of its practices are met, while you close the remaining gaps.
-            This threshold is provisional and may change as scoring is finalized.
+            {threshold} percent of its practices are met. This threshold is provisional.
           </li>
           <li>
             Your <strong>current stage</strong>{" "}
             is the first stage that isn&apos;t complete.
           </li>
         </ul>
-        <ol className="mt-6 space-y-6">
+        <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {STAGES.map((stage) => {
             const items = STAGE_MAPPING[stage.id];
             const needed = Math.ceil(items.length * ADVANCE_THRESHOLD);
             return (
-              <li key={stage.id} className="border-l-4 border-brand-navy pl-5">
+              <li key={stage.id} className="border-t-4 border-brand-navy bg-slate-50 p-4">
                 <p className="label-caps">Stage {stage.id}</p>
-                <p className="mt-1 font-serif text-2xl font-medium text-brand-navy">{stage.name}</p>
-                <p className="mt-1 text-[15px] text-slate-700">{stage.description}</p>
-                <p className="mt-2 text-[15px] text-slate-800">
-                  <strong>{items.length} practices.</strong> Ready to move on at {needed} met;
-                  complete at {items.length} met.
+                <p className="mt-1 font-serif text-xl font-medium leading-tight text-brand-navy">{stage.name}</p>
+                <p className="mt-1 text-[14px] leading-snug text-slate-700">{stage.description}</p>
+                <p className="mt-2 text-[14px] text-slate-800">
+                  <strong>{items.length} practices.</strong> Ready to move on at {needed} met.
                 </p>
               </li>
             );

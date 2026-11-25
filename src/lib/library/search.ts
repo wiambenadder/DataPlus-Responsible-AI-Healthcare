@@ -27,7 +27,10 @@ export type Passage = {
 /** What the website sends back with an answer: one line per source. */
 export type Source = Pick<Passage, "n" | "title" | "kind" | "url" | "page" | "authors" | "year">;
 
-/** Duke AI gateway (OpenAI-compatible). LITELLM_BASE_URL is for testing. */
+/**
+ * Where AI requests go. Duke's AI gateway by default. To use another
+ * OpenAI-style provider, set LITELLM_BASE_URL (e.g. https://api.openai.com/v1).
+ */
 export const gateway = () => process.env.LITELLM_BASE_URL || "https://litellm.oit.duke.edu";
 
 /**
