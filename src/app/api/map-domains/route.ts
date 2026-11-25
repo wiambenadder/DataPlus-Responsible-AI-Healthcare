@@ -30,6 +30,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUploadAccess } from "@/lib/requireMember";
 import OpenAI from "openai";
+import { gateway } from "@/lib/library/search";
 
 function cleanDomain(domain: string) {
   return domain
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     const openai = new OpenAI({
       apiKey: process.env.LITELLM_TOKEN,
-      baseURL: "https://litellm.oit.duke.edu",
+      baseURL: gateway(),
     });
 
     // Get every completed extraction

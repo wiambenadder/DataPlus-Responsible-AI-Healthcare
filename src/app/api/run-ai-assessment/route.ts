@@ -34,6 +34,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireMember } from "@/lib/requireMember";
 import OpenAI from "openai";
+import { gateway } from "@/lib/library/search";
 
 export async function POST(
   request: NextRequest
@@ -62,7 +63,7 @@ export async function POST(
 
     const openai = new OpenAI({
       apiKey: process.env.LITELLM_TOKEN,
-      baseURL: "https://litellm.oit.duke.edu",
+      baseURL: gateway(),
     });
 
     const {
