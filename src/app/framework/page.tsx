@@ -164,7 +164,7 @@ export default function FrameworkPage() {
 
       <InfoSection id="roadmap" title="Roadmap Stages and Thresholds">
         <p>
-          The roadmap groups the practices into six stages, roughly in the order an
+          The roadmap groups the practices into six stages, in the order an
           AI tool matures.
         </p>
         <RoadmapMap />
