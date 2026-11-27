@@ -1,11 +1,16 @@
 import { Resend } from "resend";
 import { KIND_LABEL, parseReason } from "@/lib/feedback-format";
-const resend = new Resend(process.env.RESEND_API_KEY);
 
-const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
+function getResend() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("Missing env var: RESEND_API_KEY");
+  return new Resend(apiKey);
+}
 
-if (!ADMIN_EMAIL) {
-  throw new Error("Missing env var: ADMIN_NOTIFICATION_EMAIL");
+function getAdminEmail() {
+  const email = process.env.ADMIN_NOTIFICATION_EMAIL;
+  if (!email) throw new Error("Missing env var: ADMIN_NOTIFICATION_EMAIL");
+  return email;
 }
 
 // Resend's shared testing domain (onboarding@resend.dev) can only deliver to
@@ -38,6 +43,8 @@ function esc(value: string | null | undefined): string {
 }
 
 export async function sendNewFeedbackEmail(feedback: FeedbackRecord) {
+  const resend = getResend();
+  const adminEmail = getAdminEmail();
   const { kind, reasons, comment } = parseReason(
     feedback.reason,
     feedback.feedback_type
@@ -48,7 +55,7 @@ export async function sendNewFeedbackEmail(feedback: FeedbackRecord) {
 
   await resend.emails.send({
     from: FROM_EMAIL,
-    to: ADMIN_EMAIL!,
+    to: adminEmail,
     subject,
     html: `
       <div style="font-family: sans-serif; font-size: 14px; color: #1c1b19; line-height: 1.5;">
@@ -69,11 +76,13 @@ export async function sendNewFeedbackEmail(feedback: FeedbackRecord) {
 }
 
 export async function sendFeedbackDecisionEmail(feedback: FeedbackRecord) {
+  const resend = getResend();
+  const adminEmail = getAdminEmail();
   const subject = `Feedback marked ${feedback.status}: ${feedback.domain} / ${feedback.subdomain}`;
 
   await resend.emails.send({
     from: FROM_EMAIL,
-    to: ADMIN_EMAIL!,
+    to: adminEmail,
     subject,
     html: `
       <div style="font-family: sans-serif; font-size: 14px; color: #1c1b19; line-height: 1.5;">
